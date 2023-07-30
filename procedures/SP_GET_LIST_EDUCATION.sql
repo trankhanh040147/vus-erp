@@ -1,4 +1,4 @@
-create or replace PROCEDURE "SP_GET_LIST_CERTIFICATE"
+create or replace PROCEDURE "SP_GET_LIST_EDUCATION"
 (p_token nvarchar2)
 is
 l_token_type NVARCHAR2(2000);
@@ -15,11 +15,11 @@ l_body_json clob;
 n_id NUMBER;
 n_employee_id NUMBER;
 n_code NVARCHAR2(100 CHAR);
-n_certificate_description NVARCHAR2(100 CHAR);
-n_start_date DATE;
+n_level_edu_description NVARCHAR2(2000);
+n_level_of_edu NUMBER;
+n_major NVARCHAR2(100 CHAR);
+n_school_name VARCHAR2(2000);
 n_end_date DATE;
-n_short_note NVARCHAR2(100 CHAR);
-n_certificate_type NVARCHAR2(100 CHAR);
 BEGIN
     --apex_web_service.g_request_headers.delete();
     --apex_web_service.g_request_headers(1).name := 'tenant_id';
@@ -61,7 +61,7 @@ BEGIN
     APEX_JSON.parse(
 
     apex_web_service.make_rest_request(
-            p_url => 'https://hra.sandbox.operations.dynamics.com/api/services/HRPortalServices/EmployeeProfileService/getListCertificateEmployee',
+            p_url => 'https://hra.sandbox.operations.dynamics.com/api/services/HRPortalServices/EmployeeProfileService/getListEducation',
             p_http_method => 'POST',
             --p_body => l_body,
             p_transfer_timeout => 3600
@@ -78,21 +78,24 @@ BEGIN
         n_id := TO_NUMBER(apex_json.get_varchar2('[%d].$id', i));
         n_employee_id := i;
         n_code := apex_json.get_varchar2('[%d].EmployeeCode', i);
-        n_certificate_description := apex_json.get_varchar2('[%d].CertificateDescription', i);
-        n_start_date := TO_DATE(apex_json.get_varchar2('[%d].StartDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        n_level_edu_description := apex_json.get_varchar2('[%d].LevelOfEduDescription', i);
+       
+        -- n_level_of_edu := TO_NUMBER(apex_json.get_varchar2('[%d].HcmEducationLevelId', i));
+        n_level_of_edu := 1;
+
+        n_major := apex_json.get_varchar2('[%d].VUSTC_Major', i);
+        n_school_name := apex_json.get_varchar2('[%d].NameOfSchool', i);
         n_end_date := TO_DATE(apex_json.get_varchar2('[%d].EndDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
-        n_short_note := apex_json.get_varchar2('[%d].HrmShortNote', i);
-        n_certificate_type := apex_json.get_varchar2('[%d].HcmCertificateTypeId', i);
          
-        SELECT COUNT(ID) INTO l_count_idemp FROM EMP_CERTIFICATE WHERE ID = i ;
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i ;
         If l_count_idemp > 0 Then
-            UPDATE EMP_CERTIFICATE SET EMPLOYEE_ID = n_employee_id, CERTIFICATE_DESCRIPTION = n_certificate_description,
-                                END_DATE = n_end_date, START_DATE = n_start_date,  SHORT_NOTE = n_short_note, CERTIFICATE_TYPE = n_certificate_type,  EMPLOYEE_CODE = n_code
+            UPDATE EMP_EDUCATION SET EMPLOYEE_ID = n_employee_id, LEVEL_OF_EDU = n_level_of_edu,
+                                MAJOR = n_major, PLACE = n_school_name,  GRADUATED_DATE = n_end_date, EMPLOYEE_CODE = n_code
             WHERE ID = i ;
 
         Else
-            INSERT INTO EMP_CERTIFICATE(ID, EMPLOYEE_ID, CERTIFICATE_DESCRIPTION, END_DATE, START_DATE, SHORT_NOTE, CERTIFICATE_TYPE, EMPLOYEE_CODE)
-            VALUES(i, i, n_certificate_description, n_end_date, n_start_date, n_short_note, n_certificate_type, n_code);
+            INSERT INTO EMP_EDUCATION(ID, EMPLOYEE_ID, LEVEL_OF_EDU, MAJOR, PLACE, GRADUATED_DATE, EMPLOYEE_CODE)
+            VALUES(i, i, n_level_of_edu, n_major, n_school_name, n_end_date, n_code);
         End If;
 
         COMMIT; 
