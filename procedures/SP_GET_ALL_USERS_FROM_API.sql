@@ -25,9 +25,9 @@ n_managerPosition NVARCHAR2(100);
 n_positionId NVARCHAR2(100);
 
 -- BANK ACCOUNT fields
-b_acc_num NVARCHAR2(50 CHAR);
-b_name NVARCHAR2(200 CHAR);
-b_branch NVARCHAR2(200 CHAR);
+b_acc_num NVARCHAR2(50);
+b_name NVARCHAR2(200);
+b_branch NVARCHAR2(200);
 
 BEGIN
     --apex_web_service.g_request_headers.delete();
@@ -107,18 +107,10 @@ BEGIN
                                 EMPLOYEE_CODE = n_code, USER_NAME = n_email, MANAGER_ID = n_managernumber ,POSITION_ID = n_positionId,MANAGER_POSITION_ID= n_managerPosition
             WHERE ID = i ;
 
-            -- Update bank accounts
-            UPDATE EMP_BANK SET EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code, BANK_ACC_NUM = b_acc_num,
-                    BANK_NAME = b_name, BANK_BRANCH = b_branch
-            WHERE ID = i ;
-
         Else
             INSERT INTO EMPLOYEES(ID, EMPLOYEE_ID, FIRST_NAME, LAST_NAME, FULL_NAME, PHONE_NUMBER, PERSONAL_EMAIL, EMPLOYEE_CODE, USER_NAME, MANAGER_ID,POSITION_ID,MANAGER_POSITION_ID)
             VALUES(i, i, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_email, n_managernumber,n_positionId,n_managerPosition);
-            
-            -- Insert bank accounts
-            INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
-            VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
+
         End If;
         SELECT COUNT(ID) INTO l_count_iduser FROM USERS WHERE PERSON_ID = i AND PERSON_TYPE = 'STAFF';
         If l_count_iduser > 0 Then
@@ -128,9 +120,23 @@ BEGIN
             INSERT INTO USERS(PERSON_ID, PERSON_TYPE, MANAGERPOSITION, USER_NAME)
             VALUES(i, 'STAFF', n_managerPosition, n_email);
         End If;
-
-        --n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         
+        -- Get bank accounts
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE ID = i ;
+        If l_count_idemp > 0 Then
+            -- Update bank accounts
+            UPDATE EMP_BANK SET EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code, BANK_ACC_NUM = b_acc_num,
+                    BANK_NAME = b_name, BANK_BRANCH = b_branch
+            WHERE ID = i ;
+
+        Else
+            -- Insert bank accounts
+            INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
+            VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
+
+        End If;
+       
+        n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
         
 
