@@ -11,6 +11,7 @@ l_numrow number;
 l_count_idemp number;
 l_count_iduser number;
 l_body_json clob;
+
 n_id number;
 n_name NVARCHAR2(2000);
 n_code NVARCHAR2(100);
@@ -23,6 +24,14 @@ n_manager VARCHAR2(2000);
 n_managernumber NVARCHAR2(100);
 n_managerPosition NVARCHAR2(100);
 n_positionId NVARCHAR2(100);
+--
+n_birth_date DATE;
+n_start_date DATE;
+n_gender_str NVARCHAR2(100);
+n_gender number;
+n_country NVARCHAR2(100);
+n_title NVARCHAR2(100);
+
 
 -- BANK ACCOUNT fields
 b_acc_num NVARCHAR2(50);
@@ -92,8 +101,19 @@ BEGIN
         n_phone := apex_json.get_clob('[%d].Phone', i);
         n_email := NVL(apex_json.get_clob('[%d].Email', i), i||'vus.account.null@vus-etsc.edu.vn');
         n_managernumber := apex_json.get_clob('[%d].ManagerNumber', i);
-        n_positionId := apex_json.get_varchar2('[%d].ManagerPosition', i);
-        n_managerPosition := apex_json.get_varchar2('[%d].PositionId', i);
+        n_positionId := apex_json.get_varchar2('[%d].PositionId', i);
+        n_managerPosition := apex_json.get_varchar2('[%d].ManagerPosition', i);
+        --
+        n_birth_date := TO_DATE(apex_json.get_varchar2('[%d].BirthDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        n_start_date := TO_DATE(apex_json.get_varchar2('[%d].EmployeeStartDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        n_gender_str := apex_json.get_varchar2('[%d].Gender', i);
+        n_gender := CASE 
+            WHEN n_gender_str LIKE 'Mr.%' THEN 1
+            WHEN n_gender_str LIKE 'Ms.%' OR n_gender_str LIKE 'Mrs.%' THEN 2
+            ELSE 0
+        END;        
+        n_country := apex_json.get_varchar2('[%d].Country', i);
+        n_title := apex_json.get_varchar2('[%d].Title', i);
 
         --Get user bank accounts
         b_acc_num := apex_json.get_varchar2('[%d].BankAccount', i);
@@ -122,7 +142,7 @@ BEGIN
             VALUES(i, 'STAFF', n_managerPosition, n_email);
         End If;
         
-        Get bank accounts
+        --Get bank accounts
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE ID = i ;
         If l_count_idemp > 0 Then
             -- Update bank accounts
