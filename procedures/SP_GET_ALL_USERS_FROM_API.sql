@@ -34,9 +34,37 @@ n_title NVARCHAR2(100);
 --
 
 -- BANK ACCOUNT fields
+n_total_id_types number;
 b_acc_num NVARCHAR2(50);
 b_name NVARCHAR2(200);
 b_branch NVARCHAR2(200);
+-- ID number fields
+total_id_types number := 4;
+CCCD_Id NVARCHAR2(50);
+CCCD_Issue_Place NVARCHAR2(100);
+CCCD_Issue_Date DATE;
+CCCD_Expiration_Date DATE;
+CMND_Id NVARCHAR2(50);
+CMND_Issue_Place NVARCHAR2(100);
+CMND_Issue_Date DATE;
+CMND_Expiration_Date DATE;
+Passport_Id NVARCHAR2(50);
+Passport_Issue_Place NVARCHAR2(100);
+Passport_Issue_Date DATE;
+Passport_Expiration_Date DATE;
+Visa_Id NVARCHAR2(50);
+Visa_Issue_Place NVARCHAR2(100);
+Visa_Issue_Date DATE;
+Visa_Expiration_Date DATE;
+EmpWorkPermit_Id NVARCHAR2(50);
+EmpWorkPermit_Issue_Place NVARCHAR2(100);
+EmpWorkPermit_Issue_Date DATE;
+WorkPermit_Expiration_Date DATE;
+id_index NUMBER;
+Temp_Id NVARCHAR2(50);
+Temp_Issue_Place NVARCHAR2(100);
+Temp_Issue_Date DATE;
+Temp_Expiration_Date DATE;
 
 BEGIN
     --apex_web_service.g_request_headers.delete();
@@ -119,6 +147,28 @@ BEGIN
         b_acc_num := apex_json.get_varchar2('[%d].BankAccount', i);
         b_name := apex_json.get_varchar2('[%d].BankName', i);
         b_branch := apex_json.get_varchar2('[%d].BranchName', i);
+
+        --Get user ID numbers
+        CCCD_Id := apex_json.get_varchar2('[%d].CCCD', i);
+        CCCD_Issue_Place := apex_json.get_varchar2('[%d].CCCD_IssuePlace', i);
+        CCCD_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].CCCD_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        CCCD_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].CCCDExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        CMND_Id := apex_json.get_varchar2('[%d].CMND', i);
+        CMND_Issue_Place := apex_json.get_varchar2('[%d].CMND_IssuePlace', i);
+        CMND_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].CMND_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        CMND_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].CMNDExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        Passport_Id := apex_json.get_varchar2('[%d].Passport', i);
+        Passport_Issue_Place := apex_json.get_varchar2('[%d].Passport_IssuePlace', i);
+        Passport_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].Passport_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        Passport_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].PassportExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        Visa_Id := apex_json.get_varchar2('[%d].Visa', i);
+        Visa_Issue_Place := apex_json.get_varchar2('[%d].Visa_IssuePlace', i);
+        Visa_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].Visa_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        Visa_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].VisaExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        EmpWorkPermit_Id := apex_json.get_varchar2('[%d].EmpWorkPermit', i);
+        EmpWorkPermit_Issue_Place := apex_json.get_varchar2('[%d].EmpWorkPermit_IssuePlace', i);
+        EmpWorkPermit_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].EmpWorkPermit_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+        WorkPermit_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].WorkPermitExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
         
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE ID = i ;
         If l_count_idemp > 0 Then
@@ -159,6 +209,25 @@ BEGIN
             VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
 
         End If;
+
+        --Get Id Numbers
+        -- FOR j in 1 .. total_id_types
+        -- LOOP
+        --     id_index := (i-1)*total_id_types+j;
+        --     SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE ID = id_index;
+        --     If l_count_idemp > 0 Then
+        --         -- Update bank accounts
+        --         UPDATE EMP_BANK SET EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code, BANK_ACC_NUM = b_acc_num,
+        --                 BANK_NAME = b_name, BANK_BRANCH = b_branch
+        --         WHERE ID = id_index ;
+
+        --     Else
+        --         -- Insert bank accounts
+        --         INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
+        --         VALUES(id_index, i, n_code, b_acc_num, b_name, b_branch);
+
+        --     End If;
+        -- END LOOP;
        
         -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
