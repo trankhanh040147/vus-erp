@@ -112,16 +112,17 @@ BEGIN
             VALUES(i, i, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_email, n_managernumber,n_positionId,n_managerPosition);
 
         End If;
+
         SELECT COUNT(ID) INTO l_count_iduser FROM USERS WHERE PERSON_ID = i AND PERSON_TYPE = 'STAFF';
         If l_count_iduser > 0 Then
-            UPDATE USERS SET MANAGERPOSITION = n_managerPosition, USER_NAME = n_email
+            UPDATE USERS SET MANAGERPOSITION = n_managerPosition,USER_NAME = n_email
             WHERE PERSON_ID = i AND PERSON_TYPE = 'STAFF';
         Else
             INSERT INTO USERS(PERSON_ID, PERSON_TYPE, MANAGERPOSITION, USER_NAME)
             VALUES(i, 'STAFF', n_managerPosition, n_email);
         End If;
         
-        -- Get bank accounts
+        Get bank accounts
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE ID = i ;
         If l_count_idemp > 0 Then
             -- Update bank accounts
@@ -136,10 +137,8 @@ BEGIN
 
         End If;
        
-        n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
+        -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
-        
-
          
     END LOOP;
     --DBMS_OUTPUT.put_line(TO_CHAR(n_id)||n_name||TO_CHAR(n_managerPosition));
