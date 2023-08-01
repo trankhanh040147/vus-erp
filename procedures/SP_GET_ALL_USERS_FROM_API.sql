@@ -219,50 +219,50 @@ BEGIN
         End If;
 
         --Get Id Numbers
-        FOR j in 0 .. total_id_types - 1
-        LOOP
-            id_index := (i-1)*total_id_types+j;
+        -- FOR j in 0 .. total_id_types - 1
+        -- LOOP
+        --     id_index := (i-1)*total_id_types+j;
 
-            -- get ID data
-            Temp_Id := CASE 
-                WHEN j = 0 THEN CCCD_Id
-                WHEN j = 1 THEN Passport_Id
-                WHEN j = 2 THEN EmpWorkPermit_Id
-                WHEN j = 3 THEN PIT_Id
-            END;   
-            Temp_Issue_Place := CASE 
-                WHEN j = 0 THEN CCCD_Issue_Place
-                WHEN j = 1 THEN Passport_Issue_Place
-                WHEN j = 2 THEN EmpWorkPermit_Issue_Place
-                WHEN j = 3 THEN PIT_Issue_Place
-            END;   
-            Temp_Issue_Date := CASE 
-                WHEN j = 0 THEN CCCD_Issue_Date
-                WHEN j = 1 THEN Passport_Issue_Date
-                WHEN j = 2 THEN EmpWorkPermit_Issue_Date
-                WHEN j = 3 THEN PIT_Issue_Date
-            END;   
-            Temp_Expiration_Date := CASE 
-                WHEN j = 0 THEN CCCD_Expiration_Date
-                WHEN j = 1 THEN Passport_Expiration_Date
-                WHEN j = 2 THEN WorkPermit_Expiration_Date
-                WHEN j = 3 THEN PIT_Expiration_Date
-            END;   
+        --     -- get ID data
+        --     Temp_Id := CASE 
+        --         WHEN j = 0 THEN CCCD_Id
+        --         WHEN j = 1 THEN Passport_Id
+        --         WHEN j = 2 THEN EmpWorkPermit_Id
+        --         WHEN j = 3 THEN PIT_Id
+        --     END;   
+        --     Temp_Issue_Place := CASE 
+        --         WHEN j = 0 THEN CCCD_Issue_Place
+        --         WHEN j = 1 THEN Passport_Issue_Place
+        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Place
+        --         WHEN j = 3 THEN PIT_Issue_Place
+        --     END;   
+        --     Temp_Issue_Date := CASE 
+        --         WHEN j = 0 THEN CCCD_Issue_Date
+        --         WHEN j = 1 THEN Passport_Issue_Date
+        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Date
+        --         WHEN j = 3 THEN PIT_Issue_Date
+        --     END;   
+        --     Temp_Expiration_Date := CASE 
+        --         WHEN j = 0 THEN CCCD_Expiration_Date
+        --         WHEN j = 1 THEN Passport_Expiration_Date
+        --         WHEN j = 2 THEN WorkPermit_Expiration_Date
+        --         WHEN j = 3 THEN PIT_Expiration_Date
+        --     END;   
 
-            SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID = id_index;
-            If l_count_idemp > 0 Then
-                -- Update id numbers
-                UPDATE EMP_ID_NUMBER SET ID_NUMBER = Temp_Id, ISSUE_DATE = Temp_Issue_Date, EXPIRATION_DATE = Temp_Expiration_Date, 
-                    ISSUE_PLACE = Temp_Issue_Place, EMPLOYEE_ID = i, ID_TYPE = j
-                WHERE ID = id_index ;
+        --     SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID = id_index;
+        --     If l_count_idemp > 0 Then
+        --         -- Update id numbers
+        --         UPDATE EMP_ID_NUMBER SET ID_NUMBER = Temp_Id, ISSUE_DATE = Temp_Issue_Date, EXPIRATION_DATE = Temp_Expiration_Date, 
+        --             ISSUE_PLACE = Temp_Issue_Place, EMPLOYEE_ID = i, ID_TYPE = j
+        --         WHERE ID = id_index ;
 
-            Else
-                -- Insert id numbers
-                INSERT INTO EMP_ID_NUMBER(ID, ID_NUMBER, ISSUE_DATE, EXPIRATION_DATE, ISSUE_PLACE, EMPLOYEE_ID, EMPLOYEE_CODE, ID_TYPE)
-                VALUES(id_index, Temp_Id, Temp_Issue_Date, Temp_Expiration_Date, Temp_Issue_Place, i, n_code, j);
+        --     Else
+        --         -- Insert id numbers
+        --         INSERT INTO EMP_ID_NUMBER(ID, ID_NUMBER, ISSUE_DATE, EXPIRATION_DATE, ISSUE_PLACE, EMPLOYEE_ID, EMPLOYEE_CODE, ID_TYPE)
+        --         VALUES(id_index, Temp_Id, Temp_Issue_Date, Temp_Expiration_Date, Temp_Issue_Place, i, n_code, j);
 
-            End If;
-        END LOOP;
+        --     End If;
+        -- END LOOP;
        
         -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
