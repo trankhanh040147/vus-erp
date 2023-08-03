@@ -1,4 +1,4 @@
-create or replace PROCEDURE "SP_GET_LIST_ABSENCE_GROUP_EMPLOYEE"
+create or replace PROCEDURE "SP_GET_ABSENCE_GROUP_EMPLOYEE"
 (p_token nvarchar2)
 is
 l_token_type NVARCHAR2(2000);
@@ -28,11 +28,11 @@ BEGIN
     apex_web_service.g_request_headers(2).name := 'Content-Type';
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
 
-    FOR r in(SELECT EMPLOYEE_CODE, DATAAREA FROM EMPLOYEES WHERE EMPLOYEE_CODE = '488')
+    FOR r in(SELECT EMPLOYEE_CODE, DATAAREA FROM EMPLOYEES WHERE EMPLOYEE_CODE = '1617')
     LOOP
 
         l_body := '{"_jsonRequest":{"EmployeeCode":"'||r.EMPLOYEE_CODE||'","legal_entity":"'||r.DATAAREA||'"} }';
-
+        
         DBMS_OUTPUT.put_line(l_body);
         --APEX_JSON.parse(
 
@@ -43,11 +43,9 @@ BEGIN
                 p_transfer_timeout => 3600
                 ) ;
         --);
-        
         l_response := TO_CLOB('['||REGEXP_REPLACE(TO_CHAR(l_response), 'Benefit accrual', 'Benefit_accrual')||']');
         APEX_JSON.parse(l_response);
         --l_list := APEX_JSON.json_list(l_response.get('Benefit accrual'));
-
         l_numrow := APEX_JSON.get_count (p_path =>'.');
         FOR i IN 1..l_numrow LOOP
             n_legal_entity := apex_json.get_varchar2('[%d].legal_entity', i);
@@ -55,7 +53,6 @@ BEGIN
             l_rowsub := apex_json.get_count('[%d].Benefit accrual');
             DBMS_OUTPUT.put_line('đếm số chuỗi trả về :' ||to_char(l_numrow) ||' Benefit accrual: '||to_char(l_rowsub)||' n_legal_entity:'||n_legal_entity);
         END LOOP;
-        
         --FOR i IN 1 .. l_rowsub LOOP
             
             --n_carryforward := NVL(TO_NUMBER(apex_json.GET_NUMBER('Benefit accrual[%d].Planyearstart', i)), 0);
