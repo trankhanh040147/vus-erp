@@ -1,5 +1,4 @@
 create or replace PROCEDURE "SP_GET_ABSENCE_GROUP_EMPLOYEE"
-(p_token nvarchar2)
 is
 l_token_type NVARCHAR2(2000);
 l_access_token NVARCHAR2(2000);
@@ -19,7 +18,9 @@ n_planyearused number;
 n_employeeCode NVARCHAR2(200);
 l_list clob;
 n_legal_entity NVARCHAR2(200);
+p_token nvarchar2(10000);
 BEGIN
+    SP_GET_TOKEN(p_token);
     apex_web_service.g_request_headers.delete();    
     
     apex_web_service.g_request_headers(1).name := 'Authorization';
