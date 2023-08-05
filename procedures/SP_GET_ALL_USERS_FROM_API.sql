@@ -145,7 +145,7 @@ BEGIN
         n_code := apex_json.get_clob('[%d].Code', i);
         n_firstname := apex_json.get_clob('[%d].FirstName', i);
         n_lastname := apex_json.get_clob('[%d].LastName', i);
-        n_name := apex_json.get_clob('[%d].MiddleName', i);
+        n_name := apex_json.get_clob('[%d].Name', i);
         n_phone := apex_json.get_clob('[%d].Phone', i);
         n_email := NVL(apex_json.get_clob('[%d].Email', i), i||'vus.account.null@vus-etsc.edu.vn');
         n_managernumber := apex_json.get_clob('[%d].ManagerNumber', i);
@@ -205,20 +205,24 @@ BEGIN
         EmpWorkPermit_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].EmpWorkPermit_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
         WorkPermit_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].WorkPermitExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
         
+        -- Update EMPLOYEES table
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE ID = i ;
         If l_count_idemp > 0 Then
             UPDATE EMPLOYEES SET EMPLOYEE_ID = i, FIRST_NAME = n_firstname, LAST_NAME = n_lastname,
                                 FULL_NAME = n_name, PHONE_NUMBER = n_phone,  PERSONAL_EMAIL = n_email,
                                 EMPLOYEE_CODE = n_code, USER_NAME = n_email, MANAGER_ID = n_managernumber ,POSITION_ID = n_positionId,MANAGER_POSITION_ID= n_managerPosition,
                                 DOB = n_birth_date, START_DATE = n_start_date, GENDER = n_gender, COUNTRY = n_country, TITLE = n_title, DATAAREA = n_data_area, 
-                                TEMPORARY_ADDRESS = n_temp_address, PERMANENT_ADDRESS = n_prim_address, SOCIAL = n_social
+                                TEMPORARY_ADDRESS = n_temp_address, PERMANENT_ADDRESS = n_prim_address, SOCIAL = n_social,
+                                PROFILE_ID = n_ProfileId, SCHEDULE = n_Schedule
+                                
             WHERE ID = i ;
 
         Else
             INSERT INTO EMPLOYEES(ID, EMPLOYEE_ID, FIRST_NAME, LAST_NAME, FULL_NAME, PHONE_NUMBER, PERSONAL_EMAIL, EMPLOYEE_CODE, USER_NAME, 
-                MANAGER_ID,POSITION_ID,MANAGER_POSITION_ID, DOB, START_DATE, GENDER, COUNTRY, TITLE, DATAAREA)
+                MANAGER_ID,POSITION_ID,MANAGER_POSITION_ID, DOB, START_DATE, GENDER, COUNTRY, TITLE, DATAAREA, TEMPORARY_ADDRESS, PERMANENT_ADDRESS, 
+                SOCIAL, PROFILE_ID, SCHEDULE)
             VALUES(i, i, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_email, n_managernumber,n_positionId,n_managerPosition,
-                n_birth_date, n_start_date, n_gender, n_country, n_title, n_data_area);
+                n_birth_date, n_start_date, n_gender, n_country, n_title, n_data_area,n_temp_address, n_prim_address, n_social, n_ProfileId, n_Schedule);
 
         End If;
 
