@@ -2,6 +2,16 @@ declare
 v_request_id number;
 v_action nvarchar2(100);
 v_day_temp number:=0;
+
+r_name_type nvarchar(200);
+r_AdjustedHours float(10);
+r_AdjustmentType nvarchar(100);
+r_TransactionDate date;
+r_Description nvarchar(200);
+r_EmployeeCode nvarchar(100);
+r_HRMAbsenceCodeId nvarchar(100);
+r_IDPortal number;
+
 begin
 v_request_id := apex_application.g_x01;
 --v_action := apex_application.g_x02;
@@ -37,6 +47,23 @@ for rec in (select * from ABSENCE_GROUP_EMPLOYEE eal join EMPLOYEE_REQUESTS er o
             set CARRY_FORWARD_USED = rec.CARRY_FORWARD_USED + rec.total_days,
             DAY_APPROVE = sysdate,
             CARRY_FORWARD = rec.CARRY_FORWARD - rec.total_days
+            -- Create leave request API
+
+            for rec in (select * FROM EMPLOYEE_REQUESTS where id = v_request_id) loop
+                r_name_type := rec.NAME;
+                r_AdjustedHours := rec.TOTAL_DAYS;
+                r_AdjustmentType := rec.TYPE;
+                r_TransactionDate date := rec.FROM_DATE;
+                r_Description := rec.NOTE;
+                r_EmployeeCode := EMPLOYEE_CODE_REQ;
+                r_HRMAbsenceCodeId := rec.LEAVE_TYPE;
+                r_IDPortal := rec.ID;
+            end loop;
+            
+            SP_CREATE_LEAVER_REQUEST(
+                r_AdjustedHours, r_AdjustmentType, r_TransactionDate, r_Description, r_EmployeeCode, r_HRMAbsenceCodeId, r_IDPortal
+            );
+
         where EMPLOYEE_CODE = rec.EMPLOYEE_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY');
         else
             v_day_temp := rec.total_days - rec.CARRY_FORWARD;
