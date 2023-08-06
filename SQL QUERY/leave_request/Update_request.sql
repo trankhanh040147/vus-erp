@@ -9,6 +9,7 @@ r_AdjustmentType number;
 r_TransactionDate date;
 r_Description nvarchar2(100);
 r_EmployeeCode nvarchar2(100);
+r_HRMAbsenceCodeGroupId nvarchar2(100);
 r_HRMAbsenceCodeId nvarchar2(100);
 r_IDPortal NUMBER;
 
@@ -62,12 +63,16 @@ where er.id = v_request_id and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))
                     r_TransactionDate := rec.FROM_DATE;
                     r_Description := rec.NOTE;
                     r_EmployeeCode := rec.EMPLOYEE_CODE_REQ;
-                    r_HRMAbsenceCodeId := rec.LEAVE_TYPE;
+                    r_HRMAbsenceCodeGroupId := rec.LEAVE_TYPE;
                     r_IDPortal := rec.ID;
                 end loop;
                 update EMPLOYEE_REQUESTS set emp_req_status = 3,man_res_status = 3 where id = v_request_id;
                 SP_CREATE_LEAVER_REQUEST(
-                    TO_CHAR(r_AdjustedHours), TO_CHAR(r_AdjustmentType), TO_CHAR(r_TransactionDate, 'MM-DD-YYYY'), r_Description, r_EmployeeCode, r_HRMAbsenceCodeId, TO_CHAR(r_IDPortal)
+                    TO_CHAR(r_AdjustedHours), 
+                    TO_CHAR(r_AdjustmentType), 
+                    TO_CHAR(r_TransactionDate, 'MM-DD-YYYY'), 
+                    r_Description, r_EmployeeCode, r_HRMAbsenceCodeGroupId, 
+                    TO_CHAR(r_IDPortal)
                 );
                 /*
             end;

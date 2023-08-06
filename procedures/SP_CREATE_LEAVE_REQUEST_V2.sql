@@ -4,7 +4,7 @@ p_adjustmenttype varchar,
 p_transactiondate varchar,
 p_description varchar,
 p_employeeCode varchar,
-p_hrmabsencecodeid varchar,
+p_HRMAbsenceCodeGroupId varchar,
 p_portalID varchar)
 is
 --
@@ -24,7 +24,7 @@ n_personal_email NVARCHAR2(200);
 n_token NVARCHAR2(5000);
 --
 n_TotalRows number;
-n_HRMAbsenceCodeGroupId NVARCHAR2(100);
+n_HRMAbsenceCodeId NVARCHAR2(100);
 n_Status NVARCHAR2(50);
 n_FromDate date;
 n_ToDate date;
@@ -44,10 +44,17 @@ BEGIN
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
     
     --------> Get values for BODY <---------
+    -- Unknow params
+    n_TotalRows = 1;
+    n_Status = 'Approved';
+    n_NumberDayOff = p_adjustedhours; -- TotalDays
+    --
+    SELECT 
+
     -- Get employee LegalEntityID --
     SELECT DATAAREA INTO n_legal_entity FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode; 
     
-    -- SELECT NAME INTO n_request_type_name FROM REQUEST_TYPE WHERE ID = p_hrmabsencecodeid;
+    -- SELECT NAME INTO n_request_type_name FROM REQUEST_TYPE WHERE ID = p_HRMAbsenceCodeGroupId;
 
     --------> Set BODY <---------
     l_body := '{"_jsonRequest":
@@ -59,8 +66,8 @@ BEGIN
         "Description":"'||p_description||'",
         "TransactionDate":"'||p_transactiondate||'",
         "EmployeeCode":"'||n_EmployeeCode||'",
-        "HRMAbsenceCodeId":"'||p_hrmabsencecodeid||'",
-        "HRMAbsenceCodeGroupId":"'||n_HRMAbsenceCodeGroupId||'",
+        "HRMAbsenceCodeId":"'||p_HRMAbsenceCodeGroupId||'",
+        "HRMAbsenceCodeGroupId":"'||n_HRMAbsenceCodeId||'",
         "IDPortal":"'||p_portalID||'",
         "Status":"'||n_Status||'",
         "FromDate":"'||n_FromDate||'",
