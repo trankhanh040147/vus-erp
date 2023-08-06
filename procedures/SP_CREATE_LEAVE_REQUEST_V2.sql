@@ -29,10 +29,11 @@ n_Status NVARCHAR2(50);
 n_FromDate date;
 n_ToDate date;
 n_NumberDayOff number;
-n_StartTime date;
-n_EndTime date;
+n_StartTime NVARCHAR2(100);
+n_EndTime NVARCHAR2(100);
 n_AccrualId NVARCHAR2(100);
 n_AllDay NVARCHAR2(100);
+n_totalDays FLOAT(10);
 
 BEGIN
     SP_GET_TOKEN(n_token);
@@ -45,34 +46,46 @@ BEGIN
     
     --------> Get values for BODY <---------
     -- Unknow params
-    n_TotalRows = 1;
-    n_Status = 'Approved';
-    n_NumberDayOff = p_adjustedhours; -- TotalDays
-    --
-    SELECT 
+    n_TotalRows := 1;
+    n_Status := 'Approved';
+    n_NumberDayOff := n_totalDays; -- TotalDays
+    n_FromDate := p_transactiondate;
+    n_StartTime := '8:00';
+    n_EndTime := '13:00';
+    -- Query remainning params --
+
+    ---- Find HRM_ABSENCE_CODE_ID ----
+    SELECT HRM_ABSENCE_CODE_ID, BENEFIT_ACCRUAL_PLAN INTO n_HRMAbsenceCodeId, n_AccrualId FROM ABSENCE_GROUP_EMPLOYEE 
+        WHERE HRM_ABSENCE_CODE_GROUP_ID = p_HRMAbsenceCodeGroupId AND AVAILABLE > 0;
+
+    SELECT TOTAL_DAYS, ALL_DAY 
+        INTO n_totalDays, n_AllDay
+        FROM EMPLOYEE_REQUESTS
+        WHERE ID = p_portalID;
+
+
+    n_ToDate := n_FromDate + INTERVAL '1' DAY * FLOOR(n_TotalDays);
 
     -- Get employee LegalEntityID --
     SELECT DATAAREA INTO n_legal_entity FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode; 
-    
-    -- SELECT NAME INTO n_request_type_name FROM REQUEST_TYPE WHERE ID = p_HRMAbsenceCodeGroupId;
 
     --------> Set BODY <---------
     l_body := '{"_jsonRequest":
         {
         "LegalEntityID":"'||n_legal_entity||'",
-        "TotalRows":"'||n_TotalRows||'",
+        "TotalRows":"'||TO_CHAR(n_TotalRows)||'",
         "AdjustedHours":"'||p_adjustedhours||'",
         "AdjustmentType":"'||p_adjustmenttype||'",
         "Description":"'||p_description||'",
         "TransactionDate":"'||p_transactiondate||'",
-        "EmployeeCode":"'||n_EmployeeCode||'",
+        "EmployeeCode":"'||p_employeeCode||'",
         "HRMAbsenceCodeId":"'||p_HRMAbsenceCodeGroupId||'",
         "HRMAbsenceCodeGroupId":"'||n_HRMAbsenceCodeId||'",
         "IDPortal":"'||p_portalID||'",
         "Status":"'||n_Status||'",
-        "FromDate":"'||n_FromDate||'",
-        "ToDate":"'||n_ToDate||'",
-        "NumberDayOff":"'||n_NumberDayOff||'",
+        "FromDate":"'||TO_CHAR(n_FromDate, 'MM-DD-YYYY') ||'",
+        "ToDate":"'||TO_CHAR(n_ToDate, 'MM-DD-YYYY') ||'",
+        "NumberDayOff":"'||TO_CHAR(n_NumberDayOff)||'",
         "StartTime":"'||n_StartTime||'",
         "EndTime":"'||n_EndTime||'",
         "AccrualId":"'||n_AccrualId||'",
