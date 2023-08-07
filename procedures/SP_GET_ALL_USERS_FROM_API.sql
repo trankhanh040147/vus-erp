@@ -8,7 +8,9 @@ l_authorization NVARCHAR2(2000);
 l_response clob;
 l_numrow number;
 l_count_idemp number;
+l_count_id_emer number;
 l_count_iduser number;
+l_count_id_social number;
 l_body_json clob;
 
 n_id number;
@@ -81,6 +83,14 @@ n_PhoneEmergencyContact NVARCHAR2(100);
 n_ProfileId NVARCHAR2(100);
 n_Schedule  NVARCHAR2(100);
 -- Social Insurance
+n_SocialInsuranceNumber NVARCHAR2(100);
+n_HealthInsuranceCard NVARCHAR2(100);
+n_HospitalOrClinicCode NVARCHAR2(100);
+n_HouseholderFullName NVARCHAR2(100);
+n_HouseholderIDNumber NVARCHAR2(100);
+n_HouseholderRelationship NVARCHAR2(100);
+n_Householder_DOB NVARCHAR2(100);
+
 
 p_token nvarchar2(10000);
 
@@ -207,6 +217,15 @@ BEGIN
         EmpWorkPermit_Issue_Date := TO_DATE(apex_json.get_varchar2('[%d].EmpWorkPermit_IssueDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
         WorkPermit_Expiration_Date := TO_DATE(apex_json.get_varchar2('[%d].WorkPermitExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
         
+        -- Social Insurance
+        n_SocialInsuranceNumber := apex_json.get_varchar2('[%d].SocialInsuranceNumber', i);
+        n_HealthInsuranceCard := apex_json.get_varchar2('[%d].HealthInsuranceCard', i);
+        n_HospitalOrClinicCode := apex_json.get_varchar2('[%d].HospitalOrClinicCode', i);
+        n_HouseholderFullName := apex_json.get_varchar2('[%d].HouseholderFullName', i);
+        n_HouseholderIDNumber := apex_json.get_varchar2('[%d].HouseholderIDNumber', i);
+        n_HouseholderRelationship := apex_json.get_varchar2('[%d].HouseholderRelationship', i);
+        n_Householder_DOB := apex_json.get_varchar2('[%d].Householder_DOB', i);
+
         -- Update EMPLOYEES table
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE ID = i ;
         If l_count_idemp > 0 Then
@@ -296,15 +315,49 @@ BEGIN
                 VALUES(id_index, Temp_Id, Temp_Issue_Date, Temp_Expiration_Date, Temp_Issue_Place, i, n_code, j);
 
             End If;
+
+            -- Update/Insert Emergency Contact
+            SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE ID = i;
+            If l_count_id_emer > 0 Then
+                -- Update Emergency Contact
+                UPDATE EMP_EMERGENCY_CONTACT EEC 
+                    SET EEC.EMPLOYEE_ID = i, EEC.EMPLOYEE_CODE = n_code,
+                    EME_FULL_NAME = n_FullNameEmergencyContact, RELATION_SHIP = n_RelationshipEmergencyContact, EME_PHONE_NUMBER = n_PhoneEmergencyContact 
+                    WHERE ID = i ;
+            Else
+                -- Insert Emergency Contact
+                INSERT INTO EMP_EMERGENCY_CONTACT(ID, EMPLOYEE_ID, EMPLOYEE_CODE, EME_FULL_NAME, RELATION_SHIP, EME_PHONE_NUMBER)
+                VALUES(i, i, n_code, n_FullNameEmergencyContact, n_RelationshipEmergencyContact, n_PhoneEmergencyContact);
+
+            End If;
+
+            -- Update [Social_Insurance]
+            SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE ID = i;
+            If l_count_id_social > 0 Then
+                -- Update Emergency Contact
+                UPDATE EMP_SOCICAL_INSURANCE EEC 
+                    SET SOC_INS_NUMBER = n_SocialInsuranceNumber, PRI_HEAL_SERVICE = n_HealthInsuranceCard,
+                        SOC_HOSPITAL_CODE = n_HospitalOrClinicCode, SOC_HOU_NAME = n_HouseholderFullName, 
+                        SOC_HOU_DOB = n_Householder_DOB, SOC_HOU_ID = n_HouseholderIDNumber,
+                        SOC_RELATIONSHIP = n_HouseholderRelationship, EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code;
+                    WHERE ID = i ;
+            Else
+                -- Insert Emergency Contact
+                INSERT INTO EMP_SOCICAL_INSURANCE(ID, EMPLOYEE_ID, EMPLOYEE_CODE, SOC_INS_NUMBER, PRI_HEAL_SERVICE, SOC_HOSPITAL_CODE, SOC_HOU_NAME, SOC_HOU_DOB, SOC_HOU_ID, SOC_RELATIONSHIP)
+                VALUES(i, i, n_code, n_SocialInsuranceNumber, n_HealthInsuranceCard, n_HospitalOrClinicCode, n_HouseholderFullName, n_Householder_DOB, n_HouseholderIDNumber, n_HouseholderRelationship);
+
+            End If;
+
         END LOOP;
 
-        
-       
         -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
          
     END LOOP;
     --DBMS_OUTPUT.put_line(TO_CHAR(n_id)||n_name||TO_CHAR(n_managerPosition));
+
+    SP_GET_LIST_EDUCATION();
+    SP_GET_LIST_CERTIFICATE();
     
 END;
 /
