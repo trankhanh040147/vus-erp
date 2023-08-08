@@ -1,5 +1,4 @@
 create or replace PROCEDURE "SP_GET_LIST_EDUCATION"
-(p_token nvarchar2)
 is
 l_token_type NVARCHAR2(2000);
 l_access_token NVARCHAR2(2000);
@@ -20,7 +19,9 @@ n_level_of_edu NUMBER;
 n_major NVARCHAR2(100 CHAR);
 n_school_name VARCHAR2(2000);
 n_end_date DATE;
+p_token NVARCHAR2(10000);
 BEGIN
+    SP_GET_TOKEN(p_token);
     --apex_web_service.g_request_headers.delete();
     --apex_web_service.g_request_headers(1).name := 'tenant_id';
     --apex_web_service.g_request_headers(1).value := 'd1005fc5-bff9-42d5-81e5-1f3fcb089799';
