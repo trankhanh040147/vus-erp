@@ -87,6 +87,8 @@ BEGIN
         n_major := apex_json.get_varchar2('[%d].VUSTC_Major', i);
         n_school_name := apex_json.get_varchar2('[%d].NameOfSchool', i);
         n_end_date := TO_DATE(apex_json.get_varchar2('[%d].EndDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
+
+        
          
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i ;
         If l_count_idemp > 0 Then
