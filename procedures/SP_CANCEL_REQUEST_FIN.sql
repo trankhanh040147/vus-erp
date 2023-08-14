@@ -18,7 +18,9 @@ n_request_type_name NVARCHAR2(200);
 n_personal_email NVARCHAR2(200);
 n_token_value NVARCHAR2(2000);
 n_token NVARCHAR2(5000);
+n_approve_date NVARCHAR2(200);
 BEGIN
+    SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
     SELECT VALUE INTO n_token_value FROM APPLICATIONS_CONFIGS WHERE KEY = 'TOKEN' AND ROWNUM = 1;
     SP_GET_TOKEN(n_token);
     apex_web_service.g_request_headers.delete();    
