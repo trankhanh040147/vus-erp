@@ -25,7 +25,11 @@ select er.ID,
   left join REQUEST_TYPE rt on er.LEAVE_TYPE = rt.REQUEST_TYPE_CODE
   left join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
   join STATUS s on er.emp_req_status = s.id
-  where er.IS_DEL = 0 and er.REQUESTOR_ID <> :APP_USER_ID --and er.man_res_status is null 
+  where er.IS_DEL = 0 and er.REQUESTOR_ID <> :APP_USER_ID
+  and to_date(SUBMIT_DATE,'MM/DD/YYYY') between to_date(:P9_FROM_DATE,'MM/DD/YYYY') and to_date(:P9_TO_DATE,'MM/DD/YYYY')
+  
+  
+   --and er.man_res_status is null 
   /*
   union
   select er.ID,
