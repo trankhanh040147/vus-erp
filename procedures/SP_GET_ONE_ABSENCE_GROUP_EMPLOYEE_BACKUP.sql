@@ -139,16 +139,12 @@ BEGIN
                 t_total_days := t_trans_Planyearused + t_trans_Carryforward;
 
                 -- t_all_day := CASE WHEN t_total_days = 0.5 THEN 'N' ELSE 'Y' END;
-                t_all_day := CASE WHEN t_total_days = 0.5 THEN 'N' ELSE 'Y' END;
+                t_all_day := CASE WHEN t_total_days = 0.5 or t_total_days = -0.5 THEN 'N' ELSE 'Y' END;
 
                 -- t_end_date :=
-                -- t_status :=
-                -- t_responser_id :=
-                -- n_hrm_absence_code_group_id :=
-                -- t_target_code :=
-                -- t_trans_date :=
-                -- n_benefit_accrual_plan :=
-                -- t_end_date = t_trans_date + 
+                t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
+                SELECT EMPLOYEE_ID INTO t_responser_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_employeeCode)
+                SELECT MANAGER_POSITION_ID INTO t_target_code FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_employeeCode)
                 
                 DBMS_OUTPUT.put_line('Transaction ' || j || ' details:');
                 DBMS_OUTPUT.put_line('Worker-name: ' || t_worker);
