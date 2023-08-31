@@ -9,38 +9,29 @@ manager_email NVARCHAR2(100);
 manager_name NVARCHAR2(100);
 begin
 
-if :P10_ANNUAL_LEAVE = 'APL' then
-    for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
-        if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY')  then
-            -- CF not expired
-            if  :P10_TOTAL_DAYS <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
-                -- CF enough
-                v_benefit_code := rec.CARRY_FORWARD_CODE;
-                v_crf_temp := :P10_TOTAL_DAYS;
-            elsif rec.CARRY_FORWARD_AVALABLE > 0 and :P10_TOTAL_DAYS > rec.CARRY_FORWARD_AVALABLE then
-                -- CF not enough
-                v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CARRY_FORWARD_CODE;
-                v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
-                v_annual_temp := :P10_TOTAL_DAYS - rec.CARRY_FORWARD_AVALABLE;
-            else 
-                -- CF not expired, CF = 0
-                v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
-                v_annual_temp := :P10_TOTAL_DAYS;
-            end if;
-        else
+for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
+    if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY')  then
+        -- CF not expired
+        if  :P10_TOTAL_DAYS <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+            -- CF enough
+            v_benefit_code := rec.CARRY_FORWARD_CODE;
+            v_crf_temp := :P10_TOTAL_DAYS;
+        elsif rec.CARRY_FORWARD_AVALABLE > 0 and :P10_TOTAL_DAYS > rec.CARRY_FORWARD_AVALABLE then
+            -- CF not enough
+            v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CARRY_FORWARD_CODE;
+            v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
+            v_annual_temp := :P10_TOTAL_DAYS - rec.CARRY_FORWARD_AVALABLE;
+        else 
             -- CF not expired, CF = 0
             v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
             v_annual_temp := :P10_TOTAL_DAYS;
         end if;
-    end loop;
-else 
-    for rec_2  in ( select * from ABSENCE_GROUP_EMPLOYEE 
-    where employee_code = :APP_EMP_CODE and HRM_ABSENCE_CODE_GROUP_ID = :P10_ANNUAL_LEAVE and HRM_ABSENCE_CODE_ID = :P10_LEAVE_DETAIL) 
-    loop
-            v_benefit_code := rec_2.BENEFIT_ACCRUAL_PLAN;
-            v_annual_temp := :P10_TOTAL_DAYS;
-    end loop;
-end if;
+    else
+        -- CF not expired, CF = 0
+        v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
+        v_annual_temp := :P10_TOTAL_DAYS;
+    end if;
+end loop;
 
 select "REQUEST_ID".nextval into v_request_id_temp from sys.dual; 
 insert into EMPLOYEE_REQUESTS (
