@@ -35,8 +35,6 @@ BEGIN
     LOOP
 
         l_body := '{"_jsonRequest":{"EmployeeCode":"'||r.EMPLOYEE_CODE||'","legal_entity":"'||r.DATAAREA||'"} }';
-
-        
         
         DBMS_OUTPUT.put_line(l_body);
         --APEX_JSON.parse(
