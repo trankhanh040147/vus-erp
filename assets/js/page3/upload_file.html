@@ -67,11 +67,13 @@
         // If there is no file, trigger button submit immediately
         $totalFile = $('.file-item.id-numb-file').length;
         if ($totalFile < 1) {
+          document.getElementById("loader-container").style.display = "none";
+          $("#loader-container").css("display", "none");
           $('#btnSubmitLeave').click();
           return;
         }
 
-        document.getElementById("loader-container").style.display = "block";
+        // document.getElementById("loader-container").style.display = "block";
         for (const value of formDataIdNumber.values()) {
           //console.log(value);
           if (value.name != null) {
@@ -101,19 +103,20 @@
           } catch (error) {
             console.error("An error occurred:", error);
           } finally {
-            document.getElementById("loader-container").style.display = "none";
+            // document.getElementById("loader-container").style.display = "none";
             $('#btnSubmitLeave').click();
+            document.getElementById("loader-container").style.display = "none";
             console.log('Submitted!');
             //apex.submit("Submit");
           }
         }
-        document.getElementById("loader-container").style.display = "none";
+        // document.getElementById("loader-container").style.display = "none";
         //apex.submit("Submit");
 
       });
 
     function handleDeleteClick(event) {
-      document.getElementById("loader-container").style.display = "block";
+      // document.getElementById("loader-container").style.display = "block";
 
       if (event.target.classList.contains("delete-item")) {
         const name = event.target.dataset.name;
@@ -128,7 +131,7 @@
 
         if (itemToRemove) {
           itemToRemove.remove();
-          document.getElementById("loader-container").style.display = "none";
+          // document.getElementById("loader-container").style.display = "none";
         }
       }
     }
