@@ -15,10 +15,17 @@ n_id number;
 n_employeeCode NVARCHAR2(200);
 n_legal_entity NVARCHAR2(200);
 n_request_type_name NVARCHAR2(200);
-n_personal_email NVARCHAR2(200);
+n_company_email NVARCHAR2(200);
+n_full_name NVARCHAR2(200);
 n_token_value NVARCHAR2(2000);
 n_token NVARCHAR2(5000);
 n_approve_date nvarchar2(200);
+n_carry_forward_code nvarchar2(200);
+n_accrual_id nvarchar2(100);
+n_total_day number:= 0;
+leave_id nvarchar2(100);
+leave_groupid nvarchar2(100);
+transaction_date nvarchar2(100);
 BEGIN
 
     SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
@@ -30,8 +37,22 @@ BEGIN
     
     apex_web_service.g_request_headers(2).name := 'Content-Type';
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
+
+            
+    -- SELECT USER_NAME INTO n_manager_company_email FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode) AND NVL(USER_NAME, '0') <> '0';
+    SELECT USER_NAME, FULL_NAME INTO n_company_email, n_full_name FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode;
+
+    SELECT BENEFIT_CODE, LEAVE_TYPE INTO leave_id, leave_groupid FROM EMPLOYEE_REQUESTS WHERE ID = p_request_id;
+    SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO transaction_date  FROM DUAL;
+
+    DBMS_OUTPUT.put_line('id: ' || leave_id);
+    DBMS_OUTPUT.put_line('group_id: ' || leave_groupid);
+    DBMS_OUTPUT.put_line('trans_date: ' || transaction_date);
+
+
     
-    for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,age.HRM_ABSENCE_CODE_ID,
+    for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
+    age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
         case 
         when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
             'Amount Used'
@@ -45,52 +66,123 @@ BEGIN
             'Yes'
         else
             'No'
-        end as ALLDAY
+        end as ALLDAY,
+        case 
+            when age.HRM_ABSENCE_CODE_GROUP_ID = 'APL' then
+                'Leave'
+        end as CONVERTED_HRM_ABSENCE_CODE_GROUP_ID,
+        case 
+            when er.ALL_DAY like 'N' then er.FROM_DATE -- Set END_DATE to FROM_DATE if ALLDAY is 'N'
+            else er.END_DATE
+        end as MODIFIED_END_DATE
+
         from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
-        where er.REQUEST_ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
+        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
     )loop
+    
+            if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
+                if rec.CARRY_FORWARD_AVALABLE > 0 then
+                    n_carry_forward_code := rec.CARRY_FORWARD_CODE;
+                    n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                end if;
+                    
+            else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+            end if;
 
-    l_body := '{
-    "_jsonRequest":{
-        "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||to_char(rec.TOTAL_DAYS,'90.9')||'",
-        "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        "TransactionDate": "'||rec.DAY_APPROVE||'",
-        "Description": "'||rec.NOTE||'",
-        "EmployeeCode": "'||p_employeeCode||'", 
-        "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||rec.REQUEST_ID||'",
-        "FromDate": "'||rec.FROM_DATE||'",
-        "ToDate": "'||rec.END_DATE||'",
-        "NumberDayOff": "'||to_char(rec.TOTAL_DAYS,'90.9')||'",
-        "StartTime": "'||rec.START_TIME||':00",
-        "EndTime": "'||rec.END_TIME||':00",
-        "HRMAbsenceCodeGroupId": "'||rec.HRM_ABSENCE_CODE_GROUP_ID||'",
-        "HRMAbsenceCodeId": "'||rec.HRM_ABSENCE_CODE_ID||'",
-        "AllDay": "'||rec.ALLDAY||'"
-    }}';
+    if leave_groupid = 'APL' then
+        l_body := '{
+        "_jsonRequest":{
+            "LegalEntityID": "'||rec.DATAAREA||'",
+            "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
+            "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+            "TransactionDate": "'||transaction_date||'",
+            "Description": "'||rec.NOTE||'",
+            "EmployeeCode": "'||p_employeeCode||'", 
+            "AccrualId": "'||n_accrual_id||'", 
+            "IDPortal": "'||rec.ID||'",
+            "IDStrPortal": "'||rec.ID||'",
+            "FromDate": "'||rec.FROM_DATE||'",
+            "ToDate": "'||rec.MODIFIED_END_DATE||'",
+            "NumberDayOff": "'||to_char(n_total_day,'90.9')||'",
+            "StartTime": "'||rec.START_TIME||':00",
+            "EndTime": "'||rec.END_TIME||':00",
+            "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
+            "HRMAbsenceCodeId": "'||n_carry_forward_code||'",
+            "AllDay": "'||rec.ALLDAY||'"
+        }}';
+    else 
+        l_body := '{
+        "_jsonRequest":{
+            "LegalEntityID": "'||rec.DATAAREA||'",
+            "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
+            "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+            "TransactionDate": "'||transaction_date||'",
+            "Description": "'||rec.NOTE||'",
+            "EmployeeCode": "'||p_employeeCode||'", 
+            "AccrualId": "'||leave_id||'", 
+            "IDStrPortal": "'||rec.ID||'",
+            "FromDate": "'||rec.FROM_DATE||'",
+            "ToDate": "'||rec.MODIFIED_END_DATE||'",
+            "NumberDayOff": "'||to_char(n_total_day,'90.9')||'",
+            "StartTime": "'||rec.START_TIME||':00",
+            "EndTime": "'||rec.END_TIME||':00",
+            "HRMAbsenceCodeGroupId": "'||leave_groupid||'",
+            "HRMAbsenceCodeId": "'||leave_id||'",
+            "AllDay": "'||rec.ALLDAY||'",
+            "AttachmentURL": "'||rec.ATTATCH_FILE||'"
+        }}';
+    end if;
+
+
+    -- Send mail
+    -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
+    --     '<p>Your leave request has been approved. Here are the details:</p>' ||
+    --     '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
+    --     '<p> Total Days: '|| n_total_day ||' </p>' ||
+    --     '<p> From Date: '|| rec.FROM_DATE ||' </p>' ||
+    --     '<p> To Date: '|| rec.MODIFIED_END_DATE ||' </p>' ||
+    --     '<br>' || 
+    --     '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
+    --     '<br>' || 
+    --     '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
+    --     '<br>' || 
+    --     '<p> Thank you, </p>' ||
+    --     '<p> VUS </p>');
 
     end loop;
 
 /*
+{
+    "_jsonRequest":{
         "LegalEntityID": "V01",
-        "AdjustedHours": "1",
-        "AdjustmentType": "Amount used",
-        "TransactionDate": "8/21/2023",
-        "Description": "Test API 5823",
-        "EmployeeCode": "488", 
-        "AccrualId": "ALCF12 2022 Jan", // ALPL12 2023 (thuoc goi loai phep)
-        "IDPortal": "15",
-        "FromDate": "8/21/2023",
-        "ToDate": "8/21/2023",
-        "NumberDayOff": "1",
+        "AdjustedHours": "  1.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "08/23/2023",
+        "Description": "TEST LEAVEREQUEST 01",
+        "EmployeeCode": "000053", 
+        "AccrualId": "ALPL18 2023", 
+        "IDPortal": "437",
+        "IDStrPortal": "437a",
+        "FromDate": "08/23/2023",
+        "ToDate": "08/23/2023",
+        "NumberDayOff": "  1.0",
         "StartTime": "00:00:00",
         "EndTime": "00:00:00",
-        "HRMAbsenceCodeGroupId": "APL",
-        "HRMAbsenceCodeId": "AL12",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL18",
         "AllDay": "Yes"
+    }}
 */       
+        DBMS_OUTPUT.put_line('body: ');
         DBMS_OUTPUT.put_line(l_body);
         --APEX_JSON.parse(
 
@@ -100,26 +192,6 @@ BEGIN
                 p_body => l_body,
                 p_transfer_timeout => 3600
                 ) ;
-        /*
-        SELECT PERSONAL_EMAIL INTO n_personal_email FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode AND NVL(PERSONAL_EMAIL, '0') <> '0';
-        --n_personal_email := email của e;
-        If n_personal_email IS not null Then
-            l_body_mail := ' {
-                            "Subject":"Approved your Leave",
-                            "Body":"Portal",
-                            "To":"'||n_personal_email||'"
-                        }';
-            --TYPE_ID = 1  send email & MS Team
-            apex_web_service.g_request_headers.delete();    
-            apex_web_service.g_request_headers(1).name := 'Content-Type';
-            apex_web_service.g_request_headers(1).value := 'application/json';
-            l_response_clob :=  apex_web_service.make_rest_request(
-                p_url => 'https://prod-28.southeastasia.logic.azure.com:443/workflows/19209291fb794176bf9eb96962a61e43/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QJkv0x-JiuX5wV0UWIonmF0ZG_9IWKE1kfO5J81DhrU',
-                p_http_method => 'POST',
-                p_body => l_body_mail,
-                p_transfer_timeout => 3600
-                );
-        End If;
-    */
+    
 END;
 /
