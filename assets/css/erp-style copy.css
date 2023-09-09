@@ -984,10 +984,9 @@ div:focus {
   background-size: contain;
   margin-left: auto;
 }
-#t_TreeNav_3 > div.a-TreeView-content > span:after {
+#t_TreeNav_3 > div.a-TreeView-content > span.leave-history:after {
   content: "";
-  display: none;
-  /* display: block; */
+  display: block;
   height: 20px;
   margin-left: auto;
   width: 15px;
@@ -997,7 +996,7 @@ div:focus {
   background-size: contain;
 }
 
-#t_TreeNav_4 > div.a-TreeView-content > span:after {
+#t_TreeNav_4 > div.a-TreeView-content > span.pay-slip:after {
   content: "";
   display: block;
   height: 20px;
@@ -1033,7 +1032,7 @@ div:focus {
   background-size: contain;
 }
 
-#t_TreeNav_7 > div.a-TreeView-content > span:after {
+#t_TreeNav_7 > div.a-TreeView-content > span.staff-list:after {
   content: "";
   display: block;
   height: 20px;
@@ -1111,4 +1110,7 @@ div:focus {
   margin-top: 0;
   font-size: 32px;
   white-space: nowrap;
+}
+.fa.configuration {
+  display: none;
 }

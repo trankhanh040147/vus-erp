@@ -192,6 +192,71 @@ BEGIN
                 p_body => l_body,
                 p_transfer_timeout => 3600
                 ) ;
+
+-- Send mail
+    for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
+    age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
+        case 
+        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+            'Amount Used'
+        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+            'Amount Used'
+        else
+            null
+        end as ADJUSTMENTTYPE,
+        case 
+        when er.ALL_DAY like 'Y' then
+            'Yes'
+        else
+            'No'
+        end as ALLDAY,
+        case 
+            when age.HRM_ABSENCE_CODE_GROUP_ID = 'APL' then
+                'Leave'
+        end as CONVERTED_HRM_ABSENCE_CODE_GROUP_ID,
+        case 
+            when er.ALL_DAY like 'N' then er.FROM_DATE -- Set END_DATE to FROM_DATE if ALLDAY is 'N'
+            else er.END_DATE
+        end as MODIFIED_END_DATE
+
+        from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
+        join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
+        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
+    )loop
+    
+            if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
+                if rec.CARRY_FORWARD_AVALABLE > 0 then
+                    n_carry_forward_code := rec.CARRY_FORWARD_CODE;
+                    n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                end if;
+                    
+            else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+            end if;
+
+    -- SP_SENDGRID_EMAIL
+    SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
+        '<p>Your leave request has been approved. Here are the details:</p>' ||
+        '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
+        '<p> Total Days: '|| n_total_day ||' </p>' ||
+        '<p> From Date: '|| rec.FROM_DATE ||' </p>' ||
+        '<p> To Date: '|| rec.MODIFIED_END_DATE ||' </p>' ||
+        '<br>' || 
+        '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
+        '<br>' || 
+        '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
+        '<br>' || 
+        '<p> Thank you, </p>' ||
+        '<p> VUS </p>');
+
+    end loop;
     
 END;
 /
