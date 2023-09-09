@@ -64,6 +64,13 @@
         .addEventListener("click", async function (event) {
           let nullFormData = false;
 
+          // If there is no file, trigger button submit immediately
+          $totalFile = $('.file-item.id-numb-file').length;
+          if ($totalFile < 1) {
+            $('#btnSubmitLeave').click();
+            return;
+          }
+
           document.getElementById("loader-container").style.display = "block";
           for (const value of formDataIdNumber.values()) {
             //console.log(value);
