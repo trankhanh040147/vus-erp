@@ -216,7 +216,7 @@ BEGIN
         n_phone := apex_json.get_clob('[%d].Phone', i);
         -- n_email := NVL(apex_json.get_clob('[%d].UserEmail', i), i||'vus.account.null@vus-etsc.edu.vn');
         n_email := apex_json.get_clob('[%d].Email', i);
-        n_company_email := NVL(apex_json.get_clob('[%d].CompanyEmail', i), i||'  ');
+        n_company_email := NVL(apex_json.get_clob('[%d].CompanyEmail', n_id), n_id||'vus.account.null@vus-etsc.edu.vn');
         -- n_company_email := apex_json.get_clob('[%d].CompanyEmail', i);
         n_managernumber := apex_json.get_clob('[%d].ManagerNumber', i);
         n_positionId := apex_json.get_varchar2('[%d].PositionId', i);
@@ -296,85 +296,21 @@ BEGIN
         -- Update EMPLOYEES_NEW table
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES_NEW WHERE EMPLOYEE_CODE = n_code ;
         If l_count_idemp > 0 Then
-                UPDATE
-                    EMPLOYEES_NEW
-                SET
-                    EMPLOYEE_ID = n_id,
-                    FIRST_NAME = n_firstname,
-                    LAST_NAME = n_lastname,
-                    FULL_NAME = n_name,
-                    PHONE_NUMBER = n_phone,
-                    PERSONAL_EMAIL = n_email,
-                    EMPLOYEE_CODE = n_code,
-                    USER_NAME = n_company_email,
-                    MANAGER_ID = n_managernumber,
-                    POSITION_ID = n_positionId,
-                    MANAGER_POSITION_ID = n_managerPosition,
-                    DOB = n_birth_date,
-                    START_DATE = n_start_date,
-                    GENDER = n_gender,
-                    COUNTRY = n_country,
-                    TITLE = n_title,
-                    DATAAREA = n_data_area,
-                    TEMPORARY_ADDRESS = n_temp_address,
-                    PERMANENT_ADDRESS = n_prim_address,
-                    SOCIAL = n_social,
-                    PROFILE_ID = n_ProfileId,
-                    SCHEDULE = n_Schedule 
+            UPDATE EMPLOYEES_NEW SET EMPLOYEE_ID = n_id, FIRST_NAME = n_firstname, LAST_NAME = n_lastname,
+                                FULL_NAME = n_name, PHONE_NUMBER = n_phone,  PERSONAL_EMAIL = n_email,
+                                EMPLOYEE_CODE = n_code, USER_NAME = n_company_email, MANAGER_ID = n_managernumber ,POSITION_ID = n_positionId,MANAGER_POSITION_ID= n_managerPosition,
+                                DOB = n_birth_date, START_DATE = n_start_date, GENDER = n_gender, COUNTRY = n_country, TITLE = n_title, DATAAREA = n_data_area, 
+                                TEMPORARY_ADDRESS = n_temp_address, PERMANENT_ADDRESS = n_prim_address, SOCIAL = n_social,
+                                PROFILE_ID = n_ProfileId, SCHEDULE = n_Schedule
+                                
             WHERE EMPLOYEE_CODE = n_code ;
+
         Else
-            INSERT INTO
-                EMPLOYEES_NEW(
-                    ID,
-                    EMPLOYEE_ID,
-                    FIRST_NAME,
-                    LAST_NAME,
-                    FULL_NAME,
-                    PHONE_NUMBER,
-                    PERSONAL_EMAIL,
-                    EMPLOYEE_CODE,
-                    USER_NAME,
-                    MANAGER_ID,
-                    POSITION_ID,
-                    MANAGER_POSITION_ID,
-                    DOB,
-                    START_DATE,
-                    GENDER,
-                    COUNTRY,
-                    TITLE,
-                    DATAAREA,
-                    TEMPORARY_ADDRESS,
-                    PERMANENT_ADDRESS,
-                    SOCIAL,
-                    PROFILE_ID,
-                    SCHEDULE
-                )
-            VALUES
-            (
-                    n_id,
-                    n_id,
-                    n_firstname,
-                    n_lastname,
-                    n_name,
-                    n_phone,
-                    n_email,
-                    n_code,
-                    n_company_email,
-                    n_managernumber,
-                    n_positionId,
-                    n_managerPosition,
-                    n_birth_date,
-                    n_start_date,
-                    n_gender,
-                    n_country,
-                    n_title,
-                    n_data_area,
-                    n_temp_address,
-                    n_prim_address,
-                    n_social,
-                    n_ProfileId,
-                    n_Schedule
-                );
+            INSERT INTO EMPLOYEES_NEW(ID, EMPLOYEE_ID, FIRST_NAME, LAST_NAME, FULL_NAME, PHONE_NUMBER, PERSONAL_EMAIL, EMPLOYEE_CODE, USER_NAME, 
+                MANAGER_ID,POSITION_ID,MANAGER_POSITION_ID, DOB, START_DATE, GENDER, COUNTRY, TITLE, DATAAREA, TEMPORARY_ADDRESS, PERMANENT_ADDRESS, 
+                SOCIAL, PROFILE_ID, SCHEDULE)
+            VALUES(n_id, n_id, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_company_email, n_managernumber,n_positionId,n_managerPosition,
+                n_birth_date, n_start_date, n_gender, n_country, n_title, n_data_area,n_temp_address, n_prim_address, n_social, n_ProfileId, n_Schedule);
 
         End If;
 
@@ -391,16 +327,9 @@ BEGIN
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE ID = i ;
         If l_count_idemp > 0 Then
             -- Update bank accounts
-            UPDATE
-                EMP_BANK
-            SET
-                EMPLOYEE_ID = i,
-                EMPLOYEE_CODE = n_code,
-                BANK_ACC_NUM = b_acc_num,
-                BANK_NAME = b_name,
-                BANK_BRANCH = b_branch
-            WHERE
-                ID = i;
+            UPDATE EMP_BANK SET EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code, BANK_ACC_NUM = b_acc_num,
+                    BANK_NAME = b_name, BANK_BRANCH = b_branch
+            WHERE ID = i ;
 
         Else
             -- Insert bank accounts
@@ -443,126 +372,47 @@ BEGIN
             SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER_NEW WHERE ID = id_index;
             If l_count_idemp > 0 Then
                 -- Update id numbers
-                UPDATE
-                    EMP_ID_NUMBER_NEW
-                SET
-                    ID_NUMBER = Temp_Id,
-                    ISSUE_DATE = Temp_Issue_Date,
-                    EXPIRATION_DATE = Temp_Expiration_Date,
-                    ISSUE_PLACE = Temp_Issue_Place,
-                    EMPLOYEE_ID = i,
-                    ID_TYPE = j
-                WHERE
-                    ID = id_index;
+                UPDATE EMP_ID_NUMBER_NEW SET ID_NUMBER = Temp_Id, ISSUE_DATE = Temp_Issue_Date, EXPIRATION_DATE = Temp_Expiration_Date, 
+                    ISSUE_PLACE = Temp_Issue_Place, EMPLOYEE_ID = i, ID_TYPE = j
+                WHERE ID = id_index ;
 
             Else
                 -- Insert id numbers
-                INSERT INTO
-                    EMP_ID_NUMBER_NEW(
-                        ID,
-                        ID_NUMBER,
-                        ISSUE_DATE,
-                        EXPIRATION_DATE,
-                        ISSUE_PLACE,
-                        EMPLOYEE_ID,
-                        EMPLOYEE_CODE,
-                        ID_TYPE
-                    )
-                VALUES
-                (
-                        id_index,
-                        Temp_Id,
-                        Temp_Issue_Date,
-                        Temp_Expiration_Date,
-                        Temp_Issue_Place,
-                        i,
-                        n_code,
-                        j
-                    );
+                INSERT INTO EMP_ID_NUMBER_NEW(ID, ID_NUMBER, ISSUE_DATE, EXPIRATION_DATE, ISSUE_PLACE, EMPLOYEE_ID, EMPLOYEE_CODE, ID_TYPE)
+                VALUES(id_index, Temp_Id, Temp_Issue_Date, Temp_Expiration_Date, Temp_Issue_Place, i, n_code, j);
+
             End If;
 
             -- Update/Insert Emergency Contact
             SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE ID = i;
             If l_count_id_emer > 0 Then
                 -- Update Emergency Contact
-                UPDATE
-                    EMP_EMERGENCY_CONTACT EEC
-                SET
-                    EEC.EMPLOYEE_ID = i,
-                    EEC.EMPLOYEE_CODE = n_code,
-                    EME_FULL_NAME = n_FullNameEmergencyContact,
-                    RELATION_SHIP = n_RelationshipEmergencyContact,
-                    EME_PHONE_NUMBER = n_PhoneEmergencyContact
-                WHERE
-                    ID = i;
+                UPDATE EMP_EMERGENCY_CONTACT EEC 
+                    SET EEC.EMPLOYEE_ID = i, EEC.EMPLOYEE_CODE = n_code,
+                    EME_FULL_NAME = n_FullNameEmergencyContact, RELATION_SHIP = n_RelationshipEmergencyContact, EME_PHONE_NUMBER = n_PhoneEmergencyContact 
+                    WHERE ID = i ;
             Else
                 -- Insert Emergency Contact
-            INSERT INTO
-                EMP_EMERGENCY_CONTACT(
-                    ID,
-                    EMPLOYEE_ID,
-                    EMPLOYEE_CODE,
-                    EME_FULL_NAME,
-                    RELATION_SHIP,
-                    EME_PHONE_NUMBER
-                )
-            VALUES
-            (
-                    i,
-                    i,
-                    n_code,
-                    n_FullNameEmergencyContact,
-                    n_RelationshipEmergencyContact,
-                    n_PhoneEmergencyContact
-                );
+                INSERT INTO EMP_EMERGENCY_CONTACT(ID, EMPLOYEE_ID, EMPLOYEE_CODE, EME_FULL_NAME, RELATION_SHIP, EME_PHONE_NUMBER)
+                VALUES(i, i, n_code, n_FullNameEmergencyContact, n_RelationshipEmergencyContact, n_PhoneEmergencyContact);
+
             End If;
 
             -- Update [Social_Insurance]
             SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE ID = i;
             If l_count_id_social > 0 Then
                 -- Update Emergency Contact
-                UPDATE
-                    EMP_SOCICAL_INSURANCE EEC
-                SET
-                    SOC_INS_NUMBER = n_SocialInsuranceNumber,
-                    PRI_HEAL_SERVICE = n_HealthInsuranceCard,
-                    SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
-                    SOC_HOU_NAME = n_HouseholderFullName,
-                    SOC_HOU_DOB = n_Householder_DOB,
-                    SOC_HOU_ID = n_HouseholderIDNumber,
-                    SOC_RELATIONSHIP = n_HouseholderRelationship,
-                    EMPLOYEE_ID = i,
-                    EMPLOYEE_CODE = n_code
-                WHERE
-                    ID = i;
+                UPDATE EMP_SOCICAL_INSURANCE EEC 
+                    SET SOC_INS_NUMBER = n_SocialInsuranceNumber, PRI_HEAL_SERVICE = n_HealthInsuranceCard,
+                        SOC_HOSPITAL_CODE = n_HospitalOrClinicCode, SOC_HOU_NAME = n_HouseholderFullName, 
+                        SOC_HOU_DOB = n_Householder_DOB, SOC_HOU_ID = n_HouseholderIDNumber,
+                        SOC_RELATIONSHIP = n_HouseholderRelationship, EMPLOYEE_ID = i, EMPLOYEE_CODE = n_code
+                    WHERE ID = i ;
             Else
                 -- Insert Emergency Contact
-                INSERT INTO
-                    EMP_SOCICAL_INSURANCE(
-                        ID,
-                        EMPLOYEE_ID,
-                        EMPLOYEE_CODE,
-                        SOC_INS_NUMBER,
-                        PRI_HEAL_SERVICE,
-                        SOC_HOSPITAL_CODE,
-                        SOC_HOU_NAME,
-                        SOC_HOU_DOB,
-                        SOC_HOU_ID,
-                        SOC_RELATIONSHIP
-                    )
-                VALUES
-                (
-                        i,
-                        i,
-                        n_code,
-                        n_SocialInsuranceNumber,
-                        n_HealthInsuranceCard,
-                        n_HospitalOrClinicCode,
-                        n_HouseholderFullName,
-                        n_Householder_DOB,
-                        n_HouseholderIDNumber,
-                        n_HouseholderRelationship
-                    );
+                INSERT INTO EMP_SOCICAL_INSURANCE(ID, EMPLOYEE_ID, EMPLOYEE_CODE, SOC_INS_NUMBER, PRI_HEAL_SERVICE, SOC_HOSPITAL_CODE, SOC_HOU_NAME, SOC_HOU_DOB, SOC_HOU_ID, SOC_RELATIONSHIP)
+                VALUES(i, i, n_code, n_SocialInsuranceNumber, n_HealthInsuranceCard, n_HospitalOrClinicCode, n_HouseholderFullName, n_Householder_DOB, n_HouseholderIDNumber, n_HouseholderRelationship);
+
             End If;
 
         END LOOP;
