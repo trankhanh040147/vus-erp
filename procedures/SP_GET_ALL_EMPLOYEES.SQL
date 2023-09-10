@@ -381,24 +381,26 @@ BEGIN
         
         --Get bank accounts
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE n_code = EMPLOYEE_CODE ;
-        If l_count_idemp > 0 Then
-            -- Update bank accounts
-            UPDATE
-                EMP_BANK
-            SET
-                EMPLOYEE_ID = i,
-                EMPLOYEE_CODE = n_code,
-                BANK_ACC_NUM = b_acc_num,
-                BANK_NAME = b_name,
-                BANK_BRANCH = b_branch
-            WHERE
-                ID = i;
+        If b_acc_num is not null then
+            If l_count_idemp > 0 Then
+                -- Update bank accounts
+                UPDATE
+                    EMP_BANK
+                SET
+                    EMPLOYEE_ID = i,
+                    EMPLOYEE_CODE = n_code,
+                    BANK_ACC_NUM = b_acc_num,
+                    BANK_NAME = b_name,
+                    BANK_BRANCH = b_branch
+                WHERE
+                    ID = i;
 
-        Else
-            -- Insert bank accounts
-            INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
-            VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
+            Else
+                -- Insert bank accounts
+                INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
+                VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
 
+            End If;
         End If;
 
         -- Get Id Numbers
@@ -478,86 +480,91 @@ BEGIN
 
             -- Update/Insert Emergency Contact
             SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE n_code = EMPLOYEE_CODE;
-            If l_count_id_emer > 0 Then
-                -- Update Emergency Contact
-                UPDATE
-                    EMP_EMERGENCY_CONTACT EEC
-                SET
-                    EEC.EMPLOYEE_ID = i,
-                    EEC.EMPLOYEE_CODE = n_code,
-                    EME_FULL_NAME = n_FullNameEmergencyContact,
-                    RELATION_SHIP = n_RelationshipEmergencyContact,
-                    EME_PHONE_NUMBER = n_PhoneEmergencyContact
-                WHERE
-                    ID = i;
-            Else
-                -- Insert Emergency Contact
-            INSERT INTO
-                EMP_EMERGENCY_CONTACT(
-                    ID,
-                    EMPLOYEE_ID,
-                    EMPLOYEE_CODE,
-                    EME_FULL_NAME,
-                    RELATION_SHIP,
-                    EME_PHONE_NUMBER
-                )
-            VALUES
-            (
-                    i,
-                    i,
-                    n_code,
-                    n_FullNameEmergencyContact,
-                    n_RelationshipEmergencyContact,
-                    n_PhoneEmergencyContact
-                );
-            End If;
-
-            -- Update [Social_Insurance]
-            SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE n_code = EMPLOYEE_CODE;
-            If l_count_id_social > 0 Then
-                -- Update Emergency Contact
-                UPDATE
-                    EMP_SOCICAL_INSURANCE EEC
-                SET
-                    SOC_INS_NUMBER = n_SocialInsuranceNumber,
-                    PRI_HEAL_SERVICE = n_HealthInsuranceCard,
-                    SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
-                    SOC_HOU_NAME = n_HouseholderFullName,
-                    SOC_HOU_DOB = n_Householder_DOB,
-                    SOC_HOU_ID = n_HouseholderIDNumber,
-                    SOC_RELATIONSHIP = n_HouseholderRelationship,
-                    EMPLOYEE_ID = i,
-                    EMPLOYEE_CODE = n_code
-                WHERE
-                    ID = i;
-            Else
-                -- Insert Emergency Contact
+            IF NOT (n_FullNameEmergencyContact IS NULL AND n_RelationshipEmergencyContact IS NULL AND n_PhoneEmergencyContact IS NULL) THEN
+                If l_count_id_emer > 0 Then
+                    -- Update Emergency Contact
+                    UPDATE
+                        EMP_EMERGENCY_CONTACT EEC
+                    SET
+                        EEC.EMPLOYEE_ID = i,
+                        EEC.EMPLOYEE_CODE = n_code,
+                        EME_FULL_NAME = n_FullNameEmergencyContact,
+                        RELATION_SHIP = n_RelationshipEmergencyContact,
+                        EME_PHONE_NUMBER = n_PhoneEmergencyContact
+                    WHERE
+                        ID = i;
+                Else
+                    -- Insert Emergency Contact
                 INSERT INTO
-                    EMP_SOCICAL_INSURANCE(
+                    EMP_EMERGENCY_CONTACT(
                         ID,
                         EMPLOYEE_ID,
                         EMPLOYEE_CODE,
-                        SOC_INS_NUMBER,
-                        PRI_HEAL_SERVICE,
-                        SOC_HOSPITAL_CODE,
-                        SOC_HOU_NAME,
-                        SOC_HOU_DOB,
-                        SOC_HOU_ID,
-                        SOC_RELATIONSHIP
+                        EME_FULL_NAME,
+                        RELATION_SHIP,
+                        EME_PHONE_NUMBER
                     )
                 VALUES
                 (
                         i,
                         i,
                         n_code,
-                        n_SocialInsuranceNumber,
-                        n_HealthInsuranceCard,
-                        n_HospitalOrClinicCode,
-                        n_HouseholderFullName,
-                        n_Householder_DOB,
-                        n_HouseholderIDNumber,
-                        n_HouseholderRelationship
+                        n_FullNameEmergencyContact,
+                        n_RelationshipEmergencyContact,
+                        n_PhoneEmergencyContact
                     );
+                End If;
+            End If;
+
+            -- Update [Social_Insurance]
+            SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE n_code = EMPLOYEE_CODE;
+            
+            If n_SocialInsuranceNumber is not null and n_SocialInsuranceNumber != '0' then
+                If l_count_id_social > 0 Then
+                    -- Update Emergency Contact
+                    UPDATE
+                        EMP_SOCICAL_INSURANCE EEC
+                    SET
+                        SOC_INS_NUMBER = n_SocialInsuranceNumber,
+                        PRI_HEAL_SERVICE = n_HealthInsuranceCard,
+                        SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
+                        SOC_HOU_NAME = n_HouseholderFullName,
+                        SOC_HOU_DOB = n_Householder_DOB,
+                        SOC_HOU_ID = n_HouseholderIDNumber,
+                        SOC_RELATIONSHIP = n_HouseholderRelationship,
+                        EMPLOYEE_ID = i,
+                        EMPLOYEE_CODE = n_code
+                    WHERE
+                        ID = i;
+                Else
+                    -- Insert Emergency Contact
+                    INSERT INTO
+                        EMP_SOCICAL_INSURANCE(
+                            ID,
+                            EMPLOYEE_ID,
+                            EMPLOYEE_CODE,
+                            SOC_INS_NUMBER,
+                            PRI_HEAL_SERVICE,
+                            SOC_HOSPITAL_CODE,
+                            SOC_HOU_NAME,
+                            SOC_HOU_DOB,
+                            SOC_HOU_ID,
+                            SOC_RELATIONSHIP
+                        )
+                    VALUES
+                    (
+                            i,
+                            i,
+                            n_code,
+                            n_SocialInsuranceNumber,
+                            n_HealthInsuranceCard,
+                            n_HospitalOrClinicCode,
+                            n_HouseholderFullName,
+                            n_Householder_DOB,
+                            n_HouseholderIDNumber,
+                            n_HouseholderRelationship
+                        );
+                End If;
             End If;
 
 
