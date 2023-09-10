@@ -30,9 +30,10 @@ n_manager VARCHAR2(2000);
 n_managernumber NVARCHAR2(100);
 n_managerPosition NVARCHAR2(100);
 n_positionId NVARCHAR2(100);
-n_temp_address NVARCHAR2(100);
-n_prim_address NVARCHAR2(100);
+n_temp_address NVARCHAR2(200);
+n_prim_address NVARCHAR2(200);
 n_social NVARCHAR2(100);
+--
 n_birth_date DATE;
 n_start_date DATE;
 n_terminate_date DATE;
@@ -42,12 +43,12 @@ n_country NVARCHAR2(100);
 n_title NVARCHAR2(100);
 n_data_area NVARCHAR2(100 CHAR);
 
+
 -- BANK ACCOUNT fields
 n_total_id_types number;
 b_acc_num NVARCHAR2(50);
 b_name NVARCHAR2(200);
 b_branch NVARCHAR2(200);
-
 -- ID number fields
 total_id_types number := 4;
 CCCD_Id NVARCHAR2(50);
@@ -94,21 +95,23 @@ n_HouseholderIDNumber NVARCHAR2(100);
 n_HouseholderRelationship NVARCHAR2(100);
 n_Householder_DOB NVARCHAR2(100);
 
+
 p_token nvarchar2(10000);
 
+
 BEGIN
-    SP_GET_TOKEN(p_token);
 
     -- (1): Call API 
+
+    SP_GET_TOKEN(p_token);
     apex_web_service.g_request_headers.delete();
     apex_web_service.g_request_headers(1).name := 'Content-Type';
     apex_web_service.g_request_headers(1).value := 'application/json';
-    -- apex_web_service.g_request_headers(2).name := 'Content-Length';
-    -- apex_web_service.g_request_headers(2).value := 0;
     apex_web_service.g_request_headers(2).name := 'Authorization';
     apex_web_service.g_request_headers(2).value := 'Bearer '|| p_token;
 
     l_body := '{"_jsonRequest":{"FromWorkerNum":"' || p_from_num || '","ToWorkerNum":"' || p_to_num || '"} }';
+
 
     APEX_JSON.parse(
 
@@ -117,96 +120,104 @@ BEGIN
             p_http_method => 'POST',
             p_body => l_body,
             p_transfer_timeout => 3600
-        ) 
+            )
     );
 
     -- {API Response}
-    --     {
-    --     "$id": "1",
-    --     "Name": "Trần D",
-    --     "Code": "000000078",
-    --     "FirstName": "",
-    --     "LastName": "",
-    --     "MiddleName": "",
-        -- "Title": "HR Admin Officer",
-    --     "Phone": "",
-    --     "Email": "",
-    --     "BirthDate": "1900-01-01T12:00:00",
-    --     "Gender": "",
-    --     "Country": "",
-    --     "CCCD": "",
-    --     "CCCD_IssueDate": "1900-01-01T12:00:00",
-    --     "CCCD_IssuePlace": "",
-    --     "CCCDExpirationDate": "1900-01-01T12:00:00",
-    --     "CMND": "",
-    --     "CMND_IssueDate": "1900-01-01T12:00:00",
-    --     "CMND_IssuePlace": "",
-    --     "CMNDExpirationDate": "1900-01-01T12:00:00",
-    --     "Passport": "",
-    --     "Passport_IssueDate": "1900-01-01T12:00:00",
-    --     "Passport_IssuePlace": "",
-    --     "PassportExpirationDate": "1900-01-01T12:00:00",
-    --     "Visa": "",
-    --     "Visa_IssueDate": "1900-01-01T12:00:00",
-    --     "Visa_IssuePlace": "",
-    --     "VisaExpirationDate": "1900-01-01T12:00:00",
-    --     "EmpWorkPermit": "",
-    --     "EmpWorkPermitIssueDate": "1900-01-01T12:00:00",
-    --     "EmpWorkPermitIssuePlace": "",
-    --     "WorkPermitExpirationDate": "1900-01-01T12:00:00",
-    --     "EmpPIT": "",
-    --     "EmpPITIssueDate": "1900-01-01T12:00:00",
-    --     "EmpPITIssuePlace": "",
-    --     "PITExpirationDate": "1900-01-01T12:00:00",
-    --     "PositionId": "000485",
-    --     "PositionName": "HR Admin Officer",
-    --     "Manager": "",
-    --     "ManagerNumber": "",
-    --     "ManagerPosition": "",
-    --     "OfficeLocation": "HCM_VPTT",
-    --     "OfficeAddress": "",
-    --     "DepartmentName": "HR & Admin Department",
-    --     "DataArea": "V01",
-    --     "StartDate": "2022-01-30T17:00:00Z",
-    --     "TerminateDate": "2154-12-31T23:59:59Z",
-    --     "CompanyEmail": "trang.th@vus-etsc.edu.vn",
-    --     "BankAccount": "",
-    --     "BankName": "",
-    --     "BranchName": "",
-    --     "SocialInsuranceNumber": "",
-    --     "ProfileId": "",
-    --     "Schedule": "HO",
-    --     "UserEmail": "",
-    --     "EmployeeStartDate": "1900-01-01T00:00:00Z",
-    --     "HealthInsuranceCard": "",
-    --     "HospitalOrClinicCode": "",
-    --     "HouseholderFullName": "",
-    --     "HouseholderIDNumber": "",
-    --     "HouseholderRelationship": "",
-    --     "Householder_DOB": "1900-01-01T00:00:00Z",
-    --     "PrimaryAddressing": "",
-    --     "TempAddressing": "",
-    --     "FullNameEmergencyContact": "",
-    --     "RelationshipEmergencyContact": "",
-    --     "PhoneEmergencyContact": "",
-    --     "Worker": 5637197826
-    -- }
+        --     {
+        --     "$id": "1",
+        --     "Name": "Trần D",
+        --     "Code": "000000078",
+        --     "FirstName": "",
+        --     "LastName": "",
+        --     "MiddleName": "",
+            -- "Title": "HR Admin Officer",
+        --     "Phone": "",
+        --     "Email": "",
+        --     "BirthDate": "1900-01-01T12:00:00",
+        --     "Gender": "",
+        --     "Country": "",
+        --     "CCCD": "",
+        --     "CCCD_IssueDate": "1900-01-01T12:00:00",
+        --     "CCCD_IssuePlace": "",
+        --     "CCCDExpirationDate": "1900-01-01T12:00:00",
+        --     "CMND": "",
+        --     "CMND_IssueDate": "1900-01-01T12:00:00",
+        --     "CMND_IssuePlace": "",
+        --     "CMNDExpirationDate": "1900-01-01T12:00:00",
+        --     "Passport": "",
+        --     "Passport_IssueDate": "1900-01-01T12:00:00",
+        --     "Passport_IssuePlace": "",
+        --     "PassportExpirationDate": "1900-01-01T12:00:00",
+        --     "Visa": "",
+        --     "Visa_IssueDate": "1900-01-01T12:00:00",
+        --     "Visa_IssuePlace": "",
+        --     "VisaExpirationDate": "1900-01-01T12:00:00",
+        --     "EmpWorkPermit": "",
+        --     "EmpWorkPermitIssueDate": "1900-01-01T12:00:00",
+        --     "EmpWorkPermitIssuePlace": "",
+        --     "WorkPermitExpirationDate": "1900-01-01T12:00:00",
+        --     "EmpPIT": "",
+        --     "EmpPITIssueDate": "1900-01-01T12:00:00",
+        --     "EmpPITIssuePlace": "",
+        --     "PITExpirationDate": "1900-01-01T12:00:00",
+        --     "PositionId": "000485",
+        --     "PositionName": "HR Admin Officer",
+        --     "Manager": "",
+        --     "ManagerNumber": "",
+        --     "ManagerPosition": "",
+        --     "OfficeLocation": "HCM_VPTT",
+        --     "OfficeAddress": "",
+        --     "DepartmentName": "HR & Admin Department",
+        --     "DataArea": "V01",
+        --     "StartDate": "2022-01-30T17:00:00Z",
+        --     "TerminateDate": "2154-12-31T23:59:59Z",
+        --     "CompanyEmail": "trang.th@vus-etsc.edu.vn",
+        --     "BankAccount": "",
+        --     "BankName": "",
+        --     "BranchName": "",
+        --     "SocialInsuranceNumber": "",
+        --     "ProfileId": "",
+        --     "Schedule": "HO",
+        --     "UserEmail": "",
+        --     "EmployeeStartDate": "1900-01-01T00:00:00Z",
+        --     "HealthInsuranceCard": "",
+        --     "HospitalOrClinicCode": "",
+        --     "HouseholderFullName": "",
+        --     "HouseholderIDNumber": "",
+        --     "HouseholderRelationship": "",
+        --     "Householder_DOB": "1900-01-01T00:00:00Z",
+        --     "PrimaryAddressing": "",
+        --     "TempAddressing": "",
+        --     "FullNameEmergencyContact": "",
+        --     "RelationshipEmergencyContact": "",
+        --     "PhoneEmergencyContact": "",
+        --     "Worker": 5637197826
+        -- }
 
     l_numrow := APEX_JSON.get_count (p_path =>'.'); --Đếm tổng số chuỗi trả về
 
     -- Delete old data
-    Delete from EMP_ID_NUMBER_NEW;
+    FOR i IN 1 .. l_numrow
+    loop
+      
+        Delete from EMP_ID_NUMBER_NEW where EMPLOYEE_ID = i + p_from_num - 1;
+
+    end loop;
     
     FOR i IN 1 .. l_numrow
     LOOP
         n_code := apex_json.get_clob('[%d].Code', i);
-        n_id := TO_NUMBER(apex_json.get_varchar2('[%d].$id', i)) + p_from_num - 1;
+        -- n_id := TO_NUMBER(apex_json.get_varchar2('[%d].$id', i)) + p_from_num - 1;
+        n_id := i + p_from_num - 1;
         n_firstname := apex_json.get_clob('[%d].FirstName', i);
         n_lastname := apex_json.get_clob('[%d].LastName', i);
         n_name := apex_json.get_clob('[%d].Name', i);
         n_phone := apex_json.get_clob('[%d].Phone', i);
-        n_email := NVL(apex_json.get_clob('[%d].UserEmail', i), i||'vus.account.null@vus-etsc.edu.vn');
-        n_company_email := NVL(apex_json.get_clob('[%d].CompanyEmail', i), i||'vus.account.null@vus-etsc.edu.vn');
+        -- n_email := NVL(apex_json.get_clob('[%d].UserEmail', i), i||'vus.account.null@vus-etsc.edu.vn');
+        n_email := apex_json.get_clob('[%d].Email', i);
+        n_company_email := NVL(apex_json.get_clob('[%d].CompanyEmail', n_id), n_id||'vus.account.null@vus-etsc.edu.vn');
+        -- n_company_email := apex_json.get_clob('[%d].CompanyEmail', i);
         n_managernumber := apex_json.get_clob('[%d].ManagerNumber', i);
         n_positionId := apex_json.get_varchar2('[%d].PositionId', i);
         n_managerPosition := apex_json.get_varchar2('[%d].ManagerPosition', i);
@@ -283,22 +294,22 @@ BEGIN
         n_Householder_DOB := CASE WHEN apex_json.get_varchar2('[%d].Householder_DOB', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].Householder_DOB', i), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'MM/DD/YYYY') END;
 
         -- Update EMPLOYEES_NEW table
-        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES_NEW WHERE ID = i ;
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES_NEW WHERE EMPLOYEE_CODE = n_code ;
         If l_count_idemp > 0 Then
-            UPDATE EMPLOYEES_NEW SET EMPLOYEE_ID = i, FIRST_NAME = n_firstname, LAST_NAME = n_lastname,
+            UPDATE EMPLOYEES_NEW SET EMPLOYEE_ID = n_id, FIRST_NAME = n_firstname, LAST_NAME = n_lastname,
                                 FULL_NAME = n_name, PHONE_NUMBER = n_phone,  PERSONAL_EMAIL = n_email,
                                 EMPLOYEE_CODE = n_code, USER_NAME = n_company_email, MANAGER_ID = n_managernumber ,POSITION_ID = n_positionId,MANAGER_POSITION_ID= n_managerPosition,
                                 DOB = n_birth_date, START_DATE = n_start_date, GENDER = n_gender, COUNTRY = n_country, TITLE = n_title, DATAAREA = n_data_area, 
                                 TEMPORARY_ADDRESS = n_temp_address, PERMANENT_ADDRESS = n_prim_address, SOCIAL = n_social,
                                 PROFILE_ID = n_ProfileId, SCHEDULE = n_Schedule
                                 
-            WHERE ID = i ;
+            WHERE EMPLOYEE_CODE = n_code ;
 
         Else
             INSERT INTO EMPLOYEES_NEW(ID, EMPLOYEE_ID, FIRST_NAME, LAST_NAME, FULL_NAME, PHONE_NUMBER, PERSONAL_EMAIL, EMPLOYEE_CODE, USER_NAME, 
                 MANAGER_ID,POSITION_ID,MANAGER_POSITION_ID, DOB, START_DATE, GENDER, COUNTRY, TITLE, DATAAREA, TEMPORARY_ADDRESS, PERMANENT_ADDRESS, 
                 SOCIAL, PROFILE_ID, SCHEDULE)
-            VALUES(i, i, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_company_email, n_managernumber,n_positionId,n_managerPosition,
+            VALUES(n_id, n_id, n_firstname, n_lastname, n_name, n_phone, n_email, n_code, n_company_email, n_managernumber,n_positionId,n_managerPosition,
                 n_birth_date, n_start_date, n_gender, n_country, n_title, n_data_area,n_temp_address, n_prim_address, n_social, n_ProfileId, n_Schedule);
 
         End If;
