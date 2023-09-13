@@ -4,3 +4,10 @@ SELECT CASE
 END AS DISPLAY_TOTAL_DAYS
 FROM EMPLOYEE_REQUESTS
 WHERE ID = :P13_REQUEST_ID;
+
+SELECT CASE
+        WHEN &PLAN_YEAR_ACCRUED. = .5 THEN '0.5'
+        ELSE to_char(&PLAN_YEAR_ACCRUED.)
+END;
+
+                  <p class="day-detail"> &PLAN_YEAR_ACCRUED. days</p>

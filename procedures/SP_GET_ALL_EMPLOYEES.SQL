@@ -393,12 +393,12 @@ BEGIN
                     BANK_NAME = b_name,
                     BANK_BRANCH = b_branch
                 WHERE
-                    ID = i;
+                    n_code = EMPLOYEE_CODE
 
             Else
                 -- Insert bank accounts
-                INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
-                VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
+                INSERT INTO EMP_BANK(EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
+                VALUES(i, n_code, b_acc_num, b_name, b_branch);
 
             End If;
         End If;
@@ -454,7 +454,6 @@ BEGIN
                     -- Insert id numbers
                     INSERT INTO
                         EMP_ID_NUMBER(
-                            ID,
                             ID_NUMBER,
                             ISSUE_DATE,
                             EXPIRATION_DATE,
@@ -465,7 +464,6 @@ BEGIN
                         )
                     VALUES
                     (
-                            id_index,
                             Temp_Id,
                             Temp_Issue_Date,
                             Temp_Expiration_Date,
@@ -497,7 +495,6 @@ BEGIN
                     -- Insert Emergency Contact
                 INSERT INTO
                     EMP_EMERGENCY_CONTACT(
-                        ID,
                         EMPLOYEE_ID,
                         EMPLOYEE_CODE,
                         EME_FULL_NAME,
@@ -506,7 +503,6 @@ BEGIN
                     )
                 VALUES
                 (
-                        i,
                         i,
                         n_code,
                         n_FullNameEmergencyContact,
@@ -535,12 +531,11 @@ BEGIN
                         EMPLOYEE_ID = i,
                         EMPLOYEE_CODE = n_code
                     WHERE
-                        ID = i;
+                        n_code = EMPLOYEE_CODE;
                 Else
                     -- Insert Emergency Contact
                     INSERT INTO
                         EMP_SOCICAL_INSURANCE(
-                            ID,
                             EMPLOYEE_ID,
                             EMPLOYEE_CODE,
                             SOC_INS_NUMBER,
@@ -553,7 +548,6 @@ BEGIN
                         )
                     VALUES
                     (
-                            i,
                             i,
                             n_code,
                             n_SocialInsuranceNumber,
