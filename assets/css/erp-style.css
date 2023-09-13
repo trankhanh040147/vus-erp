@@ -1020,7 +1020,7 @@ span._personal_info:after {
   background-size: contain;
 }
 
-#t_TreeNav_6 > div.a-TreeView-content > span:after {
+span._icon-new-leave:after {
   content: "";
   display: block;
   height: 20px;
