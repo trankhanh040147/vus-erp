@@ -1114,3 +1114,6 @@ span.staff-list:after {
 .fa.configuration {
   display: none;
 }
+.a-GV-w-scroll {
+  display: block !important;
+}
