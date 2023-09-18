@@ -117,7 +117,7 @@
   .row
   .t-Form-fieldContainer
   .t-Form-inputContainer {
-  width: 60%;
+  width: 100%;
 }
 
 .t-Body-contentInner
@@ -146,14 +146,10 @@
 
 .t-Body-nav,
 .a-TreeView-content,
-.t-TreeNav .a-TreeView-node .a-TreeView-toggle,
-.a-TreeView-content .fa {
-  background-color: #f5f6fa !important;
-  color: #222f6e !important;
+.t-TreeNav .a-TreeView-node .a-TreeView-toggle {
+  background-color: white !important;
+  color: black !important;
   opacity: 1;
-}
-.t-Header-branding {
-  background-color: #f5f6fa !important;
 }
 .t-Header-controls button {
   color: black;
@@ -686,6 +682,7 @@
 #P5_SOC_ATTACH_GROUP,
 .page-5 #P5_ID_NUM_ATTACH_GROUP {
   margin-top: 0 !important;
+  height: max-content !important;
 }
 
 .page-5
@@ -857,20 +854,6 @@ a:focus {
   background-color: #f5f6fa !important;
   background: #f5f6fa !important;
 }
-.apex-item-group.apex-item-group--popup-lov > input,
-.t-Form-itemWrapper > input,
-.t-Form-itemWrapper > select {
-  height: 50px !important;
-  padding: 0 !important;
-  padding-left: 7px !important;
-  display: flex;
-  align-items: center;
-  border-width: 1px;
-  border-color: var(
-    --a-field-input-state-border-color,
-    var(--a-field-input-border-color)
-  );
-}
 
 input,
 select {
@@ -957,104 +940,7 @@ div:focus {
   margin-bottom: auto;
   right: -10px;
 }
-#t_Body_nav .a-TreeView li .fa:before {
-  display: none;
-}
 
-#t_TreeNav_1 > div.a-TreeView-content > span.fa.fa:after {
-  content: "";
-  display: block;
-  height: 20px;
-  width: 20px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/my_profile.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  margin-left: auto;
-}
-
-#t_TreeNav_2 > div.a-TreeView-content > span.fa.fa:after {
-  content: "";
-  display: block;
-  height: 20px;
-  width: 20px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/star.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  margin-left: auto;
-}
-span.leave-history:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/my_leave_history.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-span.pay-slip:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/payslip.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-span._personal_info:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/personal_info.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-span._icon-new-leave:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/leave_request.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-span.staff-list:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/staff_list.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-#t_TreeNav_8 > div.a-TreeView-content > span:after {
-  content: "";
-  display: block;
-  height: 20px;
-  margin-left: auto;
-  width: 15px;
-  background: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/aprove_leave_request.svg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
 .page-9
   .t-Body-contentInner
   .container
@@ -1116,4 +1002,56 @@ span.staff-list:after {
 }
 .a-GV-w-scroll {
   display: block !important;
+}
+
+#R10006856258336834
+  > div.t-Region-bodyWrap
+  > div.t-Region-body
+  > div
+  > div.row:nth-child(1)
+  button {
+  border: none !important;
+  border-radius: var(--borderRadius-button) !important;
+  -webkit-border-radius: var(--borderRadius-button) !important;
+  -moz-border-radius: var(--borderRadius-button) !important;
+  -ms-border-radius: var(--borderRadius-button) !important;
+  -o-border-radius: var(--borderRadius-button) !important;
+  min-width: var(--minWidth-button) !important;
+  height: var(--height-button) !important;
+  background-color: var(--button-color) !important;
+  background: var(--button-color) !important;
+}
+.page-10 #P10_LEAVE_TYPE_DEPT_CONTAINER > div.t-Form-inputContainer > div > div,
+.page-10 div.t-Form-inputContainer .apex-item-group.apex-item-group--textarea {
+  padding-left: 0 !important;
+}
+
+@media only screen and (max-width: 480px) {
+  .page-5 .apex-rds-slider {
+    display: none;
+  }
+  .page-5 #R8101674187268648 > div > ul {
+    padding-bottom: 5px;
+    flex-wrap: nowrap !important;
+    overflow-x: scroll !important;
+  }
+  .page-5 #identify-detail > div {
+    flex-direction: column !important;
+  }
+  .page-5 #identify-detail > div > ul {
+    width: 100%;
+    flex-direction: row !important;
+    padding-bottom: 5px;
+    flex-wrap: nowrap !important;
+    overflow-x: scroll !important;
+    margin-bottom: 20px;
+  }
+  .page-7 #R15977732594180899 > div > div {
+    gap: 15px;
+  }
+}
+
+/* File upload */
+.file-item {
+  z-index: 100;
 }
