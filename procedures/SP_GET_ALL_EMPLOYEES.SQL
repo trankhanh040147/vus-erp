@@ -393,12 +393,12 @@ BEGIN
                     BANK_NAME = b_name,
                     BANK_BRANCH = b_branch
                 WHERE
-                    n_code = EMPLOYEE_CODE
+                    ID = i;
 
             Else
                 -- Insert bank accounts
-                INSERT INTO EMP_BANK(EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
-                VALUES(i, n_code, b_acc_num, b_name, b_branch);
+                INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
+                VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
 
             End If;
         End If;
@@ -495,6 +495,7 @@ BEGIN
                     -- Insert Emergency Contact
                 INSERT INTO
                     EMP_EMERGENCY_CONTACT(
+                        ID,
                         EMPLOYEE_ID,
                         EMPLOYEE_CODE,
                         EME_FULL_NAME,
@@ -503,6 +504,7 @@ BEGIN
                     )
                 VALUES
                 (
+                        i,
                         i,
                         n_code,
                         n_FullNameEmergencyContact,
@@ -531,11 +533,12 @@ BEGIN
                         EMPLOYEE_ID = i,
                         EMPLOYEE_CODE = n_code
                     WHERE
-                        n_code = EMPLOYEE_CODE;
+                        ID = i;
                 Else
                     -- Insert Emergency Contact
                     INSERT INTO
                         EMP_SOCICAL_INSURANCE(
+                            ID,
                             EMPLOYEE_ID,
                             EMPLOYEE_CODE,
                             SOC_INS_NUMBER,
@@ -548,6 +551,7 @@ BEGIN
                         )
                     VALUES
                     (
+                            i,
                             i,
                             n_code,
                             n_SocialInsuranceNumber,
