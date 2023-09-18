@@ -1,0 +1,352 @@
+:root {
+    --color-f2f2f2: #f2f2f2;
+    --color-efefef: #efefef;
+    --active-color: #222f6e;
+    --button-color: #f0f0f0;
+    --button-text-color: #000000;
+    --bg-input-save-submit: #003cc3;
+    --bg-primary-btn: #003cc6;
+    --bg-edit-btn: #343434;
+    --bg-input-save: #4a7ae8;
+    --bg-input-cancel: #eaeaea;
+    --text-input-color: #222f6e;
+    --border-color: #eaeaea;
+    --height-button: 30px;
+    --minWidth-button: 80px;
+    --borderRadius-button: 5px;
+  }
+  /* width */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 8px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-f2f2f2);
+    border-radius: 10px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-efefef);
+  }
+  .apex-item-group--popup-lov:focus-within,
+  .apex-item-multi:focus,
+  .apex-item-multi:focus-within,
+  .apex-item-select:focus,
+  .apex-item-select:focus-within,
+  .apex-item-text:focus,
+  .apex-item-text:focus-within,
+  .apex-item-textarea:focus,
+  .apex-item-textarea:focus-within,
+  .datetimepicker_newMonth:focus,
+  .datetimepicker_newMonth:focus-within,
+  .u-TF-item--select:focus,
+  .u-TF-item--select:focus-within,
+  .u-TF-item--text:focus,
+  .u-TF-item--text:focus-within,
+  select.group_selectlist:focus,
+  select.group_selectlist:focus-within,
+  select.listmanager:focus,
+  select.listmanager:focus-within {
+    border: 1px solid var(--border-color) !important;
+    outline: transparent !important;
+  }
+  body .t-Body button span.t-Button-label {
+    color: var(--button-text-color) !important;
+  }
+  body button {
+    border: none !important;
+    height: var(--height-button) !important;
+    border-radius: var(--borderRadius-button) !important;
+    -webkit-border-radius: var(--borderRadius-button) !important;
+    -moz-border-radius: var(--borderRadius-button) !important;
+    -ms-border-radius: var(--borderRadius-button) !important;
+    -o-border-radius: var(--borderRadius-button) !important;
+  }
+  body header:not(#t_Header) button {
+    border: none !important;
+    border-radius: var(--borderRadius-button) !important;
+    -webkit-border-radius: var(--borderRadius-button) !important;
+    -moz-border-radius: var(--borderRadius-button) !important;
+    -ms-border-radius: var(--borderRadius-button) !important;
+    -o-border-radius: var(--borderRadius-button) !important;
+    color: black !important;
+    min-width: var(--minWidth-button) !important;
+    height: var(--height-button) !important;
+    background-color: var(--button-color) !important;
+    background: var(--button-color) !important;
+    font-weight: bold;
+  }
+  .t-Form-fieldContainer {
+    margin-top: auto !important;
+    margin-bottom: auto !important;
+    margin-right: 25px;
+    height: 100%;
+  }
+  
+  .t-Form-itemWrapper {
+    /* border: 1px solid var(--border-color) !important; */
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+  }
+  a-date-picker,
+  body .a-Toolbar-group input,
+  body .a-Toolbar-group select,
+  body .t-Form-itemWrapper:not(:has(button)) input,
+  body .t-Form-itemWrapper :not(a-date-picker) input,
+  body .t-Form-itemWrapper .apex-item-group :not(a-date-picker) input,
+  body .t-Form-itemWrapper > div,
+  body .t-Form-itemWrapper select {
+    position: relative;
+    color: var(--text-input-color) !important;
+    height: var(--height-button) !important;
+    padding: 0 0 0 10px !important;
+    background-color: white;
+    background: white;
+    border: 1px solid var(--border-color) !important;
+    /* overflow: hidden; */
+  }
+  
+  a-date-picker {
+    padding: 0 !important;
+  }
+  body .t-Form-inputContainer .t-Form-itemWrapper select,
+  body .t-Form-inputContainer .t-Form-itemWrapper a-date-picker input {
+    padding: 0 0 0 10px !important;
+    color: var(--text-input-color) !important;
+    height: var(--height-button) !important;
+  }
+  button .a-Icon.icon-popup-lov-under,
+  body .t-Form-itemWrapper select {
+    background-image: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/drop-down-icon.svg) !important;
+    background-size: 8px 5px !important;
+    background-position: 95% center !important;
+    background-repeat: no-repeat !important;
+  }
+  
+  button.a-Button.a-Button--popupLOV {
+    background-color: white;
+  }
+  button.a-Button.a-Button--popupLOV .a-Icon:before {
+    content: none;
+  }
+  button.assign-btn {
+    display: flex !important;
+    margin-left: auto !important;
+  }
+  
+  .add-btn {
+    background-color: var(--button-color);
+  }
+  button[name="edit"],
+  .a-Toolbar-toggleButton[data-action="edit"],
+  .edit-btn {
+    background-color: var(--button-color) !important;
+    background: var(--button-color) !important;
+    border-radius: var(--borderRadius-button) !important;
+    -webkit-border-radius: var(--borderRadius-button) !important;
+    -moz-border-radius: var(--borderRadius-button) !important;
+    -ms-border-radius: var(--borderRadius-button) !important;
+    -o-border-radius: var(--borderRadius-button) !important;
+  }
+  button.btn-approve,
+  button.btn-reject,
+  button.t-Button--hot,
+  .a-Toolbar-toggleButton[data-action="save"] {
+    background-color: var(--button-color) !important;
+    background: var(--button-color) !important;
+  }
+  .t-BreadcrumbRegion-body {
+    flex-grow: 0 !important;
+    margin-right: 50px;
+  }
+  button[name="edit"],
+  button[name="edit"],
+  .add-btn,
+  .edit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--button-text-color);
+    font-weight: bold;
+    min-width: var(--minWidth-button) !important;
+    height: var(--height-button) !important;
+  }
+  
+  button .a-Icon.a-Icon.icon-menu-drop-down {
+    background-image: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/drop-down-icon.svg) !important;
+    background-size: 8px 5px !important;
+    background-position: 95% center !important;
+    background-repeat: no-repeat !important;
+  }
+  button .a-Icon.a-Icon.icon-menu-drop-down::before {
+    display: none;
+  }
+  button[aria-label="Edit"],
+  button.a-Button.a-Toolbar-item,
+  .a-Button.a-Toolbar-item.a-Button--withIcon.a-Button--noLabel {
+    border: none !important;
+    font-weight: bold;
+    color: var(--button-text-color);
+    display: flex;
+    margin-top: auto;
+    margin-bottom: auto;
+    min-width: var(--minWidth-button) !important;
+    height: var(--height-button) !important;
+    background-color: var(--button-color) !important;
+    background: var(--button-color) !important;
+  }
+  .search-btn button {
+    min-width: var(--minWidth-button) !important;
+    height: var(--height-button) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    background-color: var(--button-color) !important;
+    background: var(--button-color) !important;
+  }
+  
+  /* end add button, edit button */
+  /* search button */
+  .fa-search::before,
+  .icon-search::before {
+    display: none;
+  }
+  .icon-search,
+  .search-btn button::before,
+  .fa-search {
+    content: "";
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-image: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/search-icon-black.svg);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 5px;
+  }
+  /* end search button */
+  /* Date picker */
+  .icon-calendar {
+    background-image: url(https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/Icons/calendar.svg);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .a-Button--calendar,
+  .apex-item-datepicker {
+    background: white !important;
+    border: none !important;
+  }
+  .apex-item-datepicker::before {
+    display: none !important;
+  }
+  /* end Date picker */
+  html:not(.page-100) .t-Form-itemText--pre {
+    width: 20% !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  table thead th {
+    background-color: var(--color-f2f2f2) !important;
+  }
+  
+  table tbody td {
+    background-color: white !important;
+  }
+  .display_only.apex-item-display-only {
+    padding: 0 7px !important;
+    height: var(--height-button) !important;
+    display: flex !important;
+    align-items: center;
+  }
+  
+  /* list menu */
+  
+  .t-Header-branding {
+    background-color: white !important;
+  }
+  .a-TreeView-node.a-TreeView-node--topLevel.is-collapsible {
+    background-color: var(--color-f2f2f2) !important;
+  }
+  
+  .a-TreeView-node.a-TreeView-node--topLevel.is-collapsible .a-TreeView-toggle,
+  .a-TreeView-node.a-TreeView-node--topLevel.is-collapsible > div,
+  .a-TreeView-node.a-TreeView-node--topLevel.is-collapsible li div {
+    background-color: var(--color-f2f2f2) !important;
+    background: var(--color-f2f2f2) !important;
+  }
+  .a-TreeView-node.is-collapsible .a-TreeView-node:hover .a-TreeView-content,
+  .a-TreeView-node.a-TreeView-node--topLevel.is-collapsible
+    div.a-TreeView-content.is-current {
+    background-color: var(--active-color) !important;
+  }
+  .a-TreeView-node.is-collapsible .a-TreeView-node:hover .a-TreeView-content a,
+  div.a-TreeView-content.is-current a {
+    color: white !important;
+  }
+  .t-Body-nav {
+    border-right: 1px solid var(--color-efefef) !important;
+  }
+  .a-Toolbar-group.a-Toolbar-group--search.a-Toolbar-group--together {
+    gap: 20px;
+  }
+  input.file.apex-item-file.apex-item-file--browse.apex-item-has-icon {
+    padding: 0 0 0 10px !important;
+  }
+  input.file.apex-item-file.apex-item-file--browse.apex-item-has-icon > div {
+    border: none !important;
+    height: var(--height-button) !important;
+  }
+  .apex-item-group--textarea,
+  .apex-item-group--file-browse .apex-item-filedrop,
+  .apex-item-group.apex-item-group--popup-lov > input,
+  .t-Form-itemWrapper > input,
+  .t-Form-itemWrapper > select {
+    height: var(--height-button) !important;
+    padding: 0 !important;
+    padding-left: 7px !important;
+    display: flex;
+    border: none !important;
+    align-items: center;
+  }
+  .apex-item-group.apex-item-group--textarea {
+    margin-top: 40px;
+    margin-bottom: 15px;
+    padding: 0 !important;
+  }
+  .t-Region-title:has(button) button {
+    position: initial !important;
+    margin: 0 !important;
+  }
+  .t-Region-title:has(button) {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+  }
+  .apex-item-group.apex-item-group--popup-lov:has(button) button {
+    border: none !important;
+  }
+  
+  @media only screen and (max-width: 480px) {
+    #t_Body_nav {
+      position: absolute !important;
+      top: 0 !important;
+    }
+  }
+
