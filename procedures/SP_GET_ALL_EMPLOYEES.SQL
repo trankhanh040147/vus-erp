@@ -46,6 +46,7 @@ n_worker_id NVARCHAR2(100 CHAR);
 n_Level_Id NVARCHAR2(20 CHAR);
 n_Level_Description NVARCHAR2(100 CHAR);
 n_Department_Id NVARCHAR2(20 CHAR);
+n_Department_Name NVARCHAR2(100 CHAR);
 
 -- BANK ACCOUNT fields
 n_total_id_types number;
@@ -242,6 +243,7 @@ BEGIN
         n_Schedule := apex_json.get_varchar2('[%d].Schedule', i);
         n_worker_id := apex_json.get_varchar2('[%d].Worker', i);
         n_Department_Id := apex_json.get_varchar2('[%d].DepartmentId', i);
+        n_Department_Name := apex_json.get_varchar2('[%d].DepartmentName', i);
         n_Level_Id := apex_json.get_varchar2('[%d].LevelId', i);
         n_Level_Description := apex_json.get_varchar2('[%d].LevelDescription', i);
 
@@ -321,6 +323,7 @@ BEGIN
                     SCHEDULE = n_Schedule,
                     WORKER_ID = n_worker_id,
                     DEPARTMENT_ID = n_Department_Id,
+                    DEPARTMENT_NAME = n_Department_Name,
                     LEVEL_ID = n_Level_Id,
                     LEVEL_DESCRIPTION = n_Level_Description
             WHERE EMPLOYEE_CODE = n_code ;
@@ -352,6 +355,7 @@ BEGIN
                     SCHEDULE,
                     WORKER_ID,
                     DEPARTMENT_ID,
+                    DEPARTMENT_NAME,
                     LEVEL_ID,
                     LEVEL_DESCRIPTION
                 )
@@ -382,6 +386,7 @@ BEGIN
                     n_Schedule,
                     n_worker_id,
                     n_Department_Id,
+                    n_Department_Name,
                     n_Level_Id,
                     n_Level_Description
                 );
@@ -422,77 +427,78 @@ BEGIN
         End If;
 
         -- Get Id Numbers
-        FOR j in 0 .. total_id_types - 1
-        LOOP
-            id_index := (i-1)*total_id_types+j;
+        -- FOR j in 0 .. total_id_types - 1
+        -- LOOP
+        --     id_index := (i-1)*total_id_types+j;
 
-            -- get ID data
-            Temp_Id := CASE 
-                WHEN j = 0 THEN CCCD_Id
-                WHEN j = 1 THEN Passport_Id
-                WHEN j = 2 THEN EmpWorkPermit_Id
-                WHEN j = 3 THEN PIT_Id
-            END;   
-            Temp_Issue_Place := CASE 
-                WHEN j = 0 THEN CCCD_Issue_Place
-                WHEN j = 1 THEN Passport_Issue_Place
-                WHEN j = 2 THEN EmpWorkPermit_Issue_Place
-                WHEN j = 3 THEN PIT_Issue_Place
-            END;   
-            Temp_Issue_Date := CASE 
-                WHEN j = 0 THEN CCCD_Issue_Date
-                WHEN j = 1 THEN Passport_Issue_Date
-                WHEN j = 2 THEN EmpWorkPermit_Issue_Date
-                WHEN j = 3 THEN PIT_Issue_Date
-            END;   
-            Temp_Expiration_Date := CASE 
-                WHEN j = 0 THEN CCCD_Expiration_Date
-                WHEN j = 1 THEN Passport_Expiration_Date
-                WHEN j = 2 THEN WorkPermit_Expiration_Date
-                WHEN j = 3 THEN PIT_Expiration_Date
-            END;   
+        --     -- get ID data
+        --     Temp_Id := CASE 
+        --         WHEN j = 0 THEN CCCD_Id
+        --         WHEN j = 1 THEN Passport_Id
+        --         WHEN j = 2 THEN EmpWorkPermit_Id
+        --         WHEN j = 3 THEN PIT_Id
+        --     END;   
+        --     Temp_Issue_Place := CASE 
+        --         WHEN j = 0 THEN CCCD_Issue_Place
+        --         WHEN j = 1 THEN Passport_Issue_Place
+        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Place
+        --         WHEN j = 3 THEN PIT_Issue_Place
+        --     END;   
+        --     Temp_Issue_Date := CASE 
+        --         WHEN j = 0 THEN CCCD_Issue_Date
+        --         WHEN j = 1 THEN Passport_Issue_Date
+        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Date
+        --         WHEN j = 3 THEN PIT_Issue_Date
+        --     END;   
+        --     Temp_Expiration_Date := CASE 
+        --         WHEN j = 0 THEN CCCD_Expiration_Date
+        --         WHEN j = 1 THEN Passport_Expiration_Date
+        --         WHEN j = 2 THEN WorkPermit_Expiration_Date
+        --         WHEN j = 3 THEN PIT_Expiration_Date
+        --     END;   
 
-            SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID_TYPE = j and EMPLOYEE_CODE = n_code;
-            If Temp_Id is not null then
-                If l_count_idemp > 0 Then
-                    -- Update id numbers
-                    UPDATE
-                        EMP_ID_NUMBER
-                    SET
-                        ID_NUMBER = Temp_Id,
-                        ISSUE_DATE = Temp_Issue_Date,
-                        EXPIRATION_DATE = Temp_Expiration_Date,
-                        ISSUE_PLACE = Temp_Issue_Place,
-                        EMPLOYEE_ID = i,
-                        ID_TYPE = j
-                    WHERE
-                        ID = id_index;
+        --     SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID_TYPE = j and EMPLOYEE_CODE = n_code;
+        --     If Temp_Id is not null then
+        --         If l_count_idemp > 0 Then
+        --             -- Update id numbers
+        --             UPDATE
+        --                 EMP_ID_NUMBER
+        --             SET
+        --                 ID_NUMBER = Temp_Id,
+        --                 ISSUE_DATE = Temp_Issue_Date,
+        --                 EXPIRATION_DATE = Temp_Expiration_Date,
+        --                 ISSUE_PLACE = Temp_Issue_Place,
+        --                 EMPLOYEE_ID = i,
+        --                 ID_TYPE = j
+        --             WHERE
+        --                 ID = id_index;
 
-                Else
-                    -- Insert id numbers
-                    INSERT INTO
-                        EMP_ID_NUMBER(
-                            ID_NUMBER,
-                            ISSUE_DATE,
-                            EXPIRATION_DATE,
-                            ISSUE_PLACE,
-                            EMPLOYEE_ID,
-                            EMPLOYEE_CODE,
-                            ID_TYPE
-                        )
-                    VALUES
-                    (
-                            Temp_Id,
-                            Temp_Issue_Date,
-                            Temp_Expiration_Date,
-                            Temp_Issue_Place,
-                            i,
-                            n_code,
-                            j
-                        );
-                End If;
-            End if;
-        END LOOP;
+        --         Else
+        --             -- Insert id numbers
+        --             INSERT INTO
+        --                 EMP_ID_NUMBER(
+        --                     ID,
+        --                     ID_NUMBER,
+        --                     ISSUE_DATE,
+        --                     EXPIRATION_DATE,
+        --                     ISSUE_PLACE,
+        --                     EMPLOYEE_ID,
+        --                     EMPLOYEE_CODE,
+        --                     ID_TYPE
+        --                 )
+        --             VALUES
+        --             (
+        --                     Temp_Id,
+        --                     Temp_Issue_Date,
+        --                     Temp_Expiration_Date,
+        --                     Temp_Issue_Place,
+        --                     i,
+        --                     n_code,
+        --                     j
+        --                 );
+        --         End If;
+        --     End if;
+        -- END LOOP;
 
             -- Update/Insert Emergency Contact
             SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE n_code = EMPLOYEE_CODE;
