@@ -43,7 +43,9 @@ n_country NVARCHAR2(100);
 n_title NVARCHAR2(100);
 n_data_area NVARCHAR2(100 CHAR);
 n_worker_id NVARCHAR2(100 CHAR);
-
+n_Level_Id NVARCHAR2(20 CHAR);
+n_Level_Description NVARCHAR2(100 CHAR);
+n_Department_Id NVARCHAR2(20 CHAR);
 
 -- BANK ACCOUNT fields
 n_total_id_types number;
@@ -239,7 +241,9 @@ BEGIN
         n_ProfileId := apex_json.get_varchar2('[%d].ProfileId', i);
         n_Schedule := apex_json.get_varchar2('[%d].Schedule', i);
         n_worker_id := apex_json.get_varchar2('[%d].Worker', i);
-        
+        n_Department_Id := apex_json.get_varchar2('[%d].DepartmentId', i);
+        n_Level_Id := apex_json.get_varchar2('[%d].LevelId', i);
+        n_Level_Description := apex_json.get_varchar2('[%d].LevelDescription', i);
 
         --Get user bank accounts
         b_acc_num := apex_json.get_varchar2('[%d].BankAccount', i);
@@ -315,7 +319,10 @@ BEGIN
                     SOCIAL = n_social,
                     PROFILE_ID = n_ProfileId,
                     SCHEDULE = n_Schedule,
-                    WORKER_ID = n_worker_id
+                    WORKER_ID = n_worker_id,
+                    DEPARTMENT_ID = n_Department_Id,
+                    LEVEL_ID = n_Level_Id,
+                    LEVEL_DESCRIPTION = n_Level_Description
             WHERE EMPLOYEE_CODE = n_code ;
         Else
             INSERT INTO
@@ -343,7 +350,10 @@ BEGIN
                     SOCIAL,
                     PROFILE_ID,
                     SCHEDULE,
-                    WORKER_ID
+                    WORKER_ID,
+                    DEPARTMENT_ID,
+                    LEVEL_ID,
+                    LEVEL_DESCRIPTION
                 )
             VALUES
             (
@@ -370,7 +380,10 @@ BEGIN
                     n_social,
                     n_ProfileId,
                     n_Schedule,
-                    n_worker_id
+                    n_worker_id,
+                    n_Department_Id,
+                    n_Level_Id,
+                    n_Level_Description
                 );
 
         End If;
