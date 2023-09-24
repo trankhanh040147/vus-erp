@@ -651,7 +651,7 @@
 .page-5 div[data-label="Identify Number"] div[data-label="ID number"] {
   min-width: 50%;
 }
-.page-5 .t-Form-label,
+/* .page-5 .t-Form-label,
 .page-5 span.display_only,
 .page-5 .t-Form-itemWrapper input {
   padding: 0 7px !important;
@@ -665,8 +665,7 @@
 .page-5 .t-Form-label,
 .page-5 .t-Form-itemText.t-Form-itemText--pre {
   justify-content: left;
-  /* padding-right: 30px !important; */
-}
+} */
 .page-5
   .t-Body-contentInner
   .container
@@ -1054,4 +1053,14 @@ div:focus {
 /* File upload */
 .file-item {
   z-index: 100;
+}
+
+/* Read only items */
+.display_only.apex-item-display-only {
+  background-color: #e4e4e4 !important;
+  background: #e4e4e4 !important;
+  color: black !important;
+  cursor: var(--a-button-disabled-cursor, default);
+  opacity: var(--a-button-disabled-opacity, 0.5);
+  pointer-events: none;
 }
