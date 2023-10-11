@@ -456,8 +456,12 @@
   height: 40px;
 }
 .page-7 #R15977732594180899 > div.container {
-  padding: 5px 25px;
   background: #eaeff6;
+}
+@media only screen and (min-width: 1025px) {
+  .page-7 #R15977732594180899 > div.container {
+    padding: 5px 25px;
+  }
 }
 .page-7 #R15977732594180899 > div .t-Form-itemText {
   color: #222f6e !important;
@@ -573,14 +577,16 @@
   background: #fefce8;
   color: #222f6e;
 }
-.page-9 .t-Body-contentInner > .container {
-  background: #fff !important;
-  border-radius: 3px;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  -ms-border-radius: 3px;
-  -o-border-radius: 3px;
-  padding: 45px 35px;
+@media only screen and (min-width: 1025px) {
+  .page-9 .t-Body-contentInner > .container {
+    background: #fff !important;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+    padding: 45px 35px;
+  }
 }
 .t-Body-nav {
   box-shadow: none;
@@ -1064,3 +1070,83 @@ div:focus {
   opacity: var(--a-button-disabled-opacity, 0.5);
   pointer-events: none;
 }
+.page-5 #SR_R8178431762022829,
+.page-5 #SR_passport-number,
+.page-5 #SR_R8178776054022832,
+.page-5
+  #R8179601555022841
+  > div.t-Region-bodyWrap
+  > div.t-Region-body
+  > .container,
+.page-5 #R8179033279022835 > div.container,
+.page-5 #R8179722526022842 > div.t-Region-bodyWrap > div.t-Region-body > div,
+.page-5 #R8101712201268649 > div.t-Region-bodyWrap > div.t-Region-body > div,
+.page-6 #R7962757853296148 > div.t-Region-bodyWrap > div.t-Region-body > div,
+.page-7 #R15977732594180899 > div {
+  padding: 10px;
+  width: 100% !important;
+}
+.page-7 #R15977268260180895 > div.t-Region-bodyWrap > div.t-Region-body > div {
+  gap: 0 !important;
+}
+.page-5 #R8178431762022829 > div.container > div:nth-child(6) {
+  flex-direction: row;
+}
+.page-29 div#R14289979013031601 .col-6 {
+  max-width: 33.3333%;
+}
+.page-29 div#R14289979013031601 .col-6:nth-child(2) {
+padding-right: 8px;
+}
+
+.page-29 .t-Tabs-item.is-active{
+  background-color: #222F6E;
+  color: white;
+}
+.page-29 .t-Tabs-item.is-active span {
+  color: white;
+}
+.t-Tabs-link{
+  padding: 6px 15px !important;
+}
+.t-Tabs-link:before{
+  width: 0 !important;
+}
+.page-29 .apex-item-group.apex-item-group--textarea textarea{
+  line-height: 200%;
+  padding: 0 10px !important;
+}
+#P29_NOTE_CONTAINER{
+  margin-bottom: 20px!important;
+}
+.page-29 label#P29_NOTE_LABEL{
+  padding-top: 5px !important;
+}
+.page-29 .apex-item-group.apex-item-group--textarea{
+  height: 33px !important;
+}
+.page-29 .t-Form-fieldContainer--floatingLabel.apex-item-wrapper--textarea.is-active .t-Form-label:before, .t-Form-fieldContainer--floatingLabel.apex-item-wrapper--textarea.js-show-label .t-Form-label:before{
+  background-color: transparent;
+}
+ @media  screen and (max-width:1024px) {
+  .page-29 div#R14289979013031601 .col-6 {
+    max-width: 100%;
+  }
+  .page-29 .row:has(.col, .col-3, .col-4) > .col {
+    width:100% !important ;
+  }
+ }
+ .page-29 .t-Form-labelContainer{
+  min-width: 120px;
+}
+  @media screen and (max-width:639px) {
+    .page-29 .row{
+      margin: 0 !important;
+    }
+
+
+  }
+  .page-29 ul.t-Tabs.t-Tabs--simple.a-Tabs{
+    margin-bottom: 20px;
+    border-bottom: 1px solid #EAEAEA;
+  }
