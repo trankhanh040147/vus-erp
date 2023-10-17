@@ -424,7 +424,7 @@ BEGIN
                 BANK_NAME = b_name,
                 BANK_BRANCH = b_branch
             WHERE
-                ID = i;
+                n_code = EMPLOYEE_CODE;
 
         Else 
         -- Insert bank accounts
@@ -516,21 +516,19 @@ BEGIN
 
             -- Update/Insert Emergency Contact
             SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE n_code = EMPLOYEE_CODE;
-            IF NOT (n_FullNameEmergencyContact IS NULL AND n_RelationshipEmergencyContact IS NULL AND n_PhoneEmergencyContact IS NULL) THEN
-                If l_count_id_emer > 0 Then
-                    -- Update Emergency Contact
-                    UPDATE
-                        EMP_EMERGENCY_CONTACT EEC
-                    SET
-                        EEC.EMPLOYEE_ID = n_id,
-                        EEC.EMPLOYEE_CODE = n_code,
-                        EME_FULL_NAME = n_FullNameEmergencyContact,
-                        RELATION_SHIP = n_RelationshipEmergencyContact,
-                        EME_PHONE_NUMBER = n_PhoneEmergencyContact
-                    WHERE
-                        ID = i;
-                Else
-                    -- Insert Emergency Contact
+            -- IF NOT (n_FullNameEmergencyContact IS NULL AND n_RelationshipEmergencyContact IS NULL AND n_PhoneEmergencyContact IS NULL) THEN
+            If l_count_id_emer > 0 Then -- Update Emergency Contact
+                UPDATE
+                    EMP_EMERGENCY_CONTACT EEC
+                SET
+                    EEC.EMPLOYEE_ID = n_id,
+                    EME_FULL_NAME = n_FullNameEmergencyContact,
+                    RELATION_SHIP = n_RelationshipEmergencyContact,
+                    EME_PHONE_NUMBER = n_PhoneEmergencyContact
+                WHERE
+                    n_code = EMPLOYEE_CODE;
+
+            Else -- Insert Emergency Contact
                 INSERT INTO
                     EMP_EMERGENCY_CONTACT(
                         EMPLOYEE_ID,
@@ -540,14 +538,14 @@ BEGIN
                         EME_PHONE_NUMBER
                     )
                 VALUES
-                (
+                    (
                         n_id,
                         n_code,
                         n_FullNameEmergencyContact,
                         n_RelationshipEmergencyContact,
                         n_PhoneEmergencyContact
                     );
-                End If;
+
             End If;
 
             -- Update [Social_Insurance]
@@ -569,7 +567,7 @@ BEGIN
                         EMPLOYEE_ID = n_id,
                         EMPLOYEE_CODE = n_code
                     WHERE
-                        ID = i;
+                        n_code = EMPLOYEE_CODE;
                 Else
                     -- Insert Emergency Contact
                     INSERT INTO
