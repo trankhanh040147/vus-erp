@@ -54,7 +54,7 @@ b_acc_num NVARCHAR2(50);
 b_name NVARCHAR2(200);
 b_branch NVARCHAR2(200);
 -- ID number fields
-total_id_types number := 4;
+total_id_types number := 5;
 CCCD_Id NVARCHAR2(50);
 CCCD_Issue_Place NVARCHAR2(100);
 CCCD_Issue_Date DATE;
@@ -297,7 +297,8 @@ BEGIN
         dbms_output.put_line('Employee Code: ' || n_code);
         dbms_output.put_line('');
 
-        -- Inser/Update EMPLOYEES table
+        --------------------------------------
+        -- Inser/Update EMPLOYEES table [EMPLOYEES]
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_code;
         If l_count_idemp > 0 Then
                 UPDATE
@@ -397,7 +398,8 @@ BEGIN
 
         End If;
 
-        -- Update/Insert USERS table
+        --------------------------------------
+        -- Update/Insert USERS table [USERS]
         SELECT COUNT(ID) INTO l_count_iduser FROM USERS WHERE PERSON_ID = i AND PERSON_TYPE = 'STAFF';
         If l_count_iduser > 0 Then
             UPDATE USERS SET MANAGERPOSITION = n_managerPosition,USER_NAME = n_email
@@ -407,7 +409,8 @@ BEGIN
             VALUES(i, 'STAFF', n_managerPosition, n_email);
         End If;
         
-        -- Update/Insert BANK ACCOUNTS
+        --------------------------------------
+        -- Update/Insert BANK ACCOUNTS [EMP_BANK]
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE n_code = EMPLOYEE_CODE ;
         
         -- If b_acc_num is not null then
@@ -438,163 +441,181 @@ BEGIN
             (n_id, n_code, b_acc_num, b_name, b_branch);
         End If;
 
-        -- Get Id Numbers
-        -- FOR j in 0 .. total_id_types - 1
-        -- LOOP
-        --     id_index := (i-1)*total_id_types+j;
+        -- Update/Insert ID numbers [EMP_ID_NUMBER]
+        FOR j in 0 .. total_id_types - 1
+        LOOP
+            id_index := (i-1)*total_id_types+j;
 
-        --     -- get ID data
-        --     Temp_Id := CASE 
-        --         WHEN j = 0 THEN CCCD_Id
-        --         WHEN j = 1 THEN Passport_Id
-        --         WHEN j = 2 THEN EmpWorkPermit_Id
-        --         WHEN j = 3 THEN PIT_Id
-        --     END;   
-        --     Temp_Issue_Place := CASE 
-        --         WHEN j = 0 THEN CCCD_Issue_Place
-        --         WHEN j = 1 THEN Passport_Issue_Place
-        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Place
-        --         WHEN j = 3 THEN PIT_Issue_Place
-        --     END;   
-        --     Temp_Issue_Date := CASE 
-        --         WHEN j = 0 THEN CCCD_Issue_Date
-        --         WHEN j = 1 THEN Passport_Issue_Date
-        --         WHEN j = 2 THEN EmpWorkPermit_Issue_Date
-        --         WHEN j = 3 THEN PIT_Issue_Date
-        --     END;   
-        --     Temp_Expiration_Date := CASE 
-        --         WHEN j = 0 THEN CCCD_Expiration_Date
-        --         WHEN j = 1 THEN Passport_Expiration_Date
-        --         WHEN j = 2 THEN WorkPermit_Expiration_Date
-        --         WHEN j = 3 THEN PIT_Expiration_Date
-        --     END;   
+            -- get ID data
+            Temp_Id := CASE 
+                WHEN j = 0 THEN CCCD_Id
+                WHEN j = 1 THEN Passport_Id
+                WHEN j = 2 THEN EmpWorkPermit_Id
+                WHEN j = 3 THEN PIT_Id
+                WHEN j = 3 THEN CMND_Id
+            END;   
+            Temp_Issue_Place := CASE 
+                WHEN j = 0 THEN CCCD_Issue_Place
+                WHEN j = 1 THEN Passport_Issue_Place
+                WHEN j = 2 THEN EmpWorkPermit_Issue_Place
+                WHEN j = 3 THEN PIT_Issue_Place
+                WHEN j = 4 THEN CMND_Issue_Place
+            END;   
+            Temp_Issue_Date := CASE 
+                WHEN j = 0 THEN CCCD_Issue_Date
+                WHEN j = 1 THEN Passport_Issue_Date
+                WHEN j = 2 THEN EmpWorkPermit_Issue_Date
+                WHEN j = 3 THEN PIT_Issue_Date
+                WHEN j = 4 THEN CMND_Issue_Date
+            END;   
+            Temp_Expiration_Date := CASE 
+                WHEN j = 0 THEN CCCD_Expiration_Date
+                WHEN j = 1 THEN Passport_Expiration_Date
+                WHEN j = 2 THEN WorkPermit_Expiration_Date
+                WHEN j = 3 THEN PIT_Expiration_Date
+                WHEN j = 4 THEN CMND_Expiration_Date
+            END;   
 
-        --     SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID_TYPE = j and EMPLOYEE_CODE = n_code;
-        --     If Temp_Id is not null then
-        --         If l_count_idemp > 0 Then
-        --             -- Update id numbers
-        --             UPDATE
-        --                 EMP_ID_NUMBER
-        --             SET
-        --                 ID_NUMBER = Temp_Id,
-        --                 ISSUE_DATE = Temp_Issue_Date,
-        --                 EXPIRATION_DATE = Temp_Expiration_Date,
-        --                 ISSUE_PLACE = Temp_Issue_Place,
-        --                 EMPLOYEE_ID = i,
-        --                 ID_TYPE = j
-        --             WHERE
-        --                 ID = id_index;
+            SELECT COUNT(ID) INTO l_count_idemp FROM EMP_ID_NUMBER WHERE ID_TYPE = j and EMPLOYEE_CODE = n_code;
+            -- If Temp_Id is not null then
+                If l_count_idemp > 0 Then
+                    -- Update id numbers
+                    UPDATE
+                        EMP_ID_NUMBER
+                    SET
+                        ID_NUMBER = Temp_Id,
+                        ISSUE_DATE = Temp_Issue_Date,
+                        EXPIRATION_DATE = Temp_Expiration_Date,
+                        ISSUE_PLACE = Temp_Issue_Place,
+                        EMPLOYEE_ID = n_id,
+                        ID_TYPE = j
+                    WHERE
+                        ID_TYPE = j and EMPLOYEE_CODE = n_code;
 
-        --         Else
-        --             -- Insert id numbers
-        --             INSERT INTO
-        --                 EMP_ID_NUMBER(
-        --                     ID,
-        --                     ID_NUMBER,
-        --                     ISSUE_DATE,
-        --                     EXPIRATION_DATE,
-        --                     ISSUE_PLACE,
-        --                     EMPLOYEE_ID,
-        --                     EMPLOYEE_CODE,
-        --                     ID_TYPE
-        --                 )
-        --             VALUES
-        --             (
-        --                     Temp_Id,
-        --                     Temp_Issue_Date,
-        --                     Temp_Expiration_Date,
-        --                     Temp_Issue_Place,
-        --                     i,
-        --                     n_code,
-        --                     j
-        --                 );
-        --         End If;
-        --     End if;
-        -- END LOOP;
-
-            -- Update/Insert Emergency Contact
-            SELECT COUNT(ID) INTO l_count_id_emer FROM EMP_EMERGENCY_CONTACT WHERE n_code = EMPLOYEE_CODE;
-            -- IF NOT (n_FullNameEmergencyContact IS NULL AND n_RelationshipEmergencyContact IS NULL AND n_PhoneEmergencyContact IS NULL) THEN
-            If l_count_id_emer > 0 Then -- Update Emergency Contact
-                UPDATE
-                    EMP_EMERGENCY_CONTACT EEC
-                SET
-                    EEC.EMPLOYEE_ID = n_id,
-                    EME_FULL_NAME = n_FullNameEmergencyContact,
-                    RELATION_SHIP = n_RelationshipEmergencyContact,
-                    EME_PHONE_NUMBER = n_PhoneEmergencyContact
-                WHERE
-                    n_code = EMPLOYEE_CODE;
-
-            Else -- Insert Emergency Contact
-                INSERT INTO
-                    EMP_EMERGENCY_CONTACT(
-                        EMPLOYEE_ID,
-                        EMPLOYEE_CODE,
-                        EME_FULL_NAME,
-                        RELATION_SHIP,
-                        EME_PHONE_NUMBER
-                    )
-                VALUES
+                Else
+                    -- Insert id numbers
+                    INSERT INTO
+                        EMP_ID_NUMBER(
+                            ID_NUMBER,
+                            ISSUE_DATE,
+                            EXPIRATION_DATE,
+                            ISSUE_PLACE,
+                            EMPLOYEE_ID,
+                            EMPLOYEE_CODE,
+                            ID_TYPE
+                        )
+                    VALUES
                     (
-                        n_id,
-                        n_code,
-                        n_FullNameEmergencyContact,
-                        n_RelationshipEmergencyContact,
-                        n_PhoneEmergencyContact
-                    );
+                            Temp_Id,
+                            Temp_Issue_Date,
+                            Temp_Expiration_Date,
+                            Temp_Issue_Place,
+                            n_id,
+                            n_code,
+                            j
+                        );
+                End If;
+            -- End if;
+        END LOOP;
 
-            End If;
+        --------------------------------------
+        -- Update/Insert Emergency Contact [EMP_EMERGENCY_CONTACT]
+        SELECT
+            COUNT(ID) INTO l_count_id_emer
+        FROM
+            EMP_EMERGENCY_CONTACT
+        WHERE
+            n_code = EMPLOYEE_CODE;
 
-            -- Update [Social_Insurance]
-            SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE n_code = EMPLOYEE_CODE;
-            
-            -- If n_SocialInsuranceNumber is not null and n_SocialInsuranceNumber != '0' then
-            If l_count_id_social > 0 Then -- Update Emergency Contact
-                UPDATE
-                    EMP_SOCICAL_INSURANCE EEC
-                SET
-                    SOC_INS_NUMBER = n_SocialInsuranceNumber,
-                    PRI_HEAL_SERVICE = n_HealthInsuranceCard,
-                    SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
-                    SOC_HOU_NAME = n_HouseholderFullName,
-                    SOC_HOU_DOB = n_Householder_DOB,
-                    SOC_HOU_ID = n_HouseholderIDNumber,
-                    SOC_RELATIONSHIP = n_HouseholderRelationship,
-                    EMPLOYEE_ID = n_id
-                WHERE
-                    n_code = EMPLOYEE_CODE;
+        -- IF NOT (n_FullNameEmergencyContact IS NULL AND n_RelationshipEmergencyContact IS NULL AND n_PhoneEmergencyContact IS NULL) THEN
+        If l_count_id_emer > 0 Then -- Update Emergency Contact
+        UPDATE
+            EMP_EMERGENCY_CONTACT EEC
+        SET
+            EEC.EMPLOYEE_ID = n_id,
+            EME_FULL_NAME = n_FullNameEmergencyContact,
+            RELATION_SHIP = n_RelationshipEmergencyContact,
+            EME_PHONE_NUMBER = n_PhoneEmergencyContact
+        WHERE
+            n_code = EMPLOYEE_CODE;
 
-            Else -- Insert Emergency Contact
-                INSERT INTO
-                    EMP_SOCICAL_INSURANCE(
-                        EMPLOYEE_ID,
-                        EMPLOYEE_CODE,
-                        SOC_INS_NUMBER,
-                        PRI_HEAL_SERVICE,
-                        SOC_HOSPITAL_CODE,
-                        SOC_HOU_NAME,
-                        SOC_HOU_DOB,
-                        SOC_HOU_ID,
-                        SOC_RELATIONSHIP
-                    )
-                VALUES
-                    (
-                        n_id,
-                        n_code,
-                        n_SocialInsuranceNumber,
-                        n_HealthInsuranceCard,
-                        n_HospitalOrClinicCode,
-                        n_HouseholderFullName,
-                        n_Householder_DOB,
-                        n_HouseholderIDNumber,
-                        n_HouseholderRelationship
-                    );
+        Else -- Insert Emergency Contact
+        INSERT INTO
+            EMP_EMERGENCY_CONTACT(
+                EMPLOYEE_ID,
+                EMPLOYEE_CODE,
+                EME_FULL_NAME,
+                RELATION_SHIP,
+                EME_PHONE_NUMBER
+            )
+        VALUES
+            (
+                n_id,
+                n_code,
+                n_FullNameEmergencyContact,
+                n_RelationshipEmergencyContact,
+                n_PhoneEmergencyContact
+            );
 
-            End If;
-            -- End If;
+        End If;
 
+        --------------------------------------
+        -- Update/Insert Social Insurance [EMP_SOCICAL_INSURANCE]
+        SELECT
+            COUNT(ID) INTO l_count_id_social
+        FROM
+            EMP_SOCICAL_INSURANCE
+        WHERE
+            n_code = EMPLOYEE_CODE;
+
+        -- If n_SocialInsuranceNumber is not null and n_SocialInsuranceNumber != '0' then
+        If l_count_id_social > 0 Then -- Update Emergency Contact
+        UPDATE
+            EMP_SOCICAL_INSURANCE EEC
+        SET
+            SOC_INS_NUMBER = n_SocialInsuranceNumber,
+            PRI_HEAL_SERVICE = n_HealthInsuranceCard,
+            SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
+            SOC_HOU_NAME = n_HouseholderFullName,
+            SOC_HOU_DOB = n_Householder_DOB,
+            SOC_HOU_ID = n_HouseholderIDNumber,
+            SOC_RELATIONSHIP = n_HouseholderRelationship,
+            EMPLOYEE_ID = n_id
+        WHERE
+            n_code = EMPLOYEE_CODE;
+
+        Else -- Insert Emergency Contact
+        INSERT INTO
+            EMP_SOCICAL_INSURANCE(
+                EMPLOYEE_ID,
+                EMPLOYEE_CODE,
+                SOC_INS_NUMBER,
+                PRI_HEAL_SERVICE,
+                SOC_HOSPITAL_CODE,
+                SOC_HOU_NAME,
+                SOC_HOU_DOB,
+                SOC_HOU_ID,
+                SOC_RELATIONSHIP
+            )
+        VALUES
+            (
+                n_id,
+                n_code,
+                n_SocialInsuranceNumber,
+                n_HealthInsuranceCard,
+                n_HospitalOrClinicCode,
+                n_HouseholderFullName,
+                n_Householder_DOB,
+                n_HouseholderIDNumber,
+                n_HouseholderRelationship
+            );
+
+        End If;
+
+        -- End If;
         -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
+        --------------------------------------
+
         COMMIT;
          
     END LOOP;
