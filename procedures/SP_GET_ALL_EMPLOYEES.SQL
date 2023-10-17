@@ -209,7 +209,7 @@ BEGIN
         n_firstname := apex_json.get_clob('[%d].FirstName', i);
         n_lastname := apex_json.get_clob('[%d].LastName', i);
         n_name := apex_json.get_clob('[%d].Name', i);
-        n_phone := apex_json.get_clob('[%d].Phone', i);
+        n_phone := replace(apex_json.get_clob('[%d].Phone', i),'+84','0') ;
         -- n_email := NVL(apex_json.get_clob('[%d].UserEmail', i), i||'vus.account.null@vus-etsc.edu.vn');
         n_email := apex_json.get_clob('[%d].Email', i);
         n_company_email := NVL(apex_json.get_clob('[%d].CompanyEmail', i), i||'  ');
@@ -294,10 +294,10 @@ BEGIN
         n_Householder_DOB := CASE WHEN apex_json.get_varchar2('[%d].Householder_DOB', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].Householder_DOB', i), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'MM/DD/YYYY') END;
 
         -- Update EMPLOYEES table
-        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES_NEW WHERE EMPLOYEE_CODE = n_code ;
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_code ;
         If l_count_idemp > 0 Then
                 UPDATE
-                    EMPLOYEES_NEW
+                    EMPLOYEES
                 SET
                     EMPLOYEE_ID = n_id,
                     FIRST_NAME = n_firstname,
@@ -329,7 +329,7 @@ BEGIN
             WHERE EMPLOYEE_CODE = n_code ;
         Else
             INSERT INTO
-                EMPLOYEES_NEW(
+                EMPLOYEES(
                     ID,
                     EMPLOYEE_ID,
                     FIRST_NAME,
