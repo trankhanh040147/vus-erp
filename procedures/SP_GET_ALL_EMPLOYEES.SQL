@@ -1,3 +1,5 @@
+-- execute: SP_GET_ALL_EMPLOYEES(from_id, to_id)
+-- from_id > 0
 create or replace PROCEDURE "SP_GET_ALL_EMPLOYEES"
 (
     p_from_num NUMBER,
@@ -293,7 +295,11 @@ BEGIN
         n_HouseholderRelationship := apex_json.get_varchar2('[%d].HouseholderRelationship', i);
         n_Householder_DOB := CASE WHEN apex_json.get_varchar2('[%d].Householder_DOB', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].Householder_DOB', i), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'MM/DD/YYYY') END;
 
-        -- Update EMPLOYEES table
+        -- Print data
+        dbms_output.put_line('Employee Code: ' || n_code);
+        dbms_output.put_line('');
+
+        -- Inser/Update EMPLOYEES table
         SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_code;
         If l_count_idemp > 0 Then
                 UPDATE
