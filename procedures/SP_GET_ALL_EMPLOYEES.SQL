@@ -294,7 +294,7 @@ BEGIN
         n_Householder_DOB := CASE WHEN apex_json.get_varchar2('[%d].Householder_DOB', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].Householder_DOB', i), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'MM/DD/YYYY') END;
 
         -- Update EMPLOYEES table
-        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_code ;
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMPLOYEES WHERE EMPLOYEE_CODE = n_code;
         If l_count_idemp > 0 Then
                 UPDATE
                     EMPLOYEES
@@ -393,6 +393,7 @@ BEGIN
 
         End If;
 
+        -- Update/Insert USERS table
         SELECT COUNT(ID) INTO l_count_iduser FROM USERS WHERE PERSON_ID = i AND PERSON_TYPE = 'STAFF';
         If l_count_iduser > 0 Then
             UPDATE USERS SET MANAGERPOSITION = n_managerPosition,USER_NAME = n_email
@@ -402,28 +403,36 @@ BEGIN
             VALUES(i, 'STAFF', n_managerPosition, n_email);
         End If;
         
-        --Get bank accounts
+        -- Update/Insert BANK ACCOUNTS
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_BANK WHERE n_code = EMPLOYEE_CODE ;
-        If b_acc_num is not null then
-            If l_count_idemp > 0 Then
-                -- Update bank accounts
-                UPDATE
-                    EMP_BANK
-                SET
-                    EMPLOYEE_ID = i,
-                    EMPLOYEE_CODE = n_code,
-                    BANK_ACC_NUM = b_acc_num,
-                    BANK_NAME = b_name,
-                    BANK_BRANCH = b_branch
-                WHERE
-                    ID = i;
+        
+        -- If b_acc_num is not null then
+        If l_count_idemp > 0 Then 
+        -- Update bank accounts
+            UPDATE
+                EMP_BANK
+            SET
+                EMPLOYEE_ID = i,
+                EMPLOYEE_CODE = n_code,
+                BANK_ACC_NUM = b_acc_num,
+                BANK_NAME = b_name,
+                BANK_BRANCH = b_branch
+            WHERE
+                ID = i;
 
-            Else
-                -- Insert bank accounts
-                INSERT INTO EMP_BANK(ID, EMPLOYEE_ID, EMPLOYEE_CODE, BANK_ACC_NUM, BANK_NAME, BANK_BRANCH)
-                VALUES(i, i, n_code, b_acc_num, b_name, b_branch);
-
-            End If;
+        Else 
+        -- Insert bank accounts
+            INSERT INTO
+                EMP_BANK(
+                    ID,
+                    EMPLOYEE_ID,
+                    EMPLOYEE_CODE,
+                    BANK_ACC_NUM,
+                    BANK_NAME,
+                    BANK_BRANCH
+                )
+            VALUES
+            (i, i, n_code, b_acc_num, b_name, b_branch);
         End If;
 
         -- Get Id Numbers
