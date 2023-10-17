@@ -418,7 +418,7 @@ BEGIN
             UPDATE
                 EMP_BANK
             SET
-                EMPLOYEE_ID = i,
+                EMPLOYEE_ID = n_id,
                 EMPLOYEE_CODE = n_code,
                 BANK_ACC_NUM = b_acc_num,
                 BANK_NAME = b_name,
@@ -430,7 +430,6 @@ BEGIN
         -- Insert bank accounts
             INSERT INTO
                 EMP_BANK(
-                    ID,
                     EMPLOYEE_ID,
                     EMPLOYEE_CODE,
                     BANK_ACC_NUM,
@@ -438,7 +437,7 @@ BEGIN
                     BANK_BRANCH
                 )
             VALUES
-            (i, i, n_code, b_acc_num, b_name, b_branch);
+            (n_id, n_code, b_acc_num, b_name, b_branch);
         End If;
 
         -- Get Id Numbers
@@ -523,7 +522,7 @@ BEGIN
                     UPDATE
                         EMP_EMERGENCY_CONTACT EEC
                     SET
-                        EEC.EMPLOYEE_ID = i,
+                        EEC.EMPLOYEE_ID = n_id,
                         EEC.EMPLOYEE_CODE = n_code,
                         EME_FULL_NAME = n_FullNameEmergencyContact,
                         RELATION_SHIP = n_RelationshipEmergencyContact,
@@ -534,7 +533,6 @@ BEGIN
                     -- Insert Emergency Contact
                 INSERT INTO
                     EMP_EMERGENCY_CONTACT(
-                        ID,
                         EMPLOYEE_ID,
                         EMPLOYEE_CODE,
                         EME_FULL_NAME,
@@ -543,8 +541,7 @@ BEGIN
                     )
                 VALUES
                 (
-                        i,
-                        i,
+                        n_id,
                         n_code,
                         n_FullNameEmergencyContact,
                         n_RelationshipEmergencyContact,
@@ -569,7 +566,7 @@ BEGIN
                         SOC_HOU_DOB = n_Householder_DOB,
                         SOC_HOU_ID = n_HouseholderIDNumber,
                         SOC_RELATIONSHIP = n_HouseholderRelationship,
-                        EMPLOYEE_ID = i,
+                        EMPLOYEE_ID = n_id,
                         EMPLOYEE_CODE = n_code
                     WHERE
                         ID = i;
@@ -577,7 +574,6 @@ BEGIN
                     -- Insert Emergency Contact
                     INSERT INTO
                         EMP_SOCICAL_INSURANCE(
-                            ID,
                             EMPLOYEE_ID,
                             EMPLOYEE_CODE,
                             SOC_INS_NUMBER,
@@ -590,8 +586,7 @@ BEGIN
                         )
                     VALUES
                     (
-                            i,
-                            i,
+                            n_id,
                             n_code,
                             n_SocialInsuranceNumber,
                             n_HealthInsuranceCard,
