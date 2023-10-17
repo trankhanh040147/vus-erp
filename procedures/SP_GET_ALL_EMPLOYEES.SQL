@@ -1,5 +1,3 @@
--- execute: SP_GET_ALL_EMPLOYEES(from_id, to_id)
--- from_id > 0
 create or replace PROCEDURE "SP_GET_ALL_EMPLOYEES"
 (
     p_from_num NUMBER,
@@ -551,52 +549,50 @@ BEGIN
             -- Update [Social_Insurance]
             SELECT COUNT(ID) INTO l_count_id_social FROM EMP_SOCICAL_INSURANCE WHERE n_code = EMPLOYEE_CODE;
             
-            If n_SocialInsuranceNumber is not null and n_SocialInsuranceNumber != '0' then
-                If l_count_id_social > 0 Then
-                    -- Update Emergency Contact
-                    UPDATE
-                        EMP_SOCICAL_INSURANCE EEC
-                    SET
-                        SOC_INS_NUMBER = n_SocialInsuranceNumber,
-                        PRI_HEAL_SERVICE = n_HealthInsuranceCard,
-                        SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
-                        SOC_HOU_NAME = n_HouseholderFullName,
-                        SOC_HOU_DOB = n_Householder_DOB,
-                        SOC_HOU_ID = n_HouseholderIDNumber,
-                        SOC_RELATIONSHIP = n_HouseholderRelationship,
-                        EMPLOYEE_ID = n_id,
-                        EMPLOYEE_CODE = n_code
-                    WHERE
-                        n_code = EMPLOYEE_CODE;
-                Else
-                    -- Insert Emergency Contact
-                    INSERT INTO
-                        EMP_SOCICAL_INSURANCE(
-                            EMPLOYEE_ID,
-                            EMPLOYEE_CODE,
-                            SOC_INS_NUMBER,
-                            PRI_HEAL_SERVICE,
-                            SOC_HOSPITAL_CODE,
-                            SOC_HOU_NAME,
-                            SOC_HOU_DOB,
-                            SOC_HOU_ID,
-                            SOC_RELATIONSHIP
-                        )
-                    VALUES
-                    (
-                            n_id,
-                            n_code,
-                            n_SocialInsuranceNumber,
-                            n_HealthInsuranceCard,
-                            n_HospitalOrClinicCode,
-                            n_HouseholderFullName,
-                            n_Householder_DOB,
-                            n_HouseholderIDNumber,
-                            n_HouseholderRelationship
-                        );
-                End If;
-            End If;
+            -- If n_SocialInsuranceNumber is not null and n_SocialInsuranceNumber != '0' then
+            If l_count_id_social > 0 Then -- Update Emergency Contact
+                UPDATE
+                    EMP_SOCICAL_INSURANCE EEC
+                SET
+                    SOC_INS_NUMBER = n_SocialInsuranceNumber,
+                    PRI_HEAL_SERVICE = n_HealthInsuranceCard,
+                    SOC_HOSPITAL_CODE = n_HospitalOrClinicCode,
+                    SOC_HOU_NAME = n_HouseholderFullName,
+                    SOC_HOU_DOB = n_Householder_DOB,
+                    SOC_HOU_ID = n_HouseholderIDNumber,
+                    SOC_RELATIONSHIP = n_HouseholderRelationship,
+                    EMPLOYEE_ID = n_id
+                WHERE
+                    n_code = EMPLOYEE_CODE;
 
+            Else -- Insert Emergency Contact
+                INSERT INTO
+                    EMP_SOCICAL_INSURANCE(
+                        EMPLOYEE_ID,
+                        EMPLOYEE_CODE,
+                        SOC_INS_NUMBER,
+                        PRI_HEAL_SERVICE,
+                        SOC_HOSPITAL_CODE,
+                        SOC_HOU_NAME,
+                        SOC_HOU_DOB,
+                        SOC_HOU_ID,
+                        SOC_RELATIONSHIP
+                    )
+                VALUES
+                    (
+                        n_id,
+                        n_code,
+                        n_SocialInsuranceNumber,
+                        n_HealthInsuranceCard,
+                        n_HospitalOrClinicCode,
+                        n_HouseholderFullName,
+                        n_Householder_DOB,
+                        n_HouseholderIDNumber,
+                        n_HouseholderRelationship
+                    );
+
+            End If;
+            -- End If;
 
         -- n_checked_date := TO_CHAR(TO_DATE(n_checked_date, 'YYYY-MM-DD'), 'DD/MM/YYYY');
         COMMIT;
