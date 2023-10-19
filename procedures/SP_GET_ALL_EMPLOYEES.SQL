@@ -47,6 +47,9 @@ n_Level_Id NVARCHAR2(20 CHAR);
 n_Level_Description NVARCHAR2(100 CHAR);
 n_Department_Id NVARCHAR2(20 CHAR);
 n_Department_Name NVARCHAR2(100 CHAR);
+n_OfficeAddress NVARCHAR2(200 CHAR);
+n_OfficeLocation NVARCHAR2(200 CHAR);
+n_flex_profile number;
 
 -- BANK ACCOUNT fields
 n_total_id_types number;
@@ -161,17 +164,17 @@ BEGIN
         --     "EmpWorkPermitIssueDate": "1900-01-01T12:00:00",
         --     "EmpWorkPermitIssuePlace": "",
         --     "WorkPermitExpirationDate": "1900-01-01T12:00:00",
-        --     "EmpPIT": "",
-        --     "EmpPITIssueDate": "1900-01-01T12:00:00",
-        --     "EmpPITIssuePlace": "",
-        --     "PITExpirationDate": "1900-01-01T12:00:00",
+        --     ?"EmpPIT": "",
+        --     ?"EmpPITIssueDate": "1900-01-01T12:00:00",
+        --     ?"EmpPITIssuePlace": "",
+        --     ?"PITExpirationDate": "1900-01-01T12:00:00",
         --     "PositionId": "000485",
         --     "PositionName": "HR Admin Officer",
         --     "Manager": "",
         --     "ManagerNumber": "",
         --     "ManagerPosition": "",
-        --     "OfficeLocation": "HCM_VPTT",
-        --     "OfficeAddress": "",
+        --     !"OfficeLocation": "HCM_VPTT",
+        --     !"OfficeAddress": "",
         --     "DepartmentName": "HR & Admin Department",
         --     "DataArea": "V01",
         --     "StartDate": "2022-01-30T17:00:00Z",
@@ -197,6 +200,10 @@ BEGIN
         --     "RelationshipEmergencyContact": "",
         --     "PhoneEmergencyContact": "",
         --     "Worker": 5637197826
+            -- "FlexProfile": 0,
+            -- "DepartmentId": "V01_SSCCP",
+            -- "LevelId": "M",
+            -- "LevelDescription": "M-Manager"
         -- }
 
     l_numrow := APEX_JSON.get_count (p_path =>'.'); --Đếm tổng số chuỗi trả về
@@ -227,6 +234,8 @@ BEGIN
 
         n_temp_address := apex_json.get_varchar2('[%d].TempAddressing', i);
         n_prim_address := apex_json.get_varchar2('[%d].PrimaryAddressing', i);
+        n_OfficeLocation := apex_json.get_varchar2('[%d].OfficeLocation', i);
+        n_OfficeAddress := apex_json.get_varchar2('[%d].OfficeAddress', i);
         n_gender_str := apex_json.get_varchar2('[%d].Gender', i);
         n_gender := CASE 
             WHEN n_gender_str LIKE 'Mr.%' THEN 1
@@ -246,6 +255,7 @@ BEGIN
         n_Department_Name := apex_json.get_varchar2('[%d].DepartmentName', i);
         n_Level_Id := apex_json.get_varchar2('[%d].LevelId', i);
         n_Level_Description := apex_json.get_varchar2('[%d].LevelDescription', i);
+        n_flex_profile := TO_NUMBER(apex_json.get_varchar2('[%d].FlexProfile', i));
 
         --Get user bank accounts
         b_acc_num := apex_json.get_varchar2('[%d].BankAccount', i);
@@ -330,7 +340,8 @@ BEGIN
                     DEPARTMENT_ID = n_Department_Id,
                     DEPARTMENT_NAME = n_Department_Name,
                     LEVEL_ID = n_Level_Id,
-                    LEVEL_DESCRIPTION = n_Level_Description
+                    LEVEL_DESCRIPTION = n_Level_Description,
+                    FLEX_PROFILE = n_flex_profile
             WHERE EMPLOYEE_CODE = n_code ;
         Else
             INSERT INTO
@@ -362,7 +373,8 @@ BEGIN
                     DEPARTMENT_ID,
                     DEPARTMENT_NAME,
                     LEVEL_ID,
-                    LEVEL_DESCRIPTION
+                    LEVEL_DESCRIPTION,
+                    FLEX_PROFILE
                 )
             VALUES
             (
@@ -393,7 +405,8 @@ BEGIN
                     n_Department_Id,
                     n_Department_Name,
                     n_Level_Id,
-                    n_Level_Description
+                    n_Level_Description,
+                    n_flex_profile
                 );
 
         End If;

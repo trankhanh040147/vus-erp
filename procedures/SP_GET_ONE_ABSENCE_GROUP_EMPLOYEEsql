@@ -9,11 +9,13 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     l_authorization NVARCHAR2(2000);
     l_response CLOB;
     l_numrow NUMBER;
+    l_trans_numrow NUMBER;
     l_rowsub NUMBER;
     l_count_idemp NUMBER;
     l_max NUMBER;
     l_body_json CLOB;
     n_id NUMBER;
+    n_emp_id NUMBER;
     n_carryforward NUMBER;
     n_can_cf NUMBER;
     n_planyearaccrued NUMBER;
@@ -38,10 +40,10 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_worker NVARCHAR2(200);
     t_trans_date DATE;
     t_end_date DATE;
-    t_trans_Carryforward FLOAT;
-    t_trans_Planyearaccrued FLOAT;
-    t_trans_Planyearused FLOAT;
-    t_total_days FLOAT;
+    t_trans_Carryforward NUMBER;
+    t_trans_Planyearaccrued NUMBER;
+    t_trans_Planyearused NUMBER;
+    t_total_days NUMBER;
     t_all_day NVARCHAR2(10);
     t_responser_id NUMBER;
     t_target_code NVARCHAR2(100);
@@ -83,7 +85,8 @@ BEGIN
             n_plan_year_start := TO_DATE(apex_json.get_varchar2('Benefit_accrual[%d].Planyearstart', i), 'YYYY-MM-DD"T"HH24:MI:SS');
             n_carry_forward := apex_json.get_number('Benefit_accrual[%d].Carryforward', i);
             n_plan_year_accrued := apex_json.get_number('Benefit_accrual[%d].Planyearaccrued', i);
-            n_plan_year_used := apex_json.get_number('Benefit_accrual[%d].Planyearused', i);
+            -- n_plan_year_used := TO_NUMBER(apex_json.get_varchar2('Benefit_accrual[%d].Planyearused', i));
+            n_plan_year_used := TO_NUMBER(apex_json.get_varchar2('Benefit_accrual[%d].Planyearused', i), '9999999999.9999999999');
             n_maximum_accrual_limit := apex_json.get_number('Benefit_accrual[%d].Maximumaccruallimit', i);
             n_available := apex_json.get_number('Benefit_accrual[%d].Available', i);
             n_hrm_absence_code_id := apex_json.get_varchar2('Benefit_accrual[%d].HRMAbsenceCodeId', i);
@@ -96,6 +99,8 @@ BEGIN
                 n_hrm_absence_code_group_id := 'APL';
             end if;
             DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
+
+            DBMS_OUTPUT.put_line('Plan_used: ' || to_char(n_plan_year_used));
 
             -- Insert data into the table ABSENCE_GROUP_EMPLOYEE
             SELECT MAX(ID) + 1 INTO l_max FROM ABSENCE_GROUP_EMPLOYEE;
@@ -155,26 +160,46 @@ BEGIN
                     t_end_date := t_trans_date;
                 ELSE
                     t_all_day := 'Y';
-                    t_end_date := t_trans_date + INTERVAL '1' DAY * FLOOR(t_total_days);
+                    t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(t_total_days) - 1);
                 END IF;
                 
                 SELECT EMPLOYEE_ID INTO n_emp_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code;
-                SELECT EMPLOYEE_ID INTO t_responser_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
-                SELECT MANAGER_POSITION_ID INTO t_target_code FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
+                -- SELECT EMPLOYEE_ID INTO t_responser_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
+                BEGIN
+                    SELECT EMPLOYEE_ID 
+                    INTO t_responser_id 
+                    FROM EMPLOYEES 
+                    WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        t_responser_id := NULL;
+                END;        
+
+                BEGIN
+                    SELECT MANAGER_POSITION_ID 
+                    INTO t_target_code 
+                    FROM EMPLOYEES 
+                    WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        t_target_code := NULL;
+                END;                
                 
-                DBMS_OUTPUT.put_line('Transaction ' || j || ' details:');
-                DBMS_OUTPUT.put_line('Worker-name: ' || t_worker);
-                DBMS_OUTPUT.put_line('Transaction Date: ' || TO_CHAR(t_trans_date, 'YYYY-MM-DD HH24:MI:SS'));
-                DBMS_OUTPUT.put_line('End Date: ' || TO_CHAR(t_end_date, 'YYYY-MM-DD HH24:MI:SS'));
-                DBMS_OUTPUT.put_line('Carryforward: ' || t_trans_Carryforward);
-                DBMS_OUTPUT.put_line('Planyearaccrued: ' || t_trans_Planyearaccrued);
-                DBMS_OUTPUT.put_line('Planyearused: ' || t_trans_Planyearused);
-                DBMS_OUTPUT.put_line('Total Days: ' || t_total_days);
-                DBMS_OUTPUT.put_line('All Day: ' || t_all_day);
-                DBMS_OUTPUT.put_line('Status: ' || t_status);
-                DBMS_OUTPUT.put_line('Responer Id: ' || t_responser_id);
-                DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
-                DBMS_OUTPUT.PUT_LINE('');
+                -- SELECT MANAGER_POSITION_ID INTO t_target_code FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
+                
+                -- DBMS_OUTPUT.put_line('Transaction ' || j || ' details:');
+                -- DBMS_OUTPUT.put_line('Worker-name: ' || t_worker);
+                -- DBMS_OUTPUT.put_line('Transaction Date: ' || TO_CHAR(t_trans_date, 'YYYY-MM-DD HH24:MI:SS'));
+                -- DBMS_OUTPUT.put_line('End Date: ' || TO_CHAR(t_end_date, 'YYYY-MM-DD HH24:MI:SS'));
+                -- DBMS_OUTPUT.put_line('Carryforward: ' || t_trans_Carryforward);
+                -- DBMS_OUTPUT.put_line('Planyearaccrued: ' || t_trans_Planyearaccrued);
+                -- DBMS_OUTPUT.put_line('Planyearused: ' || t_trans_Planyearused);
+                -- DBMS_OUTPUT.put_line('Total Days: ' || t_total_days);
+                -- DBMS_OUTPUT.put_line('All Day: ' || t_all_day);
+                -- DBMS_OUTPUT.put_line('Status: ' || t_status);
+                -- DBMS_OUTPUT.put_line('Responer Id: ' || t_responser_id);
+                -- DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
+                -- DBMS_OUTPUT.PUT_LINE('');
 
                 -- If planyearaccrued > 0, do not create leave
                 if t_total_days <= 0 then
@@ -227,19 +252,24 @@ BEGIN
             FOR r2 IN (SELECT * FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code) LOOP
                 IF r2.HRM_ABSENCE_CODE_GROUP_ID = 'APL' AND r2.CAN_CARRY_FORWARD = 1 THEN
                     -- Perform the updates
-                    r1.CARRY_FORWARD := r1.CARRY_FORWARD + r2.CARRY_FORWARD;
+                    -- r1.CARRY_FORWARD := r1.CARRY_FORWARD + r2.CARRY_FORWARD;
                     r1.CARRY_FORWARD_AVALABLE := r2.AVAILABLE;
                     r1.CARRY_FORWARD_CODE := r2.HRM_ABSENCE_CODE_ID;
                     r1.CARRY_FORWORD_EXP_DATE := r2.EXPIRATION_DATE;
                     r1.CF_BENEFIT_ACCRUAL_PLAN := r2.BENEFIT_ACCRUAL_PLAN;
+                    r1.PLAN_YEAR_USED := r1.PLAN_YEAR_USED + r2.PLAN_YEAR_USED;
 
                     -- Update r1 in database
                     UPDATE ABSENCE_GROUP_EMPLOYEE
-                    SET CARRY_FORWARD = r1.CARRY_FORWARD,
+                    SET CARRY_FORWARD = r2.CARRY_FORWARD,
                         CARRY_FORWARD_AVALABLE = r1.CARRY_FORWARD_AVALABLE,
                         CARRY_FORWARD_CODE = r1.CARRY_FORWARD_CODE,
                         CARRY_FORWORD_EXP_DATE = r1.CARRY_FORWORD_EXP_DATE,
-                        CF_BENEFIT_ACCRUAL_PLAN = r1.CF_BENEFIT_ACCRUAL_PLAN
+                        CF_BENEFIT_ACCRUAL_PLAN = r1.CF_BENEFIT_ACCRUAL_PLAN,
+                        -- PLAN_YEAR_USED = r1.PLAN_YEAR_USED
+                        CARRY_FORWARD_USED = r2.PLAN_YEAR_USED,
+                        PLAN_YEAR_ACCRUED = PLAN_YEAR_ACCRUED + r1.CARRY_FORWARD
+
                     WHERE EMPLOYEE_CODE = p_employee_code
                     AND HRM_ABSENCE_CODE_GROUP_ID = 'APL'
                     AND CAN_CARRY_FORWARD = 0;
