@@ -48,6 +48,8 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_responser_id NUMBER;
     t_target_code NVARCHAR2(100);
     t_status NUMBER;
+
+    total_exist_leave number;
     
 BEGIN
     SP_GET_TOKEN(p_token);
@@ -61,7 +63,13 @@ BEGIN
 
     -- Delete current Absence_groups of this employee OR update it
     DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
-    DELETE from EMPLOYEE_REQUESTS where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code;
+
+    -- DELETE from EMPLOYEE_REQUESTS where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code;
+
+    -- Pending: Delete all current waiting leaves 
+    -- DELETE from EMPLOYEE_REQUESTS 
+    -- WHERE IS_D365 = 0 and EMPLOYEE_CODE_REQ = p_employee_code 
+    -- AND EMP_REQ_STATUS = 2;
 
 
     FOR r IN (SELECT EMPLOYEE_CODE, DATAAREA FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code) LOOP
@@ -203,41 +211,55 @@ BEGIN
 
                 -- If planyearaccrued > 0, do not create leave
                 if t_total_days <= 0 then
-                    continue;
+                    -- continue;
+                    t_total_days := -t_total_days;
                 end if;
 
-                INSERT INTO EMPLOYEE_REQUESTS (
-                    REQUESTOR_ID,
-                    EMPLOYEE_CODE_REQ,
-                    EMPLOYEE_NAME,
-                    FROM_DATE,
-                    END_DATE,
-                    ALL_DAY,
-                    TOTAL_DAYS,
-                    EMP_REQ_STATUS,
-                    RESPONSER_ID,
-                    LEAVE_TYPE,
-                    TARGET_CODE,
-                    SUBMIT_DATE,
-                    BENEFIT_CODE,
-                    IS_D365
-                )
-                VALUES (
-                    n_emp_id,
-                    p_employee_code,
-                    t_worker,
-                    t_trans_date,
-                    t_end_date,
-                    t_all_day,
-                    t_total_days,
-                    t_status,
-                    t_responser_id,
-                    CASE WHEN n_hrm_absence_code_group_id ='Leave' THEN 'APL' ELSE to_char(n_hrm_absence_code_group_id) END,
-                    t_target_code,
-                    t_trans_date,
-                    n_benefit_accrual_plan,
-                    1 -- IS LEAVE FROM D365
-                );
+                -- Count leaves from D365 that inserted before, do not insert theses again
+                SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
+                WHERE EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
+                TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
+                AND BENEFIT_CODE = n_benefit_accrual_plan;
+
+                IF total_exist_leave <= 0 THEN
+
+                    INSERT INTO EMPLOYEE_REQUESTS (
+                        REQUESTOR_ID,
+                        EMPLOYEE_CODE_REQ,
+                        EMPLOYEE_NAME,
+                        FROM_DATE,
+                        END_DATE,
+                        ALL_DAY,
+                        TOTAL_DAYS,
+                        EMP_REQ_STATUS,
+                        RESPONSER_ID,
+                        LEAVE_TYPE,
+                        TARGET_CODE,
+                        SUBMIT_DATE,
+                        BENEFIT_CODE,
+                        IS_D365
+                    )
+                    VALUES (
+                        n_emp_id,
+                        p_employee_code,
+                        t_worker,
+                        t_trans_date,
+                        t_end_date,
+                        t_all_day,
+                        t_total_days,
+                        t_status,
+                        t_responser_id,
+                        CASE WHEN n_hrm_absence_code_group_id ='Leave' THEN 'APL' ELSE to_char(n_hrm_absence_code_group_id) END,
+                        t_target_code,
+                        t_trans_date,
+                        n_benefit_accrual_plan,
+                        1 -- IS LEAVE FROM D365
+                    );
+                    
+                END IF;
+
+
+
 
             END LOOP;
 
