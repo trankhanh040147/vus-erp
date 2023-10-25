@@ -161,14 +161,15 @@ BEGIN
                 t_trans_Planyearused := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearused', i, j);
                 
                 t_total_days := t_trans_Planyearused + t_trans_Carryforward;
+
                 t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
 
-                IF t_total_days = 0.5 or t_total_days = -0.5 then
+                IF t_total_days = 0 or t_total_days = 0.5 or t_total_days = -0.5 then
                     t_all_day := 'N';
                     t_end_date := t_trans_date;
                 ELSE
                     t_all_day := 'Y';
-                    t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(t_total_days) - 1);
+                    t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(abs(t_total_days)) - 1);
                 END IF;
                 
                 SELECT EMPLOYEE_ID INTO n_emp_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code;
@@ -191,7 +192,11 @@ BEGIN
                 EXCEPTION
                     WHEN NO_DATA_FOUND THEN
                         t_target_code := NULL;
-                END;                
+                END;       
+                if t_total_days <= 0 then
+                    -- continue;
+                    t_total_days := -t_total_days;
+                end if;         
                 
                 -- SELECT MANAGER_POSITION_ID INTO t_target_code FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
                 
@@ -208,12 +213,6 @@ BEGIN
                 -- DBMS_OUTPUT.put_line('Responer Id: ' || t_responser_id);
                 -- DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
                 -- DBMS_OUTPUT.PUT_LINE('');
-
-                -- If planyearaccrued > 0, do not create leave
-                if t_total_days <= 0 then
-                    -- continue;
-                    t_total_days := -t_total_days;
-                end if;
 
                 -- Count leaves from D365 that inserted before, do not insert theses again
                 SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
