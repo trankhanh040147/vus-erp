@@ -47,9 +47,12 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_all_day NVARCHAR2(10);
     t_responser_id NUMBER;
     t_target_code NVARCHAR2(100);
+    id_portal_value NVARCHAR2(100);
     t_status NUMBER;
+    t_id_portal_str NUMBER;
 
     total_exist_leave number;
+    total_exist_leave_portal_id number;
     
 BEGIN
     SP_GET_TOKEN(p_token);
@@ -159,7 +162,14 @@ BEGIN
                 t_trans_Carryforward := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Carryforward', i, j);
                 t_trans_Planyearaccrued := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearaccrued', i, j);
                 t_trans_Planyearused := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearused', i, j);
+                id_portal_value := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].IdPortalStr', i, j);
                 
+                IF id_portal_value IS NOT NULL AND id_portal_value != '' THEN
+                    t_id_portal_str := to_number(id_portal_value);
+                ELSE
+                    t_id_portal_str := -1;  -- or any default value you want
+                END IF;     
+
                 t_total_days := t_trans_Planyearused + t_trans_Carryforward;
 
                 t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
@@ -220,7 +230,10 @@ BEGIN
                 TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
                 AND BENEFIT_CODE = n_benefit_accrual_plan;
 
-                IF total_exist_leave <= 0 THEN
+                SELECT COUNT(ID) INTO total_exist_leave_portal_id FROM EMPLOYEE_REQUESTS
+                WHERE ID = t_id_portal_str;
+
+                IF (total_exist_leave <= 0) and (total_exist_leave_portal_id < 0) THEN
 
                     INSERT INTO EMPLOYEE_REQUESTS (
                         REQUESTOR_ID,
