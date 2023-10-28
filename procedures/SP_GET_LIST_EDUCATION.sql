@@ -12,6 +12,7 @@ l_count_iduser number;
 l_body_json clob;
 
 n_id NUMBER;
+n_primary NUMBER;
 n_employee_id NUMBER;
 n_PrimaryEducation NUMBER;
 n_code NVARCHAR2(100 CHAR);
@@ -20,6 +21,7 @@ n_level_of_edu NVARCHAR2(100 CHAR);
 n_major NVARCHAR2(100 CHAR);
 n_school_name VARCHAR2(2000);
 n_end_date DATE;
+n_rec_id NVARCHAR2(50 CHAR);
 p_token NVARCHAR2(10000);
 BEGIN
     SP_GET_TOKEN(p_token);
@@ -36,11 +38,13 @@ BEGIN
     APEX_JSON.parse(
 
     apex_web_service.make_rest_request(
-            p_url => 'https://hra.sandbox.operations.dynamics.com/api/services/HRPortalServices/EmployeeProfileService/getListEducation',
+            p_url => global_vars.get_resource_url || '/api/services/HRPortalServices/EmployeeProfileService/getListEducation',
             p_http_method => 'POST',
             p_transfer_timeout => 3600
             ) --;
     );
+
+    -- Delete from EMP_EDUCATION;
 
     l_numrow := APEX_JSON.get_count (p_path =>'.'); --Đếm tổng số chuỗi trả về
     
@@ -57,51 +61,56 @@ BEGIN
         n_major := apex_json.get_varchar2('[%d].VUSTC_Major', i);
         n_school_name := apex_json.get_varchar2('[%d].NameOfSchool', i);
         n_end_date := CASE WHEN apex_json.get_varchar2('[%d].EndDate', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].EndDate', i), 'YYYY-MM-DD"T"HH24:MI:SS'), 'MM/DD/YYYY') END;
-        n_id := TO_NUMBER(apex_json.get_varchar2('[%d].PrimaryEducation', i));
+        n_primary := TO_NUMBER(apex_json.get_varchar2('[%d].PrimaryEducation', i));
+        -- "EducationRecId": 5637174580
+        n_rec_id = apex_json.get_varchar2('[%d].EducationRecId', i); 
 
-        SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i and n_code = EMPLOYEE_CODE ;
+        -- SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i and n_code = EMPLOYEE_CODE ;
+        SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE REC_ID = n_rec_id ;
+
         If l_count_idemp > 0 Then
             UPDATE
                 EMP_EDUCATION
             SET
-                EMPLOYEE_ID = n_employee_id,
                 LEVEL_OF_EDU = n_level_of_edu,
                 MAJOR = n_major,
                 PLACE = n_school_name,
                 GRADUATED_DATE = n_end_date,
                 EMPLOYEE_CODE = n_code,
-                PRIMARY_EDUCATION = n_id
+                PRIMARY_EDUCATION = n_primary,
+                REC_ID = n_rec_id
             WHERE
-                ID = i;
+                -- ID = i;
+                REC_ID = n_rec_id;
         Else
             INSERT INTO
                 EMP_EDUCATION(
-                    ID,
-                    EMPLOYEE_ID,
+                    -- ID,
                     LEVEL_OF_EDU,
                     MAJOR,
                     PLACE,
                     GRADUATED_DATE,
                     EMPLOYEE_CODE,
-                    PRIMARY_EDUCATION
+                    PRIMARY_EDUCATION,
+                    REC_ID
                 )
             VALUES
             (
-                    i,
-                    i,
+                    -- i,
                     n_level_of_edu,
                     n_major,
                     n_school_name,
                     n_end_date,
                     n_code,
-                    n_id
+                    n_primary,
+                    n_rec_id
                 );
         End If;
 
         COMMIT; 
          
     END LOOP;
-    --DBMS_OUTPUT.put_line(TO_CHAR(n_id)||n_name||TO_CHAR(n_managerPosition));
+    --DBMS_OUTPUT.put_line(TO_CHAR(n_primary)||n_name||TO_CHAR(n_managerPosition));
     
 END;
 /
