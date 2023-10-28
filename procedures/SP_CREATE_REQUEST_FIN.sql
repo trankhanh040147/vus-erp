@@ -26,6 +26,8 @@ n_total_day number:= 0;
 leave_id nvarchar2(100);
 leave_groupid nvarchar2(100);
 transaction_date nvarchar2(100);
+
+rsp_status nvarchar2(50);
 BEGIN
 
     SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
@@ -104,7 +106,7 @@ BEGIN
             "LegalEntityID": "'||rec.DATAAREA||'",
             "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
             "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-            "TransactionDate": "'||transaction_date||'",
+            "TransactionDate": "'||rec.FROM_DATE||'",
             "Description": "'||rec.NOTE||'",
             "EmployeeCode": "'||p_employeeCode||'", 
             "AccrualId": "'||n_accrual_id||'", 
@@ -117,7 +119,8 @@ BEGIN
             "EndTime": "'||rec.END_TIME||':00",
             "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
             "HRMAbsenceCodeId": "'||n_carry_forward_code||'",
-            "AllDay": "'||rec.ALLDAY||'"
+            "AllDay": "'||rec.ALLDAY||'",
+            "AttachmentURL": "'||rec.ATTATCH_FILE||'"
         }}';
     else 
         l_body := '{
@@ -125,7 +128,7 @@ BEGIN
             "LegalEntityID": "'||rec.DATAAREA||'",
             "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
             "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-            "TransactionDate": "'||transaction_date||'",
+            "TransactionDate": "'||rec.FROM_DATE||'",
             "Description": "'||rec.NOTE||'",
             "EmployeeCode": "'||p_employeeCode||'", 
             "AccrualId": "'||leave_id||'", 
@@ -187,7 +190,7 @@ BEGIN
         --APEX_JSON.parse(
 
         l_response := apex_web_service.make_rest_request(
-                p_url => 'https://hra.sandbox.operations.dynamics.com//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
+                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
                 p_http_method => 'POST',
                 p_body => l_body,
                 p_transfer_timeout => 3600
@@ -223,7 +226,6 @@ BEGIN
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
         where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
     )loop
-    
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
                 if rec.CARRY_FORWARD_AVALABLE > 0 then
                     n_carry_forward_code := rec.CARRY_FORWARD_CODE;
@@ -257,6 +259,42 @@ BEGIN
         '<p> VUS </p>');
 
     end loop;
+
+    -- API Response
+    -- {
+    --     "LegalEntityID": "",
+    --     "TotalRows": 0,
+    --     "AdjustedHours": 0.0,
+    --     "AdjustmentType": "",
+    --     "Description": "Input Leave request ID line or FromDate >= 23/09/2023",
+    --     "TransactionDate": "1900-01-01T12:00:00",
+    --     "EmployeeCode": "",
+    --     "HRMAbsenceCodeId": "",
+    --     "HRMAbsenceCodeGroupId": "",
+    --     "IDPortal": 0,
+    --     "IDStrPortal": "",
+    --     "Status": "",
+    --     "FromDate": "1900-01-01T12:00:00",
+    --     "ToDate": "1900-01-01T12:00:00",
+    --     "NumberDayOff": 0.0,
+    --     "StartTime": "",
+    --     "EndTime": "",
+    --     "AccrualId": "",
+    --     "AllDay": "",
+    --     "AttachmentURL": ""
+    -- }
+
+    DBMS_OUTPUT.put_line('');
+    DBMS_OUTPUT.put_line(l_response);
+    APEX_JSON.parse(l_response);
+
+    -- Status = 1 inserted successfully on D365, otherwise Status = 0
+    rsp_status := apex_json.get_varchar2('Status', 1);
+    -- DBMS_OUTPUT.put_line('STATUS: ' || rsp_status);
+
+    -- Update request status
+    UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
+    UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
     
 END;
 /

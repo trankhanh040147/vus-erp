@@ -858,8 +858,8 @@ input.text_field.apex-item-text {
 
 .page-9 .ui-dialog--apex.t-Dialog-page--standard {
   max-width: 60% !important;
-  height: 630px !important;
-  top: 55px !important;
+  height: 665px !important;
+  top: 30px !important;
 }
 
 .page-13 .t-Form-fieldContainer {
@@ -1313,7 +1313,7 @@ button#save-btn span {
 }
 
 .page-43 .fc-scrollgrid>colgroup:first-child col:nth-child(1) {
-  width: 250px !important;
+  width: 220px !important;
 }
 
 .page-43 tr td.fc-datagrid-cell.fc-resource:nth-child(1),
@@ -1667,4 +1667,33 @@ html.page-10 .t-Form-itemText--pre {
 .page-3 #P3_END_DATE[disabled="disabled"],
 .page-10 #P10_END_DATE[disabled="disabled"] {
   padding-left: 0 !important;
+}
+
+.page-43 .col.col-11.apex-col-auto.col-end {
+  padding-left: 0;
+  flex-basis: 83.6666666667% !important;
+  max-width: 83.666667% !important;
+}
+
+.page-43 #main>div.t-Body-contentInner>div>div:nth-child(2)>div.col.col-1.col-start {
+  flex-basis: 16.3333333333% !important;
+  max-width: 16.333333% !important;
+}
+
+@media screen and (max-width:991px) {
+  .page-43 .col.col-11.apex-col-auto.col-end {
+    flex-basis: 74.666667% !important;
+    max-width: 74.666667% !important;
+  }
+
+  .page-43 #main>div.t-Body-contentInner>div>div:nth-child(2)>div.col.col-1.col-start {
+    flex-basis: 22.333333% !important;
+    max-width: 22.333333% !important;
+  }
+}
+
+.page-43 #main>div.t-Body-contentInner>div,
+.page-43 #calendar-custom>div.t-Region-bodyWrap>div.t-Region-body>div,
+.page-43 #R14112905306957645>div {
+  max-width: 100% !important;
 }
