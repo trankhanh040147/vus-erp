@@ -69,18 +69,7 @@ BEGIN
                     "ProfileDate": "' || n_profile_date || '",
                     "Profile": "' || n_profile || '",
                     "Worker": ' || n_worker || ',
-                    "TimeSheetLine": [
-                    {
-                        "TimeSheetLineRecId": 5637185838,
-                        "RegType": "Clock in",
-                        "JobRef": "System",
-                        "JobId": "V01-001181",
-                        "StartTime": "09:00:00 am",
-                        "EndTime": "09:00:00 am",
-                        "Description": "Clock in",
-                        "TransId": "1",
-                        "Time": "00.00"
-                    ';
+                    "TimeSheetLine": [';
             
     -- Query values from Time_Sheet
     SELECT USER_NAME, FULL_NAME INTO n_company_email, n_full_name FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode;
@@ -95,46 +84,20 @@ BEGIN
     for rec in (SELECT * FROM EMP_TIME_SHEET ets
                 JOIN EMP_TIME_SHEET_LINE etsl on ets.TS_HEADER_REC_ID = etsl.TS_HEADER_REC_ID 
                 WHERE ets.TS_HEADER_REC_ID = :p_ts_header_id)loop
-    
-            if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
-                if rec.CARRY_FORWARD_AVALABLE > 0 then
-                    n_carry_forward_code := rec.CARRY_FORWARD_CODE;
-                    n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-                else
-                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
-                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-                end if;
-                    
-            else
-                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
-                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-            end if;
+
 
     -- Set value for body
-        -- l_body := '{
-        -- "_jsonRequest":{
-        --     "LegalEntityID": "'||rec.DATAAREA||'",
-        --     "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
-        --     "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        --     "TransactionDate": "'||rec.FROM_DATE||'",
-        --     "Description": "'||rec.NOTE||'",
-        --     "EmployeeCode": "'||p_employeeCode||'", 
-        --     "AccrualId": "'||n_accrual_id||'", 
-        --     "IDPortal": "'||rec.ID||'",
-        --     "IDStrPortal": "'||rec.ID||'",
-        --     "FromDate": "'||rec.FROM_DATE||'",
-        --     "ToDate": "'||rec.MODIFIED_END_DATE||'",
-        --     "NumberDayOff": "'||to_char(n_total_day,'90.9')||'",
-        --     "StartTime": "'||rec.START_TIME||':00",
-        --     "EndTime": "'||rec.END_TIME||':00",
-        --     "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
-        --     "HRMAbsenceCodeId": "'||n_carry_forward_code||'",
-        --     "AllDay": "'||rec.ALLDAY||'",
-        --     "AttachmentURL": "'||rec.ATTATCH_FILE||'"
-        -- }}';
+        l_body := l_body || '                    {
+                        "TimeSheetLineRecId": ,
+                        "RegType": "",
+                        "JobRef": "",
+                        "JobId": "",
+                        "StartTime": "",
+                        "EndTime": "",
+                        "Description": "",
+                        "TransId": "",
+                        "Time": ""
+                    }';
 
 
     end loop;
@@ -145,7 +108,7 @@ BEGIN
     --APEX_JSON.parse(
 
         l_response := apex_web_service.make_rest_request(
-                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
+                p_url => global_vars.get_resource_url || '/api/services/VUSTC_TimSheetServiceGroup/TimeSheetService/UpdateTimeSheet',
                 p_http_method => 'POST',
                 p_body => l_body,
                 p_transfer_timeout => 3600
@@ -155,13 +118,9 @@ BEGIN
     DBMS_OUTPUT.put_line(l_response);
     APEX_JSON.parse(l_response);
 
-    -- Status = 1 inserted successfully on D365, otherwise Status = 0
-    rsp_status := apex_json.get_varchar2('Status', 1);
-    -- DBMS_OUTPUT.put_line('STATUS: ' || rsp_status);
 
     -- Update request status
-    UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
-    UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
+
 
     l_body := l_body || '
                     }
@@ -172,6 +131,7 @@ BEGIN
     }
     ';
     
+    DBMS_OUTPUT.put_line('response: ');
     DBMS_OUTPUT.put_line(l_response);
     
 END;
