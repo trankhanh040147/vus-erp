@@ -1,0 +1,85 @@
+// CASE: 2 IN + 2 OUT
+{
+    "ProfileDate": "04-09-2023",
+    "Profile": "thu test",
+    "Worker": 5637188826,
+    "TimeSheetHeaderRecId": 5637195580,
+    "Calculated": 1,
+    "Approved": 1,
+    "Transferred": 0,
+    "SpecialDayId": "",
+    "ProfilePaidHours": "00.00",
+    "PayTime": "07.00",
+    "PayOvertime": "00.00",
+    "Absencetime": "00.00",
+    "Flex+": "00.00",
+    "Flex-": "00.00",
+    "TimeSheetLine": [
+        {
+            "TimeSheetLineRecId": 5637179826,
+            "RegType": "Clock in",
+            "JobRef": "System",
+            "JobId": "V01-001181",
+            "StartTime": "07:00:00 am",
+            "EndTime": "07:00:00 am",
+            "Description": "Clock in",
+            "TransId": "1",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637179830,
+            "RegType": "Indirect activity",
+            "JobRef": "System",
+            "JobId": "V01-001187",
+            "StartTime": "07:00:00 am",
+            "EndTime": "10:00:00 am",
+            "Description": "Waiting job",
+            "TransId": "5",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637179827,
+            "RegType": "Clock out",
+            "JobRef": "System",
+            "JobId": "V01-001182",
+            "StartTime": "10:00:00 am",
+            "EndTime": "10:00:00 am",
+            "Description": "Clock out",
+            "TransId": "2",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637179828,
+            "RegType": "Clock in",
+            "JobRef": "System",
+            "JobId": "V01-001181",
+            "StartTime": "05:00:00 pm",
+            "EndTime": "05:00:00 pm",
+            "Description": "Clock in",
+            "TransId": "3",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637179831,
+            "RegType": "Indirect activity",
+            "JobRef": "System",
+            "JobId": "V01-001187",
+            "StartTime": "05:00:00 pm",
+            "EndTime": "09:00:00 pm",
+            "Description": "Waiting job",
+            "TransId": "6",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637179829,
+            "RegType": "Clock out",
+            "JobRef": "System",
+            "JobId": "V01-001182",
+            "StartTime": "09:00:00 pm",
+            "EndTime": "09:00:00 pm",
+            "Description": "Clock out",
+            "TransId": "4",
+            "Time": "00.00"
+        }
+    ]
+}
