@@ -21,6 +21,7 @@ n_end_time NVARCHAR2(50);
 n_start_day NVARCHAR2(50);
 n_end_day NVARCHAR2(50);
 n_day NVARCHAR2(50);
+n_line_rec_id NVARCHAR2(20);
 
 num_start_day NUMBER;
 num_end_day NUMBER;
@@ -29,21 +30,17 @@ num_day NUMBER;
 p_token nvarchar2(10000);
 
 BEGIN
-    l_method_url := 'https://hra.sandbox.operations.dynamics.com/api/services/VUSTC_TimSheetServiceGroup/TimeSheetService/GetWorkingSchedule';
+    l_method_url := global_vars.get_resource_url || '/api/services/VUSTC_TimSheetServiceGroup/TimeSheetService/GetWorkingSchedule';
 
     SP_GET_TOKEN(p_token);
 
     apex_web_service.g_request_headers.delete();
     apex_web_service.g_request_headers(1).name := 'Content-Type';
     apex_web_service.g_request_headers(1).value := 'application/json';
-    -- apex_web_service.g_request_headers(2).name := 'Content-Length';
-    -- apex_web_service.g_request_headers(2).value := 0;
     apex_web_service.g_request_headers(2).name := 'Authorization';
     apex_web_service.g_request_headers(2).value := 'Bearer ' || p_token;
 
     l_body := '{"_jsonRequest":{"LegalEntityId":"' || p_legal_entity_id || '"}}';
-
-    -- l_body := '{"_jsonRequest":{"LegalEntityID": "V01"}}';
 
     --DBMS_OUTPUT.put_line(l_body);
     
@@ -68,37 +65,48 @@ BEGIN
         n_color := apex_json.get_varchar2('[%d].ProfileColor', i);
         n_des := apex_json.get_varchar2('[%d].Description', i);
         
-        -- DBMS_OUTPUT.put_line(n_legal_entity_id);
-        -- DBMS_OUTPUT.put_line(n_profile_id);
-        -- DBMS_OUTPUT.put_line(n_color);
-        -- DBMS_OUTPUT.put_line(n_des);
-
-        SELECT COUNT(PROFILE_ID) INTO l_count_unit_i 
-        FROM WORKING_PROFILE 
-        WHERE PROFILE_ID = n_profile_id AND LEGAL_ENTITY_ID = n_legal_entity_id;
+        SELECT
+            COUNT(*) INTO l_count_unit_i
+        FROM
+            WORKING_PROFILE
+        WHERE
+            PROFILE_ID = n_profile_id
+            AND LEGAL_ENTITY_ID = n_legal_entity_id;
 
         if l_count_unit_i > 0 then
-            UPDATE WORKING_PROFILE
-            SET PROFILE_ID = n_profile_id, COLOR = n_color, DESCRIPTION = n_des, LEGAL_ENTITY_ID = n_legal_entity_id
-            WHERE PROFILE_ID = n_profile_id AND LEGAL_ENTITY_ID = n_legal_entity_id;
-        
+        UPDATE
+            WORKING_PROFILE
+        SET
+            PROFILE_ID = n_profile_id,
+            -- COLOR = n_color,
+            DESCRIPTION = n_des,
+            LEGAL_ENTITY_ID = n_legal_entity_id
+        WHERE
+            PROFILE_ID = n_profile_id
+            AND LEGAL_ENTITY_ID = n_legal_entity_id;
+
         else
-            INSERT INTO WORKING_PROFILE(PROFILE_ID, COLOR, DESCRIPTION, LEGAL_ENTITY_ID)
-            VALUES(n_profile_id, n_color, n_des, n_legal_entity_id);
+        INSERT INTO
+            WORKING_PROFILE(PROFILE_ID, COLOR, DESCRIPTION, LEGAL_ENTITY_ID)
+        VALUES
+        (n_profile_id, n_color, n_des, n_legal_entity_id);
 
         end if;
 
         FOR j IN 1..apex_json.get_count('[%d].Profile', i)
         LOOP
             n_profile_type_id := apex_json.get_varchar2('[%d].Profile[%d].ProfileTypeId',i, j);
-            n_profile_type_id :=  REPLACE(TRIM(n_profile_type_id), ' ', '');
+            --n_profile_type_id :=  REPLACE(TRIM(n_profile_type_id), ' ', '');
             n_des_detail := apex_json.get_varchar2('[%d].Profile[%d].Description', i, j);
             n_start_time := apex_json.get_varchar2('[%d].Profile[%d].StartTime', i, j);
             n_end_time := apex_json.get_varchar2('[%d].Profile[%d].EndTime', i, j);
             n_start_day := apex_json.get_varchar2('[%d].Profile[%d].StartDay', i, j);
             n_end_day := apex_json.get_varchar2('[%d].Profile[%d].EndDay', i, j);
             n_day := apex_json.get_varchar2('[%d].Profile[%d].Day', i, j);
-            --DBMS_OUTPUT.put_line(n_day);
+            n_line_rec_id := to_char(apex_json.get_number('[%d].Profile[%d].ProfileIdLineRecId', i, j));
+            
+            -- DBMS_OUTPUT.put_line('NUM: ' || n_line_rec_id || ' AND j = ' || j);
+            -- DBMS_OUTPUT.put_line('--------------');
             -- if (n_profile_type_id like 'Standard time') then
             --     DBMS_OUTPUT.put_line('ProfileId: ' || n_profile_id);
             --     DBMS_OUTPUT.put_line('ProfileTypeId: ' || n_profile_type_id);
@@ -115,7 +123,7 @@ BEGIN
 
             -- SELECT COUNT(*)
             -- INTO l_count_unit
-            -- FROM WORKING_DETAIL_DEMO
+            -- FROM WORKING_DETAIL
             -- WHERE PROFILE_ID = n_profile_id
             --       AND LEGAL_ENTITY_ID = n_legal_entity_id
             --       AND PROFILE_TYPE_ID = n_profile_type_id
@@ -125,14 +133,17 @@ BEGIN
             --       AND END_DAY = n_end_day
             --       AND DAY = n_day;
 
-            SELECT COUNT(*)
-            INTO l_count_unit_j
-            FROM WORKING_PROFILE_DETAIL
-            WHERE ID = j;
+            SELECT
+                COUNT(*) INTO l_count_unit_j
+            FROM
+                WORKING_PROFILE_DETAIL
+            WHERE
+                --ID = j;
+                LINE_REC_ID = n_line_rec_id;
 
             IF l_count_unit_j > 0 THEN
-           
-                UPDATE WORKING_PROFILE_DETAIL
+                UPDATE
+                    WORKING_PROFILE_DETAIL
                 SET
                     PROFILE_ID = n_profile_id,
                     PROFILE_TYPE_ID = n_profile_type_id,
@@ -141,37 +152,109 @@ BEGIN
                     END_TIME = n_end_time,
                     START_DAY = num_start_day,
                     END_DAY = num_end_day,
-                    DAY_OF_WEEK = num_day
-                WHERE ID = j;
-            ELSE
-          
-                INSERT INTO WORKING_PROFILE_DETAIL (
-                    PROFILE_ID,
-                    PROFILE_TYPE_ID,
-                    DESCRIPTION,
-                    START_TIME,
-                    END_TIME,
-                    START_DAY,
-                    END_DAY,
-                    DAY_OF_WEEK
-                )
-                VALUES (
-                    n_profile_id,
-                    n_profile_type_id,
-                    n_des_detail,
-                    n_start_time,
-                    n_end_time,
-                    num_start_day,
-                    num_end_day,
-                    num_day
-                );
+                    DAY_OF_WEEK = num_day,
+                    LINE_REC_ID = n_line_rec_id
+                WHERE
+                    --ID = j;
+                    LINE_REC_ID = n_line_rec_id;
+
+                ELSE
+                INSERT INTO
+                    WORKING_PROFILE_DETAIL (
+                        PROFILE_ID,
+                        PROFILE_TYPE_ID,
+                        DESCRIPTION,
+                        START_TIME,
+                        END_TIME,
+                        START_DAY,
+                        END_DAY,
+                        DAY_OF_WEEK,
+                        LINE_REC_ID
+                    )
+                VALUES
+                    (
+                        n_profile_id,
+                        n_profile_type_id,
+                        n_des_detail,
+                        n_start_time,
+                        n_end_time,
+                        num_start_day,
+                        num_end_day,
+                        num_day,
+                        n_line_rec_id
+                    );
+
             END IF;
 
-        END LOOP;
+            --UPDATE/INSERT vào bảng WORKING_PROFILE_LINES từ bảng WORKING_PROFILE_DETAIL
 
+            -- n_start_time := TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(n_start_time), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI');
+            -- n_end_time := TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(n_end_time), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI');
+            -- DBMS_OUTPUT.put_line('start_time: ' || n_start_time);
+            -- DBMS_OUTPUT.put_line('end_time: ' || n_end_time);
+            -- n_profile_type_id := LOWER(REPLACE(TRIM(n_profile_type_id), ' ', ''));
+            -- DBMS_OUTPUT.put_line('n_profile_type_id: ' || n_profile_type_id);
+            -- DBMS_OUTPUT.put_line('--------------------');
+
+            FOR wpdd IN (SELECT * FROM WORKING_PROFILE_DETAIL WHERE DAY_OF_WEEK = 2 AND START_DAY = 2 AND END_DAY = 2) 
+            LOOP
+                -- Kiểm tra xem LINE_REC_ID đã tồn tại trong WORKING_PROFILE_LINES_DEMO chưa
+                SELECT COUNT(*)
+                INTO l_count_unit_j
+                FROM WORKING_PROFILE_LINES
+                WHERE LINE_REC_ID = wpdd.LINE_REC_ID;
+
+                IF l_count_unit_j > 0 THEN
+                    -- Nếu LINE_REC_ID đã tồn tại, thực hiện UPDATE
+                    UPDATE WORKING_PROFILE_LINES
+                    SET
+                        PROFILE_ID = wpdd.PROFILE_ID,
+                        PROFILE_TYPE_ID = LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
+                        DESCRIPTION = wpdd.DESCRIPTION,
+                        START_TIME = TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        END_TIME = TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        START_DAY = wpdd.START_DAY,
+                        END_DAY = wpdd.END_DAY,
+                        DAY_OF_WEEK = wpdd.DAY_OF_WEEK
+                    WHERE LINE_REC_ID = wpdd.LINE_REC_ID;
+                ELSE
+                    -- Nếu LINE_REC_ID chưa tồn tại, thực hiện INSERT mới
+                    INSERT INTO WORKING_PROFILE_LINES (
+                        PROFILE_ID,
+                        PROFILE_TYPE_ID,
+                        DESCRIPTION,
+                        START_TIME,
+                        END_TIME,
+                        START_DAY,
+                        END_DAY,
+                        DAY_OF_WEEK,
+                        LINE_REC_ID
+                    )
+                    VALUES (
+                        wpdd.PROFILE_ID,
+                        LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
+                        wpdd.DESCRIPTION,
+                        TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        wpdd.START_DAY,
+                        wpdd.END_DAY,
+                        wpdd.DAY_OF_WEEK,
+                        wpdd.LINE_REC_ID
+                    );
+                END IF;
+
+                COMMIT;
+
+            END LOOP;
+
+            COMMIT;
+        END LOOP;
         COMMIT;
-        
     END LOOP;
+
+    -- Check whether if the profile isOT, or isRush
+
+
 
 END "SP_GET_WORKING_SCHEDULE_PROFILE_DETAIL";
 /
