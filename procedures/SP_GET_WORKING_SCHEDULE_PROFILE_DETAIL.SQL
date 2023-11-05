@@ -252,9 +252,44 @@ BEGIN
         COMMIT;
     END LOOP;
 
-    -- Check whether if the profile isOT, or isRush
+    -- Update profile color
+    SP_UPDATE_PROFILE_COLOR();
 
-
+    -- Check whether if the profile isOT | isRush | isDayOff
+    UPDATE WORKING_PROFILE wp
+    SET
+        IS_OVERTIME_PROFILE = CASE
+            WHEN EXISTS (
+                SELECT 1 
+                FROM WORKING_PROFILE_DETAIL wpd
+                JOIN PROFILE_TYPES pt on wpd.PROFILE_TYPE_ID = pt.PROFILE_TYPE_ID
+                WHERE wpd.PROFILE_ID = wp.PROFILE_ID 
+                AND wpd.DAY_OF_WEEK = 2 and wpd.START_DAY = 2 and wpd.END_DAY = 2
+                AND pt.PROFILE_TYPE_ID = 'ot')
+            THEN 1
+            ELSE 0
+        END,
+        IS_DAY_OFF_PROFILE = CASE
+            WHEN EXISTS (
+                SELECT 1 
+                FROM WORKING_PROFILE_DETAIL wpd 
+                WHERE wpd.PROFILE_ID = wp.PROFILE_ID 
+                AND wpd.DAY_OF_WEEK = 2 and wpd.START_DAY = 2 and wpd.END_DAY =2
+                AND custom_trim_v1(wpd.PROFILE_TYPE_ID) LIKE '%standard time%')
+            THEN 0
+            ELSE 1
+        END,
+        IS_RUSH_PROFILE = CASE
+            WHEN EXISTS (
+                SELECT 1 
+                FROM WORKING_PROFILE_DETAIL wpd
+                JOIN PROFILE_TYPES pt on wpd.PROFILE_TYPE_ID = pt.PROFILE_TYPE_ID 
+                WHERE wpd.PROFILE_ID = wp.PROFILE_ID 
+                AND wpd.DAY_OF_WEEK = 2 and wpd.START_DAY = 2 and wpd.END_DAY =2
+                AND pt.PROFILE_TYPE_ID = 'rush')
+            THEN 1
+            ELSE 0
+        END;
 
 END "SP_GET_WORKING_SCHEDULE_PROFILE_DETAIL";
 /
