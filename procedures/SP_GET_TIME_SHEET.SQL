@@ -27,6 +27,12 @@ n_pay_overtime NUMBER;
 n_absencetime NUMBER;
 n_flex_more NUMBER;          -- trong API là Flex+
 n_flex_less NUMBER;          -- trong API là Flex-
+n_WorkTime NUMBER;
+n_LegalAbsence NUMBER;
+n_IllegalAbsence NUMBER;
+n_PaidBreakTime NUMBER;
+n_NonPaidBreakTime NUMBER;
+n_TotalBreakTime NUMBER;
 n_emp_code nvarchar2(30);
 
 n_line_rec_id NVARCHAR2(100);
@@ -74,7 +80,7 @@ BEGIN
     
     FOR i in 1..l_num_row_i
     LOOP
-        n_profile_date := to_date(apex_json.get_varchar2('TimeSheetHeader[%d].ProfileDate', i), 'DD-MM-YYYY');
+        n_profile_date := to_date(apex_json.get_varchar2('TimeSheetHeader[%d].ProfileDate', i), 'MM-DD-YYYY');
         n_profile := apex_json.get_varchar2('TimeSheetHeader[%d].Profile', i);
         n_worker := to_char(apex_json.get_number('TimeSheetHeader[%d].Worker', i));
         n_header_rec_id := to_char(apex_json.get_number('TimeSheetHeader[%d].TimeSheetHeaderRecId', i));
@@ -90,6 +96,12 @@ BEGIN
         n_flex_more := to_number(apex_json.get_varchar2('TimeSheetHeader[%d]."Flex+"', i), '99999.99');
         n_flex_less := to_number(apex_json.get_varchar2('TimeSheetHeader[%d]."Flex-"', i), '99999.99');         -- phải thêm dấu ngoặc kép "" do có kí tự + đặc biệt
         --n_flex_less := to_number('88.88', '99999.99');
+        n_WorkTime := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].WorkTime', i), '99999.99');
+        n_LegalAbsence := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].LegalAbsence', i), '99999.99');
+        n_IllegalAbsence := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].IllegalAbsence', i), '99999.99');
+        n_PaidBreakTime := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].PaidBreakTime', i), '99999.99');
+        n_NonPaidBreakTime := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].NonPaidBreakTime', i), '99999.99');
+        n_TotalBreakTime := to_number(apex_json.get_varchar2('TimeSheetHeader[%d].TotalBreakTime', i), '99999.99');
 
         -- Sử dụng EXCEPTION nên phải có BEGIN...END; bao quanh
         BEGIN
@@ -150,7 +162,13 @@ BEGIN
             PAY_OVERTIME = n_pay_overtime,
             ABSENCE_TIME = n_absencetime,
             FLEX_MORE = n_flex_more,
-            FLEX_LESS = n_flex_less
+            FLEX_LESS = n_flex_less,
+            WORK_TIME = n_WorkTime,
+            LEGAL_ABSENCE = n_LegalAbsence,
+            ILLEGAL_ABSENCE = n_IllegalAbsence,
+            PAID_BREAKTIME = n_PaidBreakTime,
+            NON_PAID_BREAKTIME = n_NonPaidBreakTime,
+            TOTAL_BREAKTIME = n_TotalBreakTime
         WHERE
             TS_HEADER_REC_ID = n_header_rec_id;
 
@@ -170,7 +188,13 @@ BEGIN
             PAY_OVERTIME,
             ABSENCE_TIME,
             FLEX_MORE,
-            FLEX_LESS
+            FLEX_LESS,
+            WORK_TIME,
+            LEGAL_ABSENCE,
+            ILLEGAL_ABSENCE,
+            PAID_BREAKTIME,
+            NON_PAID_BREAKTIME,
+            TOTAL_BREAKTIME
             )
         VALUES
         (
@@ -188,7 +212,13 @@ BEGIN
             n_pay_overtime,
             n_absencetime,
             n_flex_more,
-            n_flex_less
+            n_flex_less,
+            n_WorkTime,
+            n_LegalAbsence,
+            n_IllegalAbsence,
+            n_PaidBreakTime,
+            n_NonPaidBreakTime,
+            n_TotalBreakTime
         );
 
         end if;
