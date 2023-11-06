@@ -63,7 +63,7 @@ BEGIN
         n_end_date := CASE WHEN apex_json.get_varchar2('[%d].EndDate', i) LIKE '%1900-01-01%' THEN NULL ELSE TO_CHAR(TO_DATE(apex_json.get_varchar2('[%d].EndDate', i), 'YYYY-MM-DD"T"HH24:MI:SS'), 'MM/DD/YYYY') END;
         n_primary := TO_NUMBER(apex_json.get_varchar2('[%d].PrimaryEducation', i));
         -- "EducationRecId": 5637174580
-        n_rec_id = apex_json.get_varchar2('[%d].EducationRecId', i); 
+        n_rec_id := apex_json.get_varchar2('[%d].EducationRecId', i); 
 
         -- SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i and n_code = EMPLOYEE_CODE ;
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE REC_ID = n_rec_id ;
