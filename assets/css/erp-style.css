@@ -1697,3 +1697,68 @@ html.page-10 .t-Form-itemText--pre {
 .page-43 #R14112905306957645>div {
   max-width: 100% !important;
 }
+.page-5 #identify-detail>div>ul {
+  height: max-content;
+  box-shadow: 0px 0px 4px #0000006b;
+}
+.page-23 .a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle,.page-44  div.a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle.is-stuck {
+  position: absolute !important;
+  top: 0 !important;
+}
+.page-23 .a-GV-w-scroll::-webkit-scrollbar-thumb {
+  background-color: #0000003d;
+}
+ .a-GV-w-scroll{
+  overflow-y: auto;
+  height: 350px !important;
+}
+.page-43 .apex-icons-fontapex .event-calendar.fa:before{
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  position: absolute;
+  color: black !important;
+  font-size: 8px;
+}
+.page-43 .fc-direction-ltr a.fc-timeline-event.fc-event-end{
+  position: relative;
+  width: 100%;
+}
+.page-43 div.close{
+  border-radius: 7px;
+  opacity: 1;
+  cursor: pointer;
+  color: white;
+  padding: 10px 10px;
+  font-size: 12px;
+  background-color: #0000ffc9!important;
+  width: max-content;
+}
+.page-43 .modal-header{
+  background-color: #0303d9;
+  padding: 5px 15px !important;
+}
+.page-43 .modal-body{
+  flex-direction: column !important;
+  display: flex;
+}
+.page-43 .modal-body #event-title-star{
+  box-shadow: 0 0 5px #0000002b;
+  border: none;
+  margin-bottom: 20px;
+  min-height: 200px;
+  margin-top: 15px;
+}
+.page-43 .modal-title{
+  color:  white !important;
+}
+.page-43 .modal-header button.close span{
+  color: white !important;
+}
+.page-43 .apex-icons-fontapex .fa:before{
+  top: -2px;
+  font-size: 8px;
+  right: 0;
+  z-index: 100;
+  position: absolute;
+}

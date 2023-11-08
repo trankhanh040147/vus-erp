@@ -1,4 +1,7 @@
-create or replace PROCEDURE "SP_GET_LIST_EDUCATION"
+create or replace PROCEDURE "SP_GET_ONE_EDUCATION"
+(
+    p_employee_code nvarchar2
+)
 is
 l_token_type NVARCHAR2(2000);
 l_access_token NVARCHAR2(2000);
@@ -46,7 +49,7 @@ BEGIN
             ) --;
     );
 
-    -- Delete from EMP_EDUCATION;
+    -- Delete from EMP_EDUCATION where EMPLOYEE_CODE = p_employee_code;
 
     l_numrow := APEX_JSON.get_count (p_path =>'.'); --Đếm tổng số chuỗi trả về
     
@@ -68,6 +71,11 @@ BEGIN
         n_rec_id := apex_json.get_varchar2('[%d].EducationRecId', i); 
         n_DisciplineId := apex_json.get_varchar2('[%d].DisciplineId', i);
         n_InstitutionId := apex_json.get_varchar2('[%d].InstitutionId', i);
+
+        if n_code != p_employee_code then
+            -- Skip this row, go to next row
+            CONTINUE;
+        end if;
 
         -- SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE ID = i and n_code = EMPLOYEE_CODE ;
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_EDUCATION WHERE REC_ID = n_rec_id ;

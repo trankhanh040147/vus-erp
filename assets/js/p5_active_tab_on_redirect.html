@@ -1,0 +1,30 @@
+<!-- Have this two elements on page 5 -->
+<li class="t-Tabs-item a-Tabs-before" aria-controls="SR___tab_id" role="presentation" id="SR___tab_id_tab">
+    <a href="#SR___tab_id" class="t-Tabs-link" tabindex="-1" role="tab" aria-selected="false">
+      <span>Identity Number</span>
+    </a>
+  </li>
+
+  <li class="t-Tabs-item a-Tabs-after" aria-controls="SR_education_tab" role="presentation" id="SR_education_tab_tab">
+    <a href="#SR_education_tab" class="t-Tabs-link" tabindex="-1" role="tab" aria-selected="false">
+      <span>Education</span>
+    </a>
+  </li>
+
+<!--  -->
+
+<script>
+    // Show the #SR_education_tab_tab, make it active if in url contain param request=education
+    $('#SR_education_tab_tab').show();
+        $('#SR_education_tab_tab').addClass('a-Tabs-active');
+        $('#SR_education_tab_tab').addClass('is-active');
+    var url = window.location.href;
+    var param = url.split('?')[1];
+    var paramValue = param.split('=')[1];
+
+    if (paramValue == 'education') {
+        $('#SR_education_tab_tab').show();
+        $('#SR_education_tab_tab').addClass('a-Tabs-active');
+        $('#SR_education_tab_tab').addClass('is-active');
+    }
+</script>

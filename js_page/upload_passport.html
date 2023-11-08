@@ -1,0 +1,181 @@
+<!-- --------------------------------------------------------------------------------------------------------------------- -->
+<!-- Loading spinner container -->
+<div class="loader-container" id="loader-container">
+    <div class="loader"></div>
+</div>
+
+
+<script>
+    // Define a function to create HTML for file items
+    let formDataIdPP = new FormData();
+    let fileNamesPP;
+    let fileUrlsPP;
+    
+    window.addEventListener('load', function () {
+        var imageUrlsID = apex.item('P5_DEFAULT_IMAGES_URL_1').getValue();
+        var imageNamesID = apex.item('P5_DEFAULT_IMAGES_NAME_1').getValue();
+
+        var imageContainer = document.getElementById('P5_ID_NUM_ATTACH_1_GROUP');
+
+        const urlArray = imageUrlsID.split(";");
+        const nameArray = imageNamesID.split(";");
+
+        for (let i = 0; i < urlArray.length; i++) {
+            const imageUrl = urlArray[i];
+            const imageName = nameArray[i];
+            let hiddenInputHTML;
+            if (imageUrl != '' || imageName != '') {
+                hiddenInputHTML = `
+            <div class="file-item ">
+                <span  id="deleteItem${imageName}" data-name="${imageName}" class="delete-item btn-delete vng-true"> X </span>
+                <a name="${imageName}" href="${imageUrl}" target="_blank" class="dynamic-value-page-1">
+                    ${imageName}
+                </a>
+            </div>
+        `
+            } else {
+                hiddenInputHTML = ``
+            }
+            ;
+
+            imageContainer.insertAdjacentHTML('beforeend', hiddenInputHTML);
+        }
+
+        var deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(function (button) {
+            button.addEventListener('click', handleDeleteClick);
+        });
+
+        var userName = apex.item('P5_FULL_NAME_DISPLAY').getValue();
+        var userCode = apex.item('P5_EMPLOYEE_CODE_DISPLAY').getValue();
+
+        formDataIdPP.append('name', userName);
+        formDataIdPP.append('msnv', userCode);
+    });
+
+
+    //UPLOAD FILE
+    document.getElementById('P5_ID_NUM_ATTACH_1').addEventListener('change', function (event) {
+        const imageFiles = event.target.files;
+        const hiddenInputContainer = document.getElementById('P5_ID_NUM_ATTACH_1_GROUP');
+       
+
+        formDataIdPP.append('date', getCurrentDateFormatted());
+        console.log(getCurrentDateFormatted());
+
+        for (const imageFile of imageFiles) {
+            const fileName = imageFile.name;
+            const fileURL = URL.createObjectURL(imageFile);
+
+            formDataIdPP.append('files', imageFile);
+
+            const hiddenInputHTML = `
+            <div class="file-item id-numb-file">
+                <a href="${fileURL}" target="_blank">
+                    ${fileName}
+                </a>
+                <span id="deleteItem${fileName}" data-name="${fileName}" class="delete-item btn-delete"> X </span>
+            </div>
+        `;
+            hiddenInputContainer.insertAdjacentHTML('beforeend', hiddenInputHTML);
+        }
+        hiddenInputContainer.addEventListener('click', handleDeleteClick);
+    });
+
+    //SUBMIT FORM
+    document.getElementById('iden_submit_1').addEventListener('click', async function (event) {
+        let nullFormData = false;
+        const elements = document.querySelectorAll('.dynamic-value-page-1');
+        const names = [];
+        const hrefs = [];
+        var imageNamesID = apex.item('P5_DEFAULT_IMAGES_NAME_1').getValue();
+        const nameArray = imageNamesID.split(";");
+
+        document.getElementById('loader-container').style.display = 'block';
+        for (const value of formDataIdPP.values()) {
+            if (value.name != null) {
+                nullFormData = true
+            }
+        }
+
+        if (nullFormData) {
+            try {
+                const response = await fetch('https://graphapi.vus.edu.vn/upload', {
+                    method: 'POST',
+                    body: formDataIdPP
+                });
+
+                if (response.status === 200) {
+                    const responseBody = await response.json();
+                    fileNamesPP = responseBody.data.map(item => item.name).join(';');
+                    fileUrlsPP = responseBody.data.map(item => item.path).join(';');
+
+                    await apex.item('P5_URL_1').setValue(fileUrlsPP);
+                    await apex.item('P5_URL_NAME_1').setValue(fileNamesPP);
+                } else {
+                    console.log('Upload failed');
+                }
+            } catch (error) {
+                console.error('An error occurred:', error);
+            } finally {
+                document.getElementById('loader-container').style.display = 'none';
+                apex.submit('IDEN_Submit_1');
+            }
+        } else {
+            await elements.forEach(element => {
+                const name = element.getAttribute('name');
+                const href = element.getAttribute('href');
+
+                if (name && href) {
+                    names.push(name);
+                    hrefs.push(href);
+                }
+            });
+
+            namesString = names.join(';');
+            urlString = hrefs.join(';');
+            const missingValuesNameId = await nameArray.filter(value => !names.includes(value));
+
+
+            const urlDelete = "https://graphapi.vus.edu.vn/delete-multiple-objects-vng-cloud";
+
+            const data = {
+                fileNames: missingValuesNameId
+            };
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            };
+            try {
+                await fetch(urlDelete, requestOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+
+                        console.log(data);
+                    });
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loader-container').style.display = 'none';
+            }
+
+            await apex.item('P5_URL_1').setValue(urlString);
+            await apex.item('P5_URL_NAME_1').setValue(namesString);
+            apex.submit('IDEN_Submit_1');
+        }
+
+
+
+        document.getElementById('loader-container').style.display = 'none';
+    })
+
+
+</script>
