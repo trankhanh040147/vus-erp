@@ -12,6 +12,7 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     l_trans_numrow NUMBER;
     l_rowsub NUMBER;
     l_count_idemp NUMBER;
+    l_count_leave_portal_id NUMBER;
     l_max NUMBER;
     l_body_json CLOB;
     n_id NUMBER;
@@ -47,12 +48,10 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_all_day NVARCHAR2(10);
     t_responser_id NUMBER;
     t_target_code NVARCHAR2(100);
-    id_portal_value NVARCHAR2(100);
     t_status NUMBER;
-    t_id_portal_str NUMBER;
+    t_trans_IdPortalStr NUMBER;
 
     total_exist_leave number;
-    total_exist_leave_portal_id number;
     
 BEGIN
     SP_GET_TOKEN(p_token);
@@ -81,7 +80,7 @@ BEGIN
         DBMS_OUTPUT.put_line(l_body);
 
         l_response := apex_web_service.make_rest_request(
-            p_url => 'https://hra.sandbox.operations.dynamics.com/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/GetAbsenceGroupEmployee',
+            p_url => global_vars.get_resource_url || '/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/GetAbsenceGroupEmployee',
             p_http_method => 'POST',
             p_body => l_body,
             p_transfer_timeout => 3600
@@ -162,14 +161,8 @@ BEGIN
                 t_trans_Carryforward := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Carryforward', i, j);
                 t_trans_Planyearaccrued := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearaccrued', i, j);
                 t_trans_Planyearused := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearused', i, j);
-                id_portal_value := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].IdPortalStr', i, j);
+                t_trans_IdPortalStr := TO_NUMBER(REGEXP_REPLACE(apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].IdPortalStr', i, j), '[^0-9]', ''));
                 
-                IF id_portal_value IS NOT NULL AND id_portal_value != '' THEN
-                    t_id_portal_str := to_number(id_portal_value);
-                ELSE
-                    t_id_portal_str := -1;  -- or any default value you want
-                END IF;     
-
                 t_total_days := t_trans_Planyearused + t_trans_Carryforward;
 
                 t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
@@ -226,14 +219,16 @@ BEGIN
 
                 -- Count leaves from D365 that inserted before, do not insert theses again
                 SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
-                WHERE EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
+                WHERE (EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
                 TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
-                AND BENEFIT_CODE = n_benefit_accrual_plan;
+                AND BENEFIT_CODE = n_benefit_accrual_plan) 
+                OR (ID = t_trans_IdPortalStr);
 
-                SELECT COUNT(ID) INTO total_exist_leave_portal_id FROM EMPLOYEE_REQUESTS
-                WHERE ID = t_id_portal_str;
+                -- Count leaves from D365
 
-                IF (total_exist_leave <= 0) and (total_exist_leave_portal_id < 0) THEN
+
+                -- Insert leaves that do not have t_trans_IdPortalStr
+                IF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NULL or t_trans_IdPortalStr = '') THEN
 
                     INSERT INTO EMPLOYEE_REQUESTS (
                         REQUESTOR_ID,
@@ -249,7 +244,8 @@ BEGIN
                         TARGET_CODE,
                         SUBMIT_DATE,
                         BENEFIT_CODE,
-                        IS_D365
+                        IS_D365,
+                        ID_PORTAL_STR
                     )
                     VALUES (
                         n_emp_id,
@@ -265,13 +261,48 @@ BEGIN
                         t_target_code,
                         t_trans_date,
                         n_benefit_accrual_plan,
-                        1 -- IS LEAVE FROM D365
+                        1, -- IS LEAVE FROM D365,
+                        0
                     );
                     
+                ELSIF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NOT NULL or t_trans_IdPortalStr != '') THEN
+                    INSERT INTO EMPLOYEE_REQUESTS (
+                        ID,
+                        REQUESTOR_ID,
+                        EMPLOYEE_CODE_REQ,
+                        EMPLOYEE_NAME,
+                        FROM_DATE,
+                        END_DATE,
+                        ALL_DAY,
+                        TOTAL_DAYS,
+                        EMP_REQ_STATUS,
+                        RESPONSER_ID,
+                        LEAVE_TYPE,
+                        TARGET_CODE,
+                        SUBMIT_DATE,
+                        BENEFIT_CODE,
+                        IS_D365,
+                        ID_PORTAL_STR
+                    )
+                    VALUES (
+                        t_trans_IdPortalStr,
+                        n_emp_id,
+                        p_employee_code,
+                        t_worker,
+                        t_trans_date,
+                        t_end_date,
+                        t_all_day,
+                        t_total_days,
+                        t_status,
+                        t_responser_id,
+                        CASE WHEN n_hrm_absence_code_group_id ='Leave' THEN 'APL' ELSE to_char(n_hrm_absence_code_group_id) END,
+                        t_target_code,
+                        t_trans_date,
+                        n_benefit_accrual_plan,
+                        0, -- LEAVE FROM PORTAL,
+                        t_trans_IdPortalStr
+                    );
                 END IF;
-
-
-
 
             END LOOP;
 
