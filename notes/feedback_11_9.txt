@@ -1,0 +1,30 @@
+- EMAIL & POSITION_ID
+- APPROVAL_GROUP & POSITION_ID
+- XỬ LÍ TRƯỜNG HỢP NHIỀU USER
+- SOCIAL
+
+- Send Mail: Reject & Cancel | Thêm loại phép
+- Sort theo From_Date
+- Cancel popup 
+- Cancel sai benefit_code
+
+- title Approve
+- Bold nút Approve
+- Staff_list thanh ngang
+
+- Bug: Used lố case: Tạo leave 0.5 --> Cancel 2 lần 
+- Show Description của gói phép ở màn hình 13 
+- Ẩn start_time & end_time khi nửa ngày
+- Lưu lại balance đồng thời trừ hết những ngày waiting
+- Format from_date, to_date leave_detail
+- Trạng thái HR_Update
+- Thêm màn hình xem detail đơn nghỉ phép
+- Ngày balance của những ngày waiting
+- Maximum của các gói phép
+- Thêm cột submit date
+
+- Trường hợp đồng bộ gói phép & lưu tạm:
+	+ Đồng bộ gói phép --> Các đơn waiting vẫn giữ
+	+ Các ngày lưu tạm của gói phép --> Không thay đổi
+	+ Trường hợp cần đồng bộ các đơn từ D365 --> Portal: ngày của gói phép sẽ thay đổi đối với các đơn 
+	+ Trường hợp 

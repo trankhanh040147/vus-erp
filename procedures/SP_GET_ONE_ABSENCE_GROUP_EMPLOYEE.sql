@@ -104,6 +104,12 @@ BEGIN
             n_expiration_date := TO_DATE(apex_json.get_varchar2('Benefit_accrual[%d].ExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
             n_can_cf := apex_json.get_number('Benefit_accrual[%d].CanCarryForward', i);
 
+            -- Get value min
+            if(n_plan_year_accrued > n_maximum_accrual_limit) then
+                n_plan_year_accrued := n_maximum_accrual_limit;
+            end if;
+
+
             -- Convert Group 'Leave' to 'APL'
             if n_hrm_absence_code_group_id = 'Leave' then
                 n_hrm_absence_code_group_id := 'APL';
