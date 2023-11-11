@@ -74,7 +74,7 @@ BEGIN
     ----- <2. Update current EMPLOYEE_REQUESTS and ABSENCE_GROUP_EMPLOYEE of this employee
 
     -- Delete current Absence_groups of this employee OR update it
-    DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
+    -- DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
 
     -- DELETE from EMPLOYEE_REQUESTS where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code;
 
