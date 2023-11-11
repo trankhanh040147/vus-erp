@@ -106,7 +106,7 @@ document
 
     if (nullFormData) {
       try {
-        const response = await fetch("https://graphapi.vus.edu.vn/upload", {
+        var response = await fetch("https://graphapi.vus.edu.vn/upload", {
           method: "POST",
           body: formDataIdNumber,
         });
