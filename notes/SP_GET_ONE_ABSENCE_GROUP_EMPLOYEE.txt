@@ -1,0 +1,18 @@
+This is from UAT
+
+1. Case Planyearaccrued > 0 
+    SOL: --> Ignore
+        {
+            "Worker": "Trang 1303",
+            "Benefitaccrualplan": "ALPL12 2023",
+            "TransDate": "2023-10-09T12:00:00",
+            "Carryforward": 0.0,
+            "Planyearaccrued": 10.0,
+            "Planyearused": 0.0,
+            "IdPortalStr": "",
+            "FromDate": "1900-01-01T12:00:00",
+            "ToDate": "1900-01-01T12:00:00",
+            "FromTime": 0,
+            "ToTime": 0,
+            "AdjRecId": 5637180582
+        }
