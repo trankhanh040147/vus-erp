@@ -1,0 +1,29 @@
+// Case leave approved and canceled from D365
+{
+    "Worker": "Đặng Thị Diệu Thu",
+    "Benefitaccrualplan": "ALPL18 2023",
+    "TransDate": "2023-08-22T12:00:00",
+    "Carryforward": 0.0,
+    "Planyearaccrued": 0.0,
+    "Planyearused": -5.0,
+    "IdPortalStr": "",
+    "FromDate": "1900-01-01T12:00:00",
+    "ToDate": "1900-01-01T12:00:00",
+    "FromTime": 0,
+    "ToTime": 0,
+    "AdjRecId": 5637172358
+},
+{
+    "Worker": "Đặng Thị Diệu Thu",
+    "Benefitaccrualplan": "ALPL18 2023",
+    "TransDate": "2023-08-22T12:00:00",
+    "Carryforward": 0.0,
+    "Planyearaccrued": 0.0,
+    "Planyearused": 5.0,
+    "IdPortalStr": "",
+    "FromDate": "1900-01-01T12:00:00",
+    "ToDate": "1900-01-01T12:00:00",
+    "FromTime": 0,
+    "ToTime": 0,
+    "AdjRecId": 5637172357
+},

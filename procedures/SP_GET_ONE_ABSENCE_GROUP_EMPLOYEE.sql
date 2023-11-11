@@ -14,7 +14,7 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     l_count_idemp NUMBER;
     l_count_leave_portal_id NUMBER;
     l_count_leave_rec_id NUMBER;
-    l_count_leave_canceled NUMBER;
+    l_count_leave_canceled_d365 NUMBER;
 
     l_max NUMBER;
     l_body_json CLOB;
@@ -272,32 +272,65 @@ BEGIN
 
                 ----- <7.5. Update leaves into EMPLOYEE_REQUESTS
 
-                -- Update status of leaves on portal that be canceled (when the approved leave inserted first, then the canceled leave inserted later)
+                -- Update status of leaves from PORTAL that be canceled (when the approved leave inserted first, then the canceled leave inserted later)
                 update EMPLOYEE_REQUESTS 
-                set EMP_REQ_STATUS = 5 
+                set EMP_REQ_STATUS = 5, REC_ID = t_AdjRecId
                 where ID = t_trans_IdPortalStr and EMP_REQ_STATUS = 3
                     and t_status = 5;
+
+                -- Update status of leaves from D365 that be canceled (when the approved leave inserted first, then the canceled leave inserted later)
+                update EMPLOYEE_REQUESTS
+                set EMP_REQ_STATUS = 5, REC_ID = t_AdjRecId
+                where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code and EMP_REQ_STATUS = 3
+                    and TOTAL_DAYS = t_total_days and FROM_DATE = t_trans_date and BENEFIT_CODE = n_benefit_accrual_plan
+                    and t_status = 5;
+
+                -- Update status of canceled leave from D365, that be approved from PORTAL 
+                -- --> This case is wrong. 1. If this leave be canceled from D365, it will need to have IdPortalStr. So, this case will be ignored.
+    
+                -- update EMPLOYEE_REQUESTS
+                -- set EMP_REQ_STATUS = 5, REC_ID = t_AdjRecId
+                -- where IS_D365 = 0 and EMPLOYEE_CODE_REQ = p_employee_code and EMP_REQ_STATUS = 3
+                --     and TOTAL_DAYS = t_total_days and FROM_DATE = t_trans_date and BENEFIT_CODE = n_benefit_accrual_plan
+                --     and t_status = 5;
+
+                -- Update Rec_id for leaves on Portal
+                update EMPLOYEE_REQUESTS 
+                set REC_ID = t_AdjRecId
+                where ID = t_trans_IdPortalStr and EMP_REQ_STATUS = t_status;
+
 
                 ----- 7.5.>
 
                 ----- <7.6. Insert leaves into EMPLOYEE_REQUESTS
 
-                --!-- Cases leaves will be ignore: Duplicated ID_PORTAL_STR; Duplicated REC_ID; Canceled leaves
+                --!-- Cases leaves will be ignore: a. Duplicated ID_PORTAL_STR; b. Duplicated REC_ID; c. Approved leaves from D365 that be canceled
 
-                -- Count leaves duplicated IdPortalStr
+                -- a. Count leaves duplicated IdPortalStr
                 select COUNT(*) into l_count_leave_portal_id from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
 
-                -- Count leaves duplicated RecId
+                -- b. Count leaves duplicated RecId
                 select COUNT(*) into l_count_leave_rec_id from EMPLOYEE_REQUESTS where REC_ID = t_AdjRecId;
 
-                -- Count approved leaves from D365 that be canceled
-                SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
-                WHERE (EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
-                    TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
-                    AND BENEFIT_CODE = n_benefit_accrual_plan) 
-                    OR (ID = t_trans_IdPortalStr);
+                -- c. Count approved leaves from D365 that be canceled
+                select count(*) into l_count_leave_canceled_d365 from EMPLOYEE_REQUESTS
+                where EMPLOYEE_CODE_REQ = p_employee_code and FROM_DATE = t_trans_date
+                    and TOTAL_DAYS = t_total_days and BENEFIT_CODE = n_benefit_accrual_plan and EMP_REQ_STATUS = 5;
+
+                -- SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
+                -- WHERE (EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
+                --     TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
+                --     AND BENEFIT_CODE = n_benefit_accrual_plan) 
+                --     OR (ID = t_trans_IdPortalStr);
 
                 -- Count leaves from D365
+
+                -- Continue if the leave is in one of the ignore cases
+                IF (l_count_leave_portal_id > 0) or (l_count_leave_rec_id > 0) or (l_count_leave_canceled_d365 > 0) THEN
+                    CONTINUE;
+                END IF;
+
+                total_exist_leave := l_count_leave_portal_id + l_count_leave_rec_id + l_count_leave_canceled_d365;
 
                 -- Insert leaves that do not have t_trans_IdPortalStr
                 IF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NULL or t_trans_IdPortalStr = '') THEN
@@ -383,11 +416,6 @@ BEGIN
                     ----- 7.6.>
 
                 END IF;
-
-                -- Update Rec_id for leaves on Portal
-                update EMPLOYEE_REQUESTS 
-                set REC_ID = t_AdjRecId
-                where ID = t_trans_IdPortalStr;
 
             END LOOP;
 
