@@ -1,3 +1,104 @@
+--- Table: EMPLOYEE_REQUESTS
+-- ID	NUMBER(10,0)
+-- REQUESTOR_ID	NUMBER(10,0)
+-- REQUEST_ID	NUMBER(10,0)
+-- EMPLOYEE_CODE_REQ	NVARCHAR2(100 CHAR)
+-- EMPLOYEE_NAME	NVARCHAR2(100 CHAR)
+-- FROM_DATE	DATE
+-- END_DATE	DATE
+-- ALL_DAY	NVARCHAR2(10 CHAR)
+-- NOTE	NVARCHAR2(2000 CHAR)
+-- TOTAL_DAYS	FLOAT(10)
+-- EMP_REQ_STATUS	NUMBER(10,0)
+-- TYPE	NUMBER(10,0)
+-- IS_DEL	NUMBER(10,0)
+-- MAN_RES_STATUS	NUMBER(10,0)
+-- RESPONSER_ID	NUMBER(10,0)
+-- LEAVE_TYPE	NVARCHAR2(100 CHAR)
+-- TARGET_CODE	NVARCHAR2(1000 CHAR)
+-- START_TIME	NVARCHAR2(10 CHAR)
+-- END_TIME	NVARCHAR2(10 CHAR)
+-- SUBMIT_DATE	DATE
+-- BENEFIT_CODE	NVARCHAR2(100 CHAR)
+-- CRF_DAY_TEMP	FLOAT(10)
+-- ANNUAL_DAY_TEMP	FLOAT(10)
+-- ATTACH_NAME	NVARCHAR2(2000 CHAR)
+-- ATTATCH_FILE	NVARCHAR2(2000 CHAR)
+-- ID_ROOT	NVARCHAR2(100 CHAR)
+-- IS_D365	NUMBER(1,0)
+-- LEAVE_BALANCE	NUMBER(3,1)
+-- INSERTED_STATUS	NUMBER(1,0)
+-- ID_PORTAL_STR	NVARCHAR2(50 CHAR)
+-- REC_ID	NVARCHAR2(20 CHAR)
+
+
+-- Table: ABSENCE_GROUP_EMPLOYEE
+-- ID	NUMBER(10,0)
+-- EMPLOYEE_CODE	NVARCHAR2(100 CHAR)
+-- LEGAL_ENTITY	NVARCHAR2(10 CHAR)
+-- BENEFIT_ACCRUAL_PLAN	NVARCHAR2(50 CHAR)
+-- DESCRIPTION	NVARCHAR2(200 CHAR)
+-- PLAN_YEAR_START	DATE
+-- CARRY_FORWARD	NUMBER(5,1)
+-- PLAN_YEAR_ACCRUED	NUMBER(5,1)
+-- PLAN_YEAR_USED	NUMBER(5,1)
+-- MAXIMUM_ACCRUAL_LIMIT	NUMBER(5,1)
+-- AVAILABLE	NUMBER(5,1)
+-- HRM_ABSENCE_CODE_ID	NVARCHAR2(50 CHAR)
+-- HRM_ABSENCE_CODE_GROUP_ID	NVARCHAR2(50 CHAR)
+-- EXPIRATION_DATE	DATE
+-- CARRY_FORWARD_USED	NUMBER(10,1)
+-- DAY_APPROVE	DATE
+-- CARRY_FORWARD_AVALABLE	NUMBER(10,1)
+-- CARRY_FORWARD_CODE	NVARCHAR2(100 CHAR)
+-- CARRY_FORWORD_EXP_DATE	DATE
+-- CF_BENEFIT_ACCRUAL_PLAN	NVARCHAR2(100 CHAR)
+-- CAN_CARRY_FORWARD	NUMBER(2,0)
+
+
+-- API Response:
+-- {
+--     "Legal_entity": "V01",
+--     "EmployeeCode": "000000037",
+--     "Benefit_accrual": [
+--         {
+--             "Benefitaccrualplan": "ALPL12 2023",
+--             "Description": "12 days annual leave",
+--             "Planyearstart": "2023-01-01T12:00:00",
+--             "Carryforward": 0.0,
+--             "Planyearaccrued": 10.0,
+--             "Planyearused": 0.5,
+--             "Pendingusage": 0.0,
+--             "Minimumbalance": 0.0,
+--             "Maximumaccruallimit": 12.0,
+--             "Available": 9.5,
+--             "Servicedatebasis": 0,
+--             "HRMAbsenceCodeId": "ALPL12",
+--             "HRMAbsenceCodeGroupId": "Leave",
+--             "ExpirationDate": "2023-12-31T12:00:00",
+--             "CanCarryForward": 0,
+--             "Benefit_accrual_transactions": [
+--                 {
+--                     "Worker": "Trang 1303",
+--                     "Benefitaccrualplan": "ALPL12 2023",
+--                     "TransDate": "2023-01-01T12:00:00",
+--                     "Carryforward": 0.0,
+--                     "Planyearaccrued": 0.0,
+--                     "Planyearused": 0.0,
+--                     "IdPortalStr": "",
+--                     "FromDate": "1900-01-01T12:00:00",
+--                     "ToDate": "1900-01-01T12:00:00",
+--                     "FromTime": 0,
+--                     "ToTime": 0,
+--                     "AdjRecId": 5637180581
+--                 },
+--                 ,{}....
+--             ]
+--         },
+-- }
+
+
+
 create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     p_employee_code NVARCHAR2
 ) IS
@@ -13,6 +114,9 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     l_rowsub NUMBER;
     l_count_idemp NUMBER;
     l_count_leave_portal_id NUMBER;
+    l_count_leave_rec_id NUMBER;
+    l_count_leave_canceled NUMBER;
+
     l_max NUMBER;
     l_body_json CLOB;
     n_id NUMBER;
@@ -50,6 +154,7 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_target_code NVARCHAR2(100);
     t_status NUMBER;
     t_trans_IdPortalStr NUMBER;
+    t_AdjRecId NVARCHAR2(20);
 
     total_exist_leave number;
     
@@ -195,7 +300,7 @@ BEGIN
                 t_trans_Planyearaccrued := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearaccrued', i, j);
                 t_trans_Planyearused := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearused', i, j);
                 t_trans_IdPortalStr := TO_NUMBER(REGEXP_REPLACE(apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].IdPortalStr', i, j), '[^0-9]', ''));
-
+                t_AdjRecId := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].AdjRecId', i, j);
                 ----- 7.1.>
 
                 ----- <7.2. Convert values
@@ -261,12 +366,21 @@ BEGIN
                 -- DBMS_OUTPUT.put_line('Responer Id: ' || t_responser_id);
                 -- DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
                 -- DBMS_OUTPUT.PUT_LINE('');
+                DBMS_OUTPUT.put_line('Rec_id ' || t_AdjRecId);
 
                 ----- 7.4.>
 
-                ----- <7.5.
-            
-                -- Count leaves from D365 that inserted before, do not insert theses again
+                ----- <7.5. Insert leaves into EMPLOYEE_REQUESTS
+
+                ---!--- Cases leaves will be ignore: Duplicated ID_PORTAL_STR; Duplicated REC_ID; Canceled leaves
+
+                -- Count leaves duplicated IdPortalStr
+                select COUNT(*) from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
+
+                -- Count leaves duplicated RecId
+                select COUNT(*) from EMPLOYEE_REQUESTS where REC_ID = t_AdjRecId;
+
+                -- Count approved leaves from D365 that be canceled
                 SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
                 WHERE (EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
                     TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
@@ -293,7 +407,8 @@ BEGIN
                         SUBMIT_DATE,
                         BENEFIT_CODE,
                         IS_D365,
-                        ID_PORTAL_STR
+                        ID_PORTAL_STR,
+                        ADJ_REC_ID
                     )
                     VALUES (
                         n_emp_id,
@@ -310,10 +425,12 @@ BEGIN
                         t_trans_date,
                         n_benefit_accrual_plan,
                         1, -- IS LEAVE FROM D365,
-                        0
+                        0,
+                        t_AdjRecId
                     );
                     
                 ELSIF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NOT NULL or t_trans_IdPortalStr != '') THEN
+                    -- Insert leaves from Portal that be deleted before
                     INSERT INTO EMPLOYEE_REQUESTS (
                         ID,
                         REQUESTOR_ID,
@@ -330,7 +447,8 @@ BEGIN
                         SUBMIT_DATE,
                         BENEFIT_CODE,
                         IS_D365,
-                        ID_PORTAL_STR
+                        ID_PORTAL_STR,
+                        ADJ_REC_ID
                     )
                     VALUES (
                         t_trans_IdPortalStr,
@@ -348,11 +466,18 @@ BEGIN
                         t_trans_date,
                         n_benefit_accrual_plan,
                         0, -- LEAVE FROM PORTAL,
-                        t_trans_IdPortalStr
+                        t_trans_IdPortalStr,
+                        t_AdjRecId
                     );
 
                     ----- 7.5.>
+
                 END IF;
+
+                -- Update Rec_id for leaves on Portal
+                update EMPLOYEE_REQUESTS 
+                set REC_ID = t_AdjRecId
+                where ID = t_trans_IdPortalStr;
 
             END LOOP;
 
