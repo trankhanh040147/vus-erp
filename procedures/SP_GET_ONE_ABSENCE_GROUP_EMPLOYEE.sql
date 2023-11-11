@@ -1,104 +1,3 @@
---- Table: EMPLOYEE_REQUESTS
--- ID	NUMBER(10,0)
--- REQUESTOR_ID	NUMBER(10,0)
--- REQUEST_ID	NUMBER(10,0)
--- EMPLOYEE_CODE_REQ	NVARCHAR2(100 CHAR)
--- EMPLOYEE_NAME	NVARCHAR2(100 CHAR)
--- FROM_DATE	DATE
--- END_DATE	DATE
--- ALL_DAY	NVARCHAR2(10 CHAR)
--- NOTE	NVARCHAR2(2000 CHAR)
--- TOTAL_DAYS	FLOAT(10)
--- EMP_REQ_STATUS	NUMBER(10,0)
--- TYPE	NUMBER(10,0)
--- IS_DEL	NUMBER(10,0)
--- MAN_RES_STATUS	NUMBER(10,0)
--- RESPONSER_ID	NUMBER(10,0)
--- LEAVE_TYPE	NVARCHAR2(100 CHAR)
--- TARGET_CODE	NVARCHAR2(1000 CHAR)
--- START_TIME	NVARCHAR2(10 CHAR)
--- END_TIME	NVARCHAR2(10 CHAR)
--- SUBMIT_DATE	DATE
--- BENEFIT_CODE	NVARCHAR2(100 CHAR)
--- CRF_DAY_TEMP	FLOAT(10)
--- ANNUAL_DAY_TEMP	FLOAT(10)
--- ATTACH_NAME	NVARCHAR2(2000 CHAR)
--- ATTATCH_FILE	NVARCHAR2(2000 CHAR)
--- ID_ROOT	NVARCHAR2(100 CHAR)
--- IS_D365	NUMBER(1,0)
--- LEAVE_BALANCE	NUMBER(3,1)
--- INSERTED_STATUS	NUMBER(1,0)
--- ID_PORTAL_STR	NVARCHAR2(50 CHAR)
--- REC_ID	NVARCHAR2(20 CHAR)
-
-
--- Table: ABSENCE_GROUP_EMPLOYEE
--- ID	NUMBER(10,0)
--- EMPLOYEE_CODE	NVARCHAR2(100 CHAR)
--- LEGAL_ENTITY	NVARCHAR2(10 CHAR)
--- BENEFIT_ACCRUAL_PLAN	NVARCHAR2(50 CHAR)
--- DESCRIPTION	NVARCHAR2(200 CHAR)
--- PLAN_YEAR_START	DATE
--- CARRY_FORWARD	NUMBER(5,1)
--- PLAN_YEAR_ACCRUED	NUMBER(5,1)
--- PLAN_YEAR_USED	NUMBER(5,1)
--- MAXIMUM_ACCRUAL_LIMIT	NUMBER(5,1)
--- AVAILABLE	NUMBER(5,1)
--- HRM_ABSENCE_CODE_ID	NVARCHAR2(50 CHAR)
--- HRM_ABSENCE_CODE_GROUP_ID	NVARCHAR2(50 CHAR)
--- EXPIRATION_DATE	DATE
--- CARRY_FORWARD_USED	NUMBER(10,1)
--- DAY_APPROVE	DATE
--- CARRY_FORWARD_AVALABLE	NUMBER(10,1)
--- CARRY_FORWARD_CODE	NVARCHAR2(100 CHAR)
--- CARRY_FORWORD_EXP_DATE	DATE
--- CF_BENEFIT_ACCRUAL_PLAN	NVARCHAR2(100 CHAR)
--- CAN_CARRY_FORWARD	NUMBER(2,0)
-
-
--- API Response:
--- {
---     "Legal_entity": "V01",
---     "EmployeeCode": "000000037",
---     "Benefit_accrual": [
---         {
---             "Benefitaccrualplan": "ALPL12 2023",
---             "Description": "12 days annual leave",
---             "Planyearstart": "2023-01-01T12:00:00",
---             "Carryforward": 0.0,
---             "Planyearaccrued": 10.0,
---             "Planyearused": 0.5,
---             "Pendingusage": 0.0,
---             "Minimumbalance": 0.0,
---             "Maximumaccruallimit": 12.0,
---             "Available": 9.5,
---             "Servicedatebasis": 0,
---             "HRMAbsenceCodeId": "ALPL12",
---             "HRMAbsenceCodeGroupId": "Leave",
---             "ExpirationDate": "2023-12-31T12:00:00",
---             "CanCarryForward": 0,
---             "Benefit_accrual_transactions": [
---                 {
---                     "Worker": "Trang 1303",
---                     "Benefitaccrualplan": "ALPL12 2023",
---                     "TransDate": "2023-01-01T12:00:00",
---                     "Carryforward": 0.0,
---                     "Planyearaccrued": 0.0,
---                     "Planyearused": 0.0,
---                     "IdPortalStr": "",
---                     "FromDate": "1900-01-01T12:00:00",
---                     "ToDate": "1900-01-01T12:00:00",
---                     "FromTime": 0,
---                     "ToTime": 0,
---                     "AdjRecId": 5637180581
---                 },
---                 ,{}....
---             ]
---         },
--- }
-
-
-
 create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     p_employee_code NVARCHAR2
 ) IS
@@ -244,6 +143,7 @@ BEGIN
             ----- <6. Insert data into the table ABSENCE_GROUP_EMPLOYEE
 
             SELECT MAX(ID) + 1 INTO l_max FROM ABSENCE_GROUP_EMPLOYEE;
+
             INSERT INTO ABSENCE_GROUP_EMPLOYEE (
                 ID,
                 EMPLOYEE_CODE,
@@ -370,15 +270,25 @@ BEGIN
 
                 ----- 7.4.>
 
-                ----- <7.5. Insert leaves into EMPLOYEE_REQUESTS
+                ----- <7.5. Update leaves into EMPLOYEE_REQUESTS
 
-                ---!--- Cases leaves will be ignore: Duplicated ID_PORTAL_STR; Duplicated REC_ID; Canceled leaves
+                -- Update status of leaves on portal that be canceled (when the approved leave inserted first, then the canceled leave inserted later)
+                update EMPLOYEE_REQUESTS 
+                set EMP_REQ_STATUS = 5 
+                where ID = t_trans_IdPortalStr and EMP_REQ_STATUS = 3
+                    and t_status = 5;
+
+                ----- 7.5.>
+
+                ----- <7.6. Insert leaves into EMPLOYEE_REQUESTS
+
+                --!-- Cases leaves will be ignore: Duplicated ID_PORTAL_STR; Duplicated REC_ID; Canceled leaves
 
                 -- Count leaves duplicated IdPortalStr
-                select COUNT(*) from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
+                select COUNT(*) into l_count_leave_portal_id from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
 
                 -- Count leaves duplicated RecId
-                select COUNT(*) from EMPLOYEE_REQUESTS where REC_ID = t_AdjRecId;
+                select COUNT(*) into l_count_leave_rec_id from EMPLOYEE_REQUESTS where REC_ID = t_AdjRecId;
 
                 -- Count approved leaves from D365 that be canceled
                 SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
@@ -408,7 +318,7 @@ BEGIN
                         BENEFIT_CODE,
                         IS_D365,
                         ID_PORTAL_STR,
-                        ADJ_REC_ID
+                        REC_ID
                     )
                     VALUES (
                         n_emp_id,
@@ -448,7 +358,7 @@ BEGIN
                         BENEFIT_CODE,
                         IS_D365,
                         ID_PORTAL_STR,
-                        ADJ_REC_ID
+                        REC_ID
                     )
                     VALUES (
                         t_trans_IdPortalStr,
@@ -470,7 +380,7 @@ BEGIN
                         t_AdjRecId
                     );
 
-                    ----- 7.5.>
+                    ----- 7.6.>
 
                 END IF;
 
@@ -528,4 +438,105 @@ BEGIN
     ----- 8.>
 
 END;
-/
+
+
+
+--- Table: EMPLOYEE_REQUESTS
+-- ID	NUMBER(10,0)
+-- REQUESTOR_ID	NUMBER(10,0)
+-- REQUEST_ID	NUMBER(10,0)
+-- EMPLOYEE_CODE_REQ	NVARCHAR2(100 CHAR)
+-- EMPLOYEE_NAME	NVARCHAR2(100 CHAR)
+-- FROM_DATE	DATE
+-- END_DATE	DATE
+-- ALL_DAY	NVARCHAR2(10 CHAR)
+-- NOTE	NVARCHAR2(2000 CHAR)
+-- TOTAL_DAYS	FLOAT(10)
+-- EMP_REQ_STATUS	NUMBER(10,0)
+-- TYPE	NUMBER(10,0)
+-- IS_DEL	NUMBER(10,0)
+-- MAN_RES_STATUS	NUMBER(10,0)
+-- RESPONSER_ID	NUMBER(10,0)
+-- LEAVE_TYPE	NVARCHAR2(100 CHAR)
+-- TARGET_CODE	NVARCHAR2(1000 CHAR)
+-- START_TIME	NVARCHAR2(10 CHAR)
+-- END_TIME	NVARCHAR2(10 CHAR)
+-- SUBMIT_DATE	DATE
+-- BENEFIT_CODE	NVARCHAR2(100 CHAR)
+-- CRF_DAY_TEMP	FLOAT(10)
+-- ANNUAL_DAY_TEMP	FLOAT(10)
+-- ATTACH_NAME	NVARCHAR2(2000 CHAR)
+-- ATTATCH_FILE	NVARCHAR2(2000 CHAR)
+-- ID_ROOT	NVARCHAR2(100 CHAR)
+-- IS_D365	NUMBER(1,0)
+-- LEAVE_BALANCE	NUMBER(3,1)
+-- INSERTED_STATUS	NUMBER(1,0)
+-- ID_PORTAL_STR	NVARCHAR2(50 CHAR)
+-- REC_ID	NVARCHAR2(20 CHAR)
+
+
+-- Table: ABSENCE_GROUP_EMPLOYEE
+-- ID	NUMBER(10,0)
+-- EMPLOYEE_CODE	NVARCHAR2(100 CHAR)
+-- LEGAL_ENTITY	NVARCHAR2(10 CHAR)
+-- BENEFIT_ACCRUAL_PLAN	NVARCHAR2(50 CHAR)
+-- DESCRIPTION	NVARCHAR2(200 CHAR)
+-- PLAN_YEAR_START	DATE
+-- CARRY_FORWARD	NUMBER(5,1)
+-- PLAN_YEAR_ACCRUED	NUMBER(5,1)
+-- PLAN_YEAR_USED	NUMBER(5,1)
+-- MAXIMUM_ACCRUAL_LIMIT	NUMBER(5,1)
+-- AVAILABLE	NUMBER(5,1)
+-- HRM_ABSENCE_CODE_ID	NVARCHAR2(50 CHAR)
+-- HRM_ABSENCE_CODE_GROUP_ID	NVARCHAR2(50 CHAR)
+-- EXPIRATION_DATE	DATE
+-- CARRY_FORWARD_USED	NUMBER(10,1)
+-- DAY_APPROVE	DATE
+-- CARRY_FORWARD_AVALABLE	NUMBER(10,1)
+-- CARRY_FORWARD_CODE	NVARCHAR2(100 CHAR)
+-- CARRY_FORWORD_EXP_DATE	DATE
+-- CF_BENEFIT_ACCRUAL_PLAN	NVARCHAR2(100 CHAR)
+-- CAN_CARRY_FORWARD	NUMBER(2,0)
+
+
+-- API Response:
+-- {
+--     "Legal_entity": "V01",
+--     "EmployeeCode": "000000037",
+--     "Benefit_accrual": [
+--         {
+--             "Benefitaccrualplan": "ALPL12 2023",
+--             "Description": "12 days annual leave",
+--             "Planyearstart": "2023-01-01T12:00:00",
+--             "Carryforward": 0.0,
+--             "Planyearaccrued": 10.0,
+--             "Planyearused": 0.5,
+--             "Pendingusage": 0.0,
+--             "Minimumbalance": 0.0,
+--             "Maximumaccruallimit": 12.0,
+--             "Available": 9.5,
+--             "Servicedatebasis": 0,
+--             "HRMAbsenceCodeId": "ALPL12",
+--             "HRMAbsenceCodeGroupId": "Leave",
+--             "ExpirationDate": "2023-12-31T12:00:00",
+--             "CanCarryForward": 0,
+--             "Benefit_accrual_transactions": [
+--                 {
+--                     "Worker": "Trang 1303",
+--                     "Benefitaccrualplan": "ALPL12 2023",
+--                     "TransDate": "2023-01-01T12:00:00",
+--                     "Carryforward": 0.0,
+--                     "Planyearaccrued": 0.0,
+--                     "Planyearused": 0.0,
+--                     "IdPortalStr": "",
+--                     "FromDate": "1900-01-01T12:00:00",
+--                     "ToDate": "1900-01-01T12:00:00",
+--                     "FromTime": 0,
+--                     "ToTime": 0,
+--                     "AdjRecId": 5637180581
+--                 },
+--                 ,{}....
+--             ]
+--         },
+-- }
+
