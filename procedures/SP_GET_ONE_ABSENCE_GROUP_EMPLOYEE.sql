@@ -54,6 +54,8 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     total_exist_leave number;
     
 BEGIN
+
+    ----- <1. Get token and set header
     SP_GET_TOKEN(p_token);
     apex_web_service.g_request_headers.delete();
 
@@ -62,6 +64,10 @@ BEGIN
 
     apex_web_service.g_request_headers(2).name := 'Content-Type';
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
+    
+    ----- 1.>
+
+    ----- <2. Update current EMPLOYEE_REQUESTS and ABSENCE_GROUP_EMPLOYEE of this employee
 
     -- Delete current Absence_groups of this employee OR update it
     DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
@@ -73,8 +79,11 @@ BEGIN
     -- WHERE IS_D365 = 0 and EMPLOYEE_CODE_REQ = p_employee_code 
     -- AND EMP_REQ_STATUS = 2;
 
+    ----- 2.>
 
     FOR r IN (SELECT EMPLOYEE_CODE, DATAAREA FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code) LOOP
+
+        ----- <3. Set body and get response
         l_body := '{"_jsonRequest":{"EmployeeCode":"' || r.EMPLOYEE_CODE || '","legal_entity":"' || r.DATAAREA || '"} }';
 
         DBMS_OUTPUT.put_line(l_body);
@@ -87,9 +96,13 @@ BEGIN
         );
 
         APEX_JSON.parse(l_response);
+        ----- 3.>
 
         l_numrow := APEX_JSON.get_count(p_path => 'Benefit_accrual');
+
         FOR i IN 1..l_numrow LOOP
+            ----- <4. Get values from JSON
+
             n_benefit_accrual_plan := apex_json.get_varchar2('Benefit_accrual[%d].Benefitaccrualplan', i);
             n_description := apex_json.get_varchar2('Benefit_accrual[%d].Description', i);
             n_plan_year_start := TO_DATE(apex_json.get_varchar2('Benefit_accrual[%d].Planyearstart', i), 'YYYY-MM-DD"T"HH24:MI:SS');
@@ -104,21 +117,27 @@ BEGIN
             n_expiration_date := TO_DATE(apex_json.get_varchar2('Benefit_accrual[%d].ExpirationDate', i), 'YYYY-MM-DD"T"HH24:MI:SS');
             n_can_cf := apex_json.get_number('Benefit_accrual[%d].CanCarryForward', i);
 
+            ----- 4.>
+
+            ----- <5. Convert values and print out for checking data
+
             -- Get value min
             if(n_plan_year_accrued > n_maximum_accrual_limit) then
                 n_plan_year_accrued := n_maximum_accrual_limit;
             end if;
 
-
             -- Convert Group 'Leave' to 'APL'
             if n_hrm_absence_code_group_id = 'Leave' then
                 n_hrm_absence_code_group_id := 'APL';
             end if;
-            DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
 
+            DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
             DBMS_OUTPUT.put_line('Plan_used: ' || to_char(n_plan_year_used));
 
-            -- Insert data into the table ABSENCE_GROUP_EMPLOYEE
+            ----- 5.>
+
+            ----- <6. Insert data into the table ABSENCE_GROUP_EMPLOYEE
+
             SELECT MAX(ID) + 1 INTO l_max FROM ABSENCE_GROUP_EMPLOYEE;
             INSERT INTO ABSENCE_GROUP_EMPLOYEE (
                 ID,
@@ -155,12 +174,20 @@ BEGIN
                 n_can_cf
             );
 
-            -- Insert LEAVES from D365 into the table EMPLOYEE_REQUESTS
+            ----- 6.>
+
+            ----- <7. Insert LEAVES from D365 into the table EMPLOYEE_REQUESTS
+
             l_trans_numrow := APEX_JSON.get_count(p_path => 'Benefit_accrual[' || i || '].Benefit_accrual_transactions');
+
+            -- Print out for checking data
             DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_trans_numrow) || ' Benefit_accrual_transactions:' || n_benefit_accrual_plan);
             DBMS_OUTPUT.PUT_LINE('');
 
             FOR j IN 1..l_trans_numrow LOOP
+
+                ----- <7.1. Get values from JSON
+
                 -- t_worker := apex_json.get_varchar2('Benefit_accrual[' || i || '].Benefit_accrual_transactions[' || j || '].Worker');
                 t_worker := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Worker', i, j);
                 t_trans_date := TO_DATE(apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].TransDate', i, j), 'YYYY-MM-DD"T"HH24:MI:SS');
@@ -168,9 +195,14 @@ BEGIN
                 t_trans_Planyearaccrued := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearaccrued', i, j);
                 t_trans_Planyearused := apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].Planyearused', i, j);
                 t_trans_IdPortalStr := TO_NUMBER(REGEXP_REPLACE(apex_json.get_varchar2('Benefit_accrual[%d].Benefit_accrual_transactions[%d].IdPortalStr', i, j), '[^0-9]', ''));
+
+                ----- 7.1.>
+
+                ----- <7.2. Convert values
                 
                 t_total_days := t_trans_Planyearused + t_trans_Carryforward;
 
+                -- set status based on t_total_days
                 t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
 
                 IF t_total_days = 0 or t_total_days = 0.5 or t_total_days = -0.5 then
@@ -181,6 +213,14 @@ BEGIN
                     t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(abs(t_total_days)) - 1);
                 END IF;
                 
+                if t_total_days <= 0 then
+                    -- continue;
+                    t_total_days := -t_total_days;
+                end if;         
+
+                ----- 7.2.>
+                
+                ---- <7.3. Get t_responser_id and t_target_code
                 SELECT EMPLOYEE_ID INTO n_emp_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code;
                 -- SELECT EMPLOYEE_ID INTO t_responser_id FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
                 BEGIN
@@ -202,13 +242,12 @@ BEGIN
                     WHEN NO_DATA_FOUND THEN
                         t_target_code := NULL;
                 END;       
-                if t_total_days <= 0 then
-                    -- continue;
-                    t_total_days := -t_total_days;
-                end if;         
+                ----- 7.3.>
                 
                 -- SELECT MANAGER_POSITION_ID INTO t_target_code FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code);
                 
+                ----- <7.4. Print out for checking data
+
                 -- DBMS_OUTPUT.put_line('Transaction ' || j || ' details:');
                 -- DBMS_OUTPUT.put_line('Worker-name: ' || t_worker);
                 -- DBMS_OUTPUT.put_line('Transaction Date: ' || TO_CHAR(t_trans_date, 'YYYY-MM-DD HH24:MI:SS'));
@@ -223,15 +262,18 @@ BEGIN
                 -- DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
                 -- DBMS_OUTPUT.PUT_LINE('');
 
+                ----- 7.4.>
+
+                ----- <7.5.
+            
                 -- Count leaves from D365 that inserted before, do not insert theses again
                 SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
                 WHERE (EMPLOYEE_CODE_REQ = p_employee_code AND FROM_DATE = t_trans_date AND
-                TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
-                AND BENEFIT_CODE = n_benefit_accrual_plan) 
-                OR (ID = t_trans_IdPortalStr);
+                    TOTAL_DAYS = t_total_days AND EMP_REQ_STATUS = t_status
+                    AND BENEFIT_CODE = n_benefit_accrual_plan) 
+                    OR (ID = t_trans_IdPortalStr);
 
                 -- Count leaves from D365
-
 
                 -- Insert leaves that do not have t_trans_IdPortalStr
                 IF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NULL or t_trans_IdPortalStr = '') THEN
@@ -308,6 +350,8 @@ BEGIN
                         0, -- LEAVE FROM PORTAL,
                         t_trans_IdPortalStr
                     );
+
+                    ----- 7.5.>
                 END IF;
 
             END LOOP;
@@ -317,7 +361,7 @@ BEGIN
     END LOOP;
 
 
-    -- Merge AL & CF 
+    ----- <8. Merge AL & CF 
     FOR r1 IN (SELECT * FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code) LOOP 
         IF r1.HRM_ABSENCE_CODE_GROUP_ID = 'APL' AND r1.CAN_CARRY_FORWARD = 0 THEN
             FOR r2 IN (SELECT * FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code) LOOP
@@ -356,6 +400,7 @@ BEGIN
         END IF;
     END LOOP;
 
+    ----- 8.>
 
 END;
 /
