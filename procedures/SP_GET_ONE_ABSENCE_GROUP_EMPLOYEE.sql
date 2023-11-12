@@ -54,6 +54,8 @@ create or replace PROCEDURE "SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE" (
     t_status NUMBER;
     t_trans_IdPortalStr NUMBER;
     t_AdjRecId NVARCHAR2(20);
+    t_ANNUAL_DAY_TEMP FLOAT(10);
+    t_CRF_DAY_TEMP FLOAT(10); 
 
     total_exist_leave number;
     
@@ -74,7 +76,7 @@ BEGIN
     ----- <2. Update current EMPLOYEE_REQUESTS and ABSENCE_GROUP_EMPLOYEE of this employee
 
     -- Delete current Absence_groups of this employee OR update it
-    -- DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
+    DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
 
     -- DELETE from EMPLOYEE_REQUESTS where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code;
 
@@ -136,7 +138,7 @@ BEGIN
             end if;
 
             DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
-            DBMS_OUTPUT.put_line('Plan_used: ' || to_char(n_plan_year_used));
+            -- DBMS_OUTPUT.put_line('Plan_used: ' || to_char(n_plan_year_used));
 
             ----- 5.>
 
@@ -186,8 +188,8 @@ BEGIN
             l_trans_numrow := APEX_JSON.get_count(p_path => 'Benefit_accrual[' || i || '].Benefit_accrual_transactions');
 
             -- Print out for checking data
-            DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_trans_numrow) || ' Benefit_accrual_transactions:' || n_benefit_accrual_plan);
-            DBMS_OUTPUT.PUT_LINE('');
+            -- DBMS_OUTPUT.put_line('Total rows:' || TO_CHAR(l_trans_numrow) || ' Benefit_accrual_transactions:' || n_benefit_accrual_plan);
+            -- DBMS_OUTPUT.PUT_LINE('');
 
             FOR j IN 1..l_trans_numrow LOOP
 
@@ -205,7 +207,10 @@ BEGIN
 
                 ----- <7.2. Convert values
                 
-                t_total_days := t_trans_Planyearused + t_trans_Carryforward;
+                -- t_total_days := t_trans_Planyearused + t_trans_Carryforward; 
+                
+                -- Both CF an PL leaves use column Planyearused as total days
+                t_total_days := t_trans_Planyearused;
 
                 -- set status based on t_total_days
                 t_status := CASE WHEN t_total_days <0 THEN 5 ELSE 3 END;
@@ -222,6 +227,15 @@ BEGIN
                     -- continue;
                     t_total_days := -t_total_days;
                 end if;         
+
+                -- Update t_CRF_DAY_TEMP and t_ANNUAL_DAY_TEMP
+                If lower(n_benefit_accrual_plan) like 'alcf%' then
+                    t_CRF_DAY_TEMP := t_total_days;
+                    t_ANNUAL_DAY_TEMP := 0;
+                else
+                    t_CRF_DAY_TEMP := 0;
+                    t_ANNUAL_DAY_TEMP := t_total_days;
+                end if;
 
                 ----- 7.2.>
                 
@@ -304,7 +318,8 @@ BEGIN
 
                 ----- <7.6. Insert leaves into EMPLOYEE_REQUESTS
 
-                --!-- Cases leaves will be ignore: a. Duplicated ID_PORTAL_STR; b. Duplicated REC_ID; c. Approved leaves from D365 that be canceled
+                --!-- Cases leaves will be ignore: 
+                -- a. Duplicated ID_PORTAL_STR; b. Duplicated REC_ID; c. Approved leaves from D365 that be canceled; d. Planyearaccrued > 0
 
                 -- a. Count leaves duplicated IdPortalStr
                 select COUNT(*) into l_count_leave_portal_id from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
@@ -314,7 +329,8 @@ BEGIN
 
                 -- c. Count approved leaves from D365 that be canceled
                 select count(*) into l_count_leave_canceled_d365 from EMPLOYEE_REQUESTS
-                where EMPLOYEE_CODE_REQ = p_employee_code and FROM_DATE = t_trans_date
+                where (t_trans_IdPortalStr is NULL or t_trans_IdPortalStr = '') -- Is IdPortalStr null
+                    and EMPLOYEE_CODE_REQ = p_employee_code and FROM_DATE = t_trans_date
                     and TOTAL_DAYS = t_total_days and BENEFIT_CODE = n_benefit_accrual_plan and EMP_REQ_STATUS = 5;
 
                 -- SELECT COUNT(ID) INTO total_exist_leave FROM EMPLOYEE_REQUESTS
@@ -325,8 +341,21 @@ BEGIN
 
                 -- Count leaves from D365
 
-                -- Continue if the leave is in one of the ignore cases
-                IF (l_count_leave_portal_id > 0) or (l_count_leave_rec_id > 0) or (l_count_leave_canceled_d365 > 0) THEN
+                -- Continue & and print case reason_ignore:rec_id if the leave is in one of the ignore cases
+                if l_count_leave_portal_id > 0 then
+                    DBMS_OUTPUT.put_line('Case duplicated portal id:rec_id: ' || t_AdjRecId);
+                end if;
+
+                if l_count_leave_rec_id > 0 then
+                    DBMS_OUTPUT.put_line('Case duplicated rec_id:rec_id: ' || t_AdjRecId);
+                end if;
+
+                if l_count_leave_canceled_d365 > 0 then
+                    DBMS_OUTPUT.put_line('Case approved leaves from D365 that be canceled:rec_id: ' || t_AdjRecId);
+                end if;
+
+                IF (l_count_leave_portal_id > 0) or (l_count_leave_rec_id > 0) or (l_count_leave_canceled_d365 > 0) -- and (t_trans_Planyearaccrued > 0) 
+                THEN
                     CONTINUE;
                 END IF;
 
@@ -351,7 +380,9 @@ BEGIN
                         BENEFIT_CODE,
                         IS_D365,
                         ID_PORTAL_STR,
-                        REC_ID
+                        REC_ID,
+                        ANNUAL_DAY_TEMP,
+                        CRF_DAY_TEMP
                     )
                     VALUES (
                         n_emp_id,
@@ -369,7 +400,9 @@ BEGIN
                         n_benefit_accrual_plan,
                         1, -- IS LEAVE FROM D365,
                         0,
-                        t_AdjRecId
+                        t_AdjRecId,
+                        t_ANNUAL_DAY_TEMP,
+                        t_CRF_DAY_TEMP
                     );
                     
                 ELSIF (total_exist_leave <= 0) and (t_trans_IdPortalStr is NOT NULL or t_trans_IdPortalStr != '') THEN
@@ -391,7 +424,9 @@ BEGIN
                         BENEFIT_CODE,
                         IS_D365,
                         ID_PORTAL_STR,
-                        REC_ID
+                        REC_ID,
+                        ANNUAL_DAY_TEMP,
+                        CRF_DAY_TEMP
                     )
                     VALUES (
                         t_trans_IdPortalStr,
@@ -410,7 +445,9 @@ BEGIN
                         n_benefit_accrual_plan,
                         0, -- LEAVE FROM PORTAL,
                         t_trans_IdPortalStr,
-                        t_AdjRecId
+                        t_AdjRecId,
+                        t_ANNUAL_DAY_TEMP,
+                        t_CRF_DAY_TEMP
                     );
 
                     ----- 7.6.>
@@ -566,5 +603,5 @@ END;
 --                 ,{}....
 --             ]
 --         },
--- }
-
+-- };
+/
