@@ -299,5 +299,26 @@ BEGIN
     UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
     UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
     
+
+    -- Write API Logs
+    -- Insert the log entry after you receive the response
+    INSERT INTO LOGS_API_RESPONSE (
+        API_ENDPOINT,
+        REQUEST_HEADERS,
+        REQUEST_BODY,
+        RESPONSE_CODE,
+        RESPONSE_BODY,
+        CALL_TIMESTAMP
+    ) VALUES (
+        'CreateLeaverequest', -- Endpoint you just called
+        apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
+        l_body, -- The request body you sent
+        apex_web_service.g_status_code, -- Response status code
+        l_response, -- The response body you received
+        SYSDATE -- The current timestamp
+    );
+
+    COMMIT; -- Commit the transaction to save the log
+
 END;
 /
