@@ -51,7 +51,6 @@ BEGIN
     DBMS_OUTPUT.put_line('group_id: ' || leave_groupid);
     DBMS_OUTPUT.put_line('trans_date: ' || transaction_date);
 
-
     
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,

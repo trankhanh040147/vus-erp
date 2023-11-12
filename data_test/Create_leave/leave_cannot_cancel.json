@@ -1,0 +1,43 @@
+{
+    "_jsonRequest": {
+        "LegalEntityID": "V01",
+        "AdjustedHours": "  1.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "10/18/2023",
+        "Description": "",
+        "EmployeeCode": "626",
+        "AccrualId": "ALPL18 2023",
+        "IDStrPortal": "5920",
+        "FromDate": "10/18/2023",
+        "ToDate": "10/18/2023",
+        "NumberDayOff": "  1.0",
+        "StartTime": "",
+        "EndTime": "",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL18",
+        "AllDay": "Yes"
+    }
+}
+
+{
+    "LegalEntityID": "V01",
+    "TotalRows": 0,
+    "AdjustedHours": 1.0,
+    "AdjustmentType": "Amount Used",
+    "Description": "",
+    "TransactionDate": "2023-10-18T12:00:00",
+    "EmployeeCode": "626",
+    "HRMAbsenceCodeId": "ALPL18",
+    "HRMAbsenceCodeGroupId": "Leave",
+    "IDPortal": 0,
+    "IDStrPortal": "5920",
+    "Status": "0",
+    "FromDate": "2023-10-18T12:00:00",
+    "ToDate": "2023-10-18T12:00:00",
+    "NumberDayOff": 1.0,
+    "StartTime": "",
+    "EndTime": "",
+    "AccrualId": "",
+    "AllDay": "",
+    "AttachmentURL": ""
+}
