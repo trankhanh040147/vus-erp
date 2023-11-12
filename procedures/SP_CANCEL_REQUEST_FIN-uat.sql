@@ -199,14 +199,16 @@ BEGIN
         REQUEST_BODY,
         RESPONSE_CODE,
         RESPONSE_BODY,
-        CALL_TIMESTAMP
+        CALL_TIMESTAMP,
+        NOTE
     ) VALUES (
         'CancelLeaverequest', -- Endpoint you just called
         apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
         l_body, -- The request body you sent
         apex_web_service.g_status_code, -- Response status code
         l_response, -- The response body you received
-        SYSDATE -- The current timestamp
+        SYSDATE, -- The current timestamp
+        'id=' || p_request_id || ' employeeCode=' || p_employeeCode || ' status=' || rsp_status -- Any additional notes
     );
 
     COMMIT; -- Commit the transaction to save the log

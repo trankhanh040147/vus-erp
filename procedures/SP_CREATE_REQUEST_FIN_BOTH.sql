@@ -25,7 +25,8 @@ n_accrual_id nvarchar2(100);
 n_total_day number:= 0;
 n_extra_id number;
 l_body_crf nvarchar2(2000);
-    l_job_name VARCHAR2(30);
+l_job_name VARCHAR2(30);
+rsp_status VARCHAR2(30);
 
 BEGIN
 
@@ -186,7 +187,7 @@ l_body_crf := '{
     FROM EMPLOYEE_REQUESTS
     WHERE ID = p_request_id;
 
-    UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id;
+    -- UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id;
     -- Set status the extra leave too
 
     
@@ -211,20 +212,63 @@ l_body_crf := '{
                 p_transfer_timeout => 3600
         );
 
+        DBMS_OUTPUT.put_line('');
+        DBMS_OUTPUT.put_line(l_response_crf);
 
+        DBMS_OUTPUT.put_line('');
+        DBMS_OUTPUT.put_line(l_response_annual);
 
+        APEX_JSON.parse(l_response_crf);
+        rsp_status := apex_json.get_varchar2('Status', 1);
 
-        -- if l_response_annual is not null then
-        -- apex_web_service.g_request_headers.delete();    
-        --     apex_web_service.g_request_headers(1).name := 'Content-Type';
-        --     apex_web_service.g_request_headers(1).value := 'application/json';
-        -- l_response_annual := apex_web_service.make_rest_request(
-        --         p_url => 'https://hra.sandbox.operations.dynamics.com//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
-        --         p_http_method => 'POST',
-        --         p_body => l_body_annual,
-        --         p_transfer_timeout => 3600
-        --         ) ;
-        -- end if;
+        UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
+        UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
+        UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id + 1 and rsp_status = '1';
+
+        -- Write API Logs
+        -- Insert the log entry after you receive the response
+        INSERT INTO LOGS_API_RESPONSE (
+            API_ENDPOINT,
+            REQUEST_HEADERS,
+            REQUEST_BODY,
+            RESPONSE_CODE,
+            RESPONSE_BODY,
+            CALL_TIMESTAMP,
+            NOTE
+        ) VALUES (
+            'CreateLeaverequest_BOTH', -- Endpoint you just called
+            apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
+            l_body_crf, -- The request body you sent
+            apex_web_service.g_status_code, -- Response status code
+            l_response_crf, -- The response body you received
+            SYSDATE, -- The current timestamp
+            'leave_cf | id=' || p_request_id || ' employeeCode=' || p_employeeCode || ' status=' || rsp_status -- Any additional notes
+        );
+
+        APEX_JSON.parse(l_response_annual);
+        rsp_status := apex_json.get_varchar2('Status', 1);
+
+        -- Log for annual leave
+        INSERT INTO LOGS_API_RESPONSE (
+            API_ENDPOINT,
+            REQUEST_HEADERS,
+            REQUEST_BODY,
+            RESPONSE_CODE,
+            RESPONSE_BODY,
+            CALL_TIMESTAMP,
+            NOTE
+        ) VALUES (
+            'CreateLeaverequest_BOTH', -- Endpoint you just called
+            apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
+            l_body_annual, -- The request body you sent
+            apex_web_service.g_status_code, -- Response status code
+            l_response_annual, -- The response body you received
+            SYSDATE, -- The current timestamp
+            'leave_al | id=' || p_request_id || ' employeeCode=' || p_employeeCode || ' status=' || rsp_status -- Any additional notes
+        );
+
+        COMMIT; -- Commit the transaction to save the log
+
 
     /*
         SELECT USER_NAME INTO n_personal_email FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode) AND NVL(USER_NAME, '0') <> '0';
