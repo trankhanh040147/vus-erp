@@ -247,7 +247,10 @@ BEGIN
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
         '<p>Your leave request has been approved. Here are the details:</p>' ||
         '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
-        '<p> Total Days: '|| n_total_day ||' </p>' ||
+        '<p> Total Days: '|| CASE
+           WHEN n_total_day = 0.5 THEN to_char(n_total_day, '0.0')
+           ELSE n_total_day
+       END ||' </p>' ||
         '<p> From Date: '|| rec.FROM_DATE ||' </p>' ||
         '<p> To Date: '|| rec.MODIFIED_END_DATE ||' </p>' ||
         '<br>' || 

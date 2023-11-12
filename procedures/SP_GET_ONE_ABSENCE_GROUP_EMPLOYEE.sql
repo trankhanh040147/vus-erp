@@ -319,7 +319,7 @@ BEGIN
                 ----- <7.6. Insert leaves into EMPLOYEE_REQUESTS
 
                 --!-- Cases leaves will be ignore: 
-                -- a. Duplicated ID_PORTAL_STR; b. Duplicated REC_ID; c. Approved leaves from D365 that be canceled; d. Planyearaccrued > 0
+                -- a. Duplicated ID_PORTAL_STR; b. Duplicated REC_ID; c. Approved leaves from D365 that be canceled; d. Planyearaccrued > 0; e. total_day = 0
 
                 -- a. Count leaves duplicated IdPortalStr
                 select COUNT(*) into l_count_leave_portal_id from EMPLOYEE_REQUESTS where ID = t_trans_IdPortalStr;
@@ -354,7 +354,7 @@ BEGIN
                     DBMS_OUTPUT.put_line('Case approved leaves from D365 that be canceled:rec_id: ' || t_AdjRecId);
                 end if;
 
-                IF (l_count_leave_portal_id > 0) or (l_count_leave_rec_id > 0) or (l_count_leave_canceled_d365 > 0) -- and (t_trans_Planyearaccrued > 0) 
+                IF (l_count_leave_portal_id > 0) or (l_count_leave_rec_id > 0) or (l_count_leave_canceled_d365 > 0) or (t_total_days = 0) 
                 THEN
                     CONTINUE;
                 END IF;
