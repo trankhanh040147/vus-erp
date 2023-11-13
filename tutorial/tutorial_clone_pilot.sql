@@ -4,9 +4,18 @@
 
 -- 4. Đồng bộ thông tin user
 
+-- List các user cần chú ý:
+-- 000000037 - trang.th@vus-etsc.edu.vn
+-- 1617
+-- 000053
+-- 1490
+-- 3152
+
 begin
   SP_GET_ALL_EMPLOYEES(0,1800);
 end;
+
+
 
 -- 2. Thay đổi quyền các user ADMIN, chạy lại hàm update Manager Role
 
