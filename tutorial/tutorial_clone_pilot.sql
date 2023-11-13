@@ -15,6 +15,10 @@ begin
   SP_GET_ALL_EMPLOYEES(0,1800);
 end;
 
+BEGIN
+    SP_GET_ONE_EMPLOYEE('000000037');
+END; 
+
 
 
 -- 2. Thay đổi quyền các user ADMIN, chạy lại hàm update Manager Role
