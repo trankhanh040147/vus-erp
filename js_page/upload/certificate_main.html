@@ -5,7 +5,6 @@
 
 
 <script>
-
     let formDataIdNumber = new FormData();
     let fileNamesID;
     let fileUrlsID;
@@ -52,13 +51,13 @@
     // Define a function to create HTML for file items
 
     window.addEventListener("load", function () {
-        var imageUrlsID = apex.item("P10101_DEFAULT_IMAGES_URL").getValue();
-        var imageNamesID = apex.item("P10101_DEFAULT_IMAGES_NAME").getValue();
-        var imageContainer = document.getElementById("P10101_ATTACH_GROUP");
+        var imageUrlsID = apex.item("P10102_DEFAULT_IMAGES_URL").getValue();
+        var imageNamesID = apex.item("P10102_DEFAULT_IMAGES_NAME").getValue();
+        var imageContainer = document.getElementById("P10102_ATTACH_GROUP");
         const urlArray = imageUrlsID.split(";");
         const nameArray = imageNamesID.split(";");
-        apex.item("P10101_ATTACHMENT_URL").setValue(imageUrlsID);
-        apex.item("P10101_ATTACHMENT_NAME").setValue(imageNamesID);
+        apex.item("P10102_ATTACHMENT_URL").setValue(imageUrlsID);
+        apex.item("P10102_ATTACHMENT_NAME").setValue(imageNamesID);
         console;
 
         for (let i = 0; i < urlArray.length; i++) {
@@ -84,17 +83,17 @@
             button.addEventListener("click", handleDeleteClick);
         });
 
-        var userName = apex.item("P10101_FULL_NAME").getValue();
-        var userCode = apex.item("P10101_EMPLOYEE_CODE").getValue();
+        var userName = apex.item("P10102_FULL_NAME").getValue();
+        var userCode = apex.item("P10102_EMPLOYEE_CODE").getValue();
 
         formDataIdNumber.append("name", userName);
         formDataIdNumber.append("msnv", userCode);
         document
-            .getElementById("P10101_ATTACH")
+            .getElementById("P10102_ATTACH")
             .addEventListener("change", function (event) {
                 const imageFiles = event.target.files;
                 const hiddenInputContainer = document.getElementById(
-                    "P10101_ATTACH_GROUP"
+                    "P10102_ATTACH_GROUP"
                 );
                 const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
 
@@ -138,7 +137,7 @@
             const elements = document.querySelectorAll(".dynamic-value-page");
             const names = [];
             const hrefs = [];
-            var imageNamesID = apex.item("P10101_DEFAULT_IMAGES_NAME").getValue();
+            var imageNamesID = apex.item("P10102_DEFAULT_IMAGES_NAME").getValue();
             const nameArray = imageNamesID.split(";");
 
             // document.getElementById('loader-container').style.display = 'block';
@@ -160,15 +159,15 @@
                         fileNamesID = responseBody.data.map((item) => item.name).join(";");
                         fileUrlsID = responseBody.data.map((item) => item.path).join(";");
                         const newfileUrlsID =
-                            (await apex.item("P10101_DEFAULT_IMAGES_URL").getValue()) +
+                            (await apex.item("P10102_DEFAULT_IMAGES_URL").getValue()) +
                             ";" +
                             fileUrlsID;
                         const newfileNamesID =
-                            (await apex.item("P10101_DEFAULT_IMAGES_NAME").getValue()) +
+                            (await apex.item("P10102_DEFAULT_IMAGES_NAME").getValue()) +
                             ";" +
                             fileNamesID;
-                        await apex.item("P10101_ATTACHMENT_URL").setValue(newfileUrlsID);
-                        await apex.item("P10101_ATTACHMENT_NAME").setValue(newfileNamesID);
+                        await apex.item("P10102_ATTACHMENT_URL").setValue(newfileUrlsID);
+                        await apex.item("P10102_ATTACHMENT_NAME").setValue(newfileNamesID);
                     } else {
                         console.log("Upload failed");
                     }
@@ -180,6 +179,7 @@
                     //     apex.submit("btn_submit");
                     // }, 500);
                     apex.submit("btn_submit");
+                    // UPDATE_EMP_CERTIFICATE_ATTACHMENT('&P10102_EMP_CERTIFICATE_ID.', '&P10102_ATTACHMENT_URL.', '&P10102_ATTACHMENT_NAME.');
                     var button = parent.$('.ui-dialog-titlebar-close'); //get the button
                     // button.click(); //close the dialog
                     setTimeout(function () {
@@ -233,12 +233,13 @@
                     document.getElementById("loader-container").style.display = "none";
                 }
 
-                await apex.item("P10101_ATTACHMENT_URL").setValue(urlString);
-                await apex.item("P10101_ATTACHMENT_NAME").setValue(namesString);
+                await apex.item("P10102_ATTACHMENT_URL").setValue(urlString);
+                await apex.item("P10102_ATTACHMENT_NAME").setValue(namesString);
                 // setTimeout(function () {
                 //         apex.submit("btn_submit");
                 // }, 500);
                 apex.submit("btn_submit");
+                // UPDATE_EMP_CERTIFICATE_ATTACHMENT('&P10102_EMP_CERTIFICATE_ID.', '&P10102_ATTACHMENT_URL.', '&P10102_ATTACHMENT_NAME.');
                 var button = parent.$('.ui-dialog-titlebar-close'); //get the button
                 // button.click(); //close the dialog
                 setTimeout(function () {
