@@ -502,6 +502,23 @@ BEGIN
 
     ----- 8.>
 
+    ---- <9. Re-calculating leave balance and leave used by looping through all waiting leaves on Portal
+    for leave in (
+        SELECT er.* FROM EMPLOYEE_REQUESTS wher EMPLOYEE_CODE_REQ = p_employee_code
+        WHERE EMP_REQ_STATUS = 2 and LEAVE_TYPE = 'APL'
+    )  loop
+        -- Update leave balance and leave used in table ABSENCE_GROUP_EMPLOYEE
+        -- Update columns: PLAN_YEAR_USED, AVAILABLE, CARRY_FORWARD_AVALABLE, CARRY_FORWARD_USED
+        UPDATE ABSENCE_GROUP_EMPLOYEE
+        SET PLAN_YEAR_USED = PLAN_YEAR_USED + leave.ANNUAL_DAY_TEMP,
+            AVAILABLE = AVAILABLE - leave.ANNUAL_DAY_TEMP,
+            CARRY_FORWARD_AVALABLE = CARRY_FORWARD_AVALABLE - leave.CRF_DAY_TEMP,
+            CARRY_FORWARD_USED = CARRY_FORWARD_USED + leave.CRF_DAY_TEMP
+        WHERE EMPLOYEE_CODE = p_employee_code
+    end loop
+
+    ---- 9.>
+
 END;
 
 
