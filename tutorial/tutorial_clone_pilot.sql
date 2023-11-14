@@ -64,6 +64,7 @@ end;
 -- 7. Kiểm tra maximum của các gói phép
 
 -- 8. Đổi link gửi send mail (page 3, 10)
+-- UAT --> PILOT
 
 -- **TESTING
 
