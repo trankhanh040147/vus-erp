@@ -220,7 +220,6 @@ BEGIN
                     t_end_date := t_trans_date;
                 ELSE
                     t_all_day := 'Y';
-                    -- t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(abs(t_total_days)));
                     t_end_date := t_trans_date + INTERVAL '1' DAY * (FLOOR(abs(t_total_days)) - 1);
                 END IF;
                 
