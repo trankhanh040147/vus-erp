@@ -636,14 +636,7 @@
   color: #222f6e;
 }
 
-.page-9 .t-Body-contentInner table tbody tr td:nth-child(2) {
-  color: #154dc3;
-}
 
-.page-9 .t-Body-contentInner table tbody tr td:nth-child(2):hover {
-  cursor: pointer;
-  color: #ba141a;
-}
 
 @media screen and (max-width: 768px) {
   .t-BreadcrumbRegion--useBreadcrumbTitle .t-Breadcrumb-item:last-child .t-Breadcrumb-label {
@@ -1705,10 +1698,10 @@ html.page-10 .t-Form-itemText--pre {
   position: absolute !important;
   top: 0 !important;
 }
-.page-23 .a-GV-w-scroll::-webkit-scrollbar-thumb {
+.page-23 .a-GV-w-scroll::-webkit-scrollbar-thumb,.page-8 .a-GV-w-scroll::-webkit-scrollbar-thumb {
   background-color: #0000003d;
 }
- .a-GV-w-scroll{
+ .page-23 .a-GV-w-scroll{
   overflow-y: auto;
   height: 350px !important;
 }
@@ -1755,10 +1748,33 @@ html.page-10 .t-Form-itemText--pre {
 .page-43 .modal-header button.close span{
   color: white !important;
 }
-.page-43 .apex-icons-fontapex .fa:before{
-  top: -2px;
-  font-size: 8px;
-  right: 0;
-  z-index: 100;
-  position: absolute;
+.page-5 .a-GV-cell .a-GV-columnItem input:not([type=radio]):not([type=checkbox]):focus, .a-GV-cell .a-GV-columnItem select[size="1"]:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.page-5 .apex-item-select{
+      background-image: var(--a-field-select-background-image) !important;
+    background-position: 100% !important;
+    background-position-x: 100% !important;
+    background-position-y: center !important;
+    background-repeat: no-repeat !important;
+    background-size: var(--a-field-select-background-size,2rem 1rem) !important;
+}
+.page-10 .apex-item-group.apex-item-group--textarea textarea,.page-3 .apex-item-group.apex-item-group--textarea textarea{
+height: 20px !important;
+background: transparent !important;
+padding: 0 10px !important;
+border :none !important;
+}
+.page-10 .apex-item-textarea:focus,.page-3 .apex-item-textarea:focus{
+  border: 0 !important;
+}
+.page-10 #P10_END_DATE_input:disabled {
+  padding-left: 10px !important;
+}
+#education-box_ig_grid_vc table tr.a-GV-row td:nth-child(7), #certificate-box_ig_grid_vc table tr.a-GV-row td:nth-child(7) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

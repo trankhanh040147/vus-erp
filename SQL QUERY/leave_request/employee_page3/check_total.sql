@@ -4,6 +4,8 @@ DECLARE
     v_max_per_year NUMBER;
     v_total_month NUMBER;
     flag boolean;
+
+    n_total_days NUMBER;
 BEGIN
     flag := TRUE; 
     v_total_of_year := 0;
@@ -39,15 +41,23 @@ BEGIN
 
     END IF;
 
+    -- There will be a case :P3_TOTAL_DAYS = '0.5', so we need to convert it to number
+
+    IF :P3_TOTAL_DAYS = '0.5' THEN
+        n_total_days := 0.5;
+    ELSE
+        n_total_days := to_number(:P3_TOTAL_DAYS);
+    END IF;
+
     -- Validate total days APL & total days per time
-    IF (:P3_TOTAL_DAYS <= v_maximum_days) THEN
+    IF (n_total_days <= v_maximum_days) THEN
         flag := TRUE;
     ELSE
         flag := FALSE;
     END IF;
 
     -- Validate total days per year of other types
-    IF (trim(:P3_ANNUAL_LEAVE) != 'APL') AND (:P3_TOTAL_DAYS + v_total_of_year > v_max_per_year) THEN 
+    IF (trim(:P3_ANNUAL_LEAVE) != 'APL') AND (n_total_days + v_total_of_year > v_max_per_year) THEN 
         flag := FALSE;
     END IF;
 

@@ -1,0 +1,84 @@
+<script type="text/javascript">
+    $('.js-fmenu ').click(function () {
+        $(this).toggleClass('active');
+    })
+    $('.btn-hotline .dropdown-toggle ').click(function () {
+        $('.btn-hotline .dropdown-menu').toggleClass('d-block');
+    })
+    $('.menu-mobile li').click(function (e) {
+        e.preventDefault();
+        $('.menu-mobile li').removeClass('current-menu-item');
+        $(this).toggleClass('current-menu-item');
+    })
+    $(document).ready(function () {
+        jQuery(function ($) {
+            // create an iframe
+            iframe_form = $('<iframe>');
+            // get all the param value in the current url
+            currentUrl = new URL(window.location.href);
+            searchParams = new URLSearchParams(currentUrl.search);
+            // Get the full URL
+            var fullUrl = window.location.href
+            // Remove the query parameters
+            var baseUrl = fullUrl.split('?')[0];
+
+            $param = searchParams.toString();
+
+            if ($param == '') {
+                $param = 'currentUrl=' + baseUrl;
+            }
+            else {
+                $param += '&currentUrl=' + baseUrl;
+            }
+
+            console.log($param)
+
+            // assign the src
+            iframe_form.attr("src", "https://vus.edu.vn/form-iframe-homepage?" + $param);
+
+            //assign iframe id 
+            iframe_form.attr("id", "__iframe-form");
+
+            // disable scrolling of the iframe
+            iframe_form.attr("scrolling", "no");
+
+            // lazy load the iframe
+            iframe_form.attr("loading", "lazy");
+
+            // Set the width and height of the iframe to 100%
+            iframe_form.css({ "width": "100%", "height": "100%" });
+
+            // Add the iframe inside the section #__section-form
+            $('#__section-form').append(iframe_form);
+        })
+    })
+  //   $(document).ready(function () {
+  //     jQuery(function ($) {
+  //       // create an iframe
+  //       iframe_form = $('<iframe>');
+  //       // get all the param value in the current url
+  //       currentUrl = new URL(window.location.href);
+  //       searchParams = new URLSearchParams(currentUrl.search);
+  //       param = searchParams.toString();
+  //         console.log(param);
+  //       // assign the src
+  //       iframe_form.attr("src", "https://vus.edu.vn/form-iframe-homepage?" + param);
+
+  //       //assign iframe id
+  //       iframe_form.attr("id", "__iframe-form");
+
+  //       // disable scrolling of the iframe
+  //       iframe_form.attr("scrolling", "no");
+
+  //       // lazy load the iframe
+  //       iframe_form.attr("loading", "lazy");
+
+  //       // Set the width and height of the iframe to 100%
+  //       iframe_form.css({ "width": "100%", "height": "100%" });
+
+  //       // Add the iframe inside the section #__section-form
+  //       $('#__section-form').append(iframe_form);
+  //     })
+  //   })
+  // Lazy load iframe: youtube
+</script>
