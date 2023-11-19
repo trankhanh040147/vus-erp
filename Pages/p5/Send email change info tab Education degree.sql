@@ -1,3 +1,32 @@
+-- Table: EMP_EDUCATION
+-- ID	NUMBER(10,0)
+-- EMPLOYEE_ID	NUMBER(10,0)
+-- TYPE	NVARCHAR2(100 CHAR)
+-- LEVEL_OF_EDU	NVARCHAR2(50 CHAR)
+-- MAJOR	NVARCHAR2(100 CHAR)
+-- PLACE	NVARCHAR2(500 CHAR)
+-- GRADUATED_DATE	DATE
+-- ATTACH_FILE	NVARCHAR2(100 CHAR)
+-- IS_DEL	NUMBER(2,0)
+-- EXPIRATION_DATE	DATE
+-- EFFECTIVE_DATE	DATE
+-- CERTIFICATE_NAME	NVARCHAR2(100 CHAR)
+-- EMPLOYEE_CODE	NVARCHAR2(100 CHAR)
+-- PRIMARY_EDUCATION	NUMBER(1,0)
+-- ATTACH_NAME	VARCHAR2(1000 CHAR)
+-- REC_ID	NVARCHAR2(50 CHAR)
+-- DISCIPLINE_ID	NVARCHAR2(30 CHAR)
+-- INSTITUTION_ID	NVARCHAR2(10 CHAR)
+-- ATTACH_URL	VARCHAR2(1500 CHAR)
+-- TEMP_ID	NUMBER(10,0)
+
+-- Table: TEMP_UPLOAD
+-- ID	NUMBER(10,0)
+-- TABLE_NAME	NVARCHAR2(30 CHAR)
+-- TEMP_ID	NUMBER(10,0)
+-- ATTACHMENT_URL	VARCHAR2(2000 CHAR)
+-- ATTACHMENT_NAME	VARCHAR2(1000 CHAR)
+
 declare
     v_body clob:='';
     is_changed boolean := false;
@@ -91,6 +120,12 @@ begin
             v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Năm tốt nghiệp / Graduated date </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| n_graduated_date ||'</td></tr>';
             -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Đính kèm / Attachment </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_file, n_attach_name) ||'</td></tr>';
             -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''></td></tr>';
+        
+            -- Update attachment for new row in EMP_EDUCATION from TEMP_UPLOAD through TEMP_ID
+            Update EMP_EDUCATION edu
+            set edu.ATTACH_NAME = (select att.ATTACHMENT_NAME from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID),
+                edu.ATTACH_URL = (select att.ATTACHMENT_URL from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID)
+            where edu.ID = add_ids(rec);
         end loop;
     end if;
 
