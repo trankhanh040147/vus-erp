@@ -20,7 +20,6 @@ BEGIN
 END; 
 
 
-
 -- 2. Thay đổi quyền các user ADMIN, chạy lại hàm update Manager Role
 
 SELECT *  FROM EMPLOYEES WHERE WORKER_TITLE_ID = 'ADMIN'
