@@ -6,7 +6,8 @@
 
 -- List các user cần chú ý:
 -- 000000037 - trang.th@vus-etsc.edu.vn
--- 1617
+-- 1617 - phuongpham
+-- 4025 - giauhuynh
 -- 000053
 -- 1490
 -- 3152
@@ -62,11 +63,13 @@ end;
 
 -- 7. Kiểm tra maximum của các gói phép
 
--- 8. Đổi link gửi send mail (page 3, 10)
+-- 8. Đổi link gửi send mail (page 3, 10, 5)
 -- UAT --> PILOT
+
+-- 9. Seeds Language
 
 -- **TESTING
 
 -- 1. Test các chức năng của page 5: Cập nhật thông tin, upload file, send mail
 
--- 2. Test tạo & approve leave_request
+-- 2. Test tạo & approve leave_requestO

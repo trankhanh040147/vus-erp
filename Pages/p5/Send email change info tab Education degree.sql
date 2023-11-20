@@ -281,7 +281,7 @@ begin
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'ky.nguyenquoc@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin nhân viên '||:P5_FULL_NAME||'',v_body);
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'quocky600@gmail.com' , 'Cập nhật thay đổi thông tin nhân viên '||:P5_FULL_NAME||'',v_body);
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'tranquangkhanh2k1qv@gmail.com' , 'Cập nhật thay đổi thông tin nhân viên '||:P5_FULL_NAME||'',v_body);
-        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'khanhnguyendev@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
+        SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'khanhnguyendev@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
         SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com' , 'Cập nhật thay đổi thông tin nhân viên '||:P5_FULL_NAME||'',v_body);
     end if;
 end;
