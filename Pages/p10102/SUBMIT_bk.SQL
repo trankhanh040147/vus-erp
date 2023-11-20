@@ -1,0 +1,25 @@
+-- TEMP_UPLOAD
+-- ID	NUMBER(10,0)
+-- TABLE_NAME	NVARCHAR2(30 CHAR)
+-- TEMP_ID	NUMBER(10,0)
+-- ATTACHMENT_URL	VARCHAR2(2000 CHAR)
+-- ATTACHMENT_NAME	VARCHAR2(1000 CHAR)
+
+DECLARE
+    v_start_time NUMBER;
+    v_end_time NUMBER;
+
+BEGIN    
+    
+    v_start_time := DBMS_UTILITY.GET_TIME;  -- Current time in 1/100ths of a second
+    LOOP
+        v_end_time := DBMS_UTILITY.GET_TIME;
+        EXIT WHEN (v_end_time - v_start_time) > (1 * 100);  -- 5 seconds
+    END LOOP;
+     
+    UPDATE EMP_CERTIFICATE 
+    SET ATTACHMENT_URL = :P10102_ATTACHMENT_URL, 
+        ATTACHMENT_NAME = :P10102_ATTACHMENT_NAME 
+    WHERE ID = :P10102_EMP_CERTIFICATE_ID;
+
+END;

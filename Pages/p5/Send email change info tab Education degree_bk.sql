@@ -24,7 +24,7 @@ declare
     n_attach_url nvarchar2(5000);
 
 begin
-    v_body := v_body||'<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/header.png''></img>';
+    -- v_body := v_body||'<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/header.png''></img>';
     v_body := v_body||'<h3 style=''color:black;text-align:center''>[PHÒNG NHÂN SỰ HÀNH CHÍNH - VUS] – ĐỀ XUẤT THAY ĐỔI THÔNG TIN CÁ NHÂN</h3>';
     v_body := v_body||'<h3 style=''color:black;text-align:center''>[HRA DEPARTMENT - VUS] – PERSONAL INFORMATION UPDATE LETTERS</h3>';
     v_body := v_body||'<p style=''color:black;margin-top:20px''>Anh/Chị '||:P5_FULL_NAME||' thân mến,</p>';
@@ -91,6 +91,13 @@ begin
             v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Năm tốt nghiệp / Graduated date </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| n_graduated_date ||'</td></tr>';
             -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Đính kèm / Attachment </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_file, n_attach_name) ||'</td></tr>';
             -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''></td></tr>';
+            
+            -- Update attachment for new row in EMP_EDUCATION from TEMP_UPLOAD through TEMP_ID
+            Update EMP_EDUCATION edu
+            set edu.ATTACH_NAME = (select att.ATTACHMENT_NAME from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID),
+                edu.ATTACH_URL = (select att.ATTACHMENT_URL from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID)
+            where edu.ID = add_ids(rec);
+
         end loop;
     end if;
 
@@ -242,7 +249,7 @@ begin
     v_body := v_body||'<p style=''color:black''>Phòng Nhân sự Hành chính</p>';
     v_body := v_body||'<p style=''color:black''>Best regards,</p>';
     v_body := v_body||'<p style=''color:black''>HR & Admin Department </p>';
-    v_body := v_body||'<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
+    -- v_body := v_body||'<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
 -------------------------------------------------------
 ----- Send mail

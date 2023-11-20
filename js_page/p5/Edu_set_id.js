@@ -13,7 +13,7 @@ if (meta.inserted) {
             var seqValue = data.nextSeqValue;
 
             // Set the TEMP_ID column value using the sequence value obtained from the server
-            model.setValue(rec, "TEMP_ID", seqValue);
+            model.setValue(rec, "TEMP_ID", seqValue.toString());
 
             var employee_code = rec[model.getFieldKey('EMPLOYEE_CODE')];
             var emp_education_id = rec[model.getFieldKey('EMP_EDUCATION_ID')];
@@ -28,7 +28,14 @@ if (meta.inserted) {
             var currentRowSelector = '#education-box .a-GV-row.is-selected.is-inserted ' + linkSelector;
             var $linkInCurrentRow = jQuery(currentRowSelector);
             $linkInCurrentRow.attr('data-tempid', seqValue);
-     
+
+            // Refresh the grid to reflect the changes
+            model.refresh();
+
+            // Issue: When set value of the TEMP_ID column using model.setValue, the record do not save value of the TEMP_ID column when inserted (new record)
+            // Workaround: Set value of the TEMP_ID column using jQuery
+            // jQuery('#education-box .a-GV-row.is-selected.is-inserted .a-GV-cell[data-header="TEMP_ID"]').text(seqValue);
+            
         },
         error: function(jqXHR, textStatus, errorThrown) {
             // Handle any errors
