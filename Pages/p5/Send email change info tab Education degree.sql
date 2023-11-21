@@ -80,6 +80,12 @@ begin
     if add_ids.COUNT != 0 then
         is_changed := true;
         for rec in 1..add_ids.COUNT loop
+            -- Update attachment for new row in EMP_EDUCATION from TEMP_UPLOAD through TEMP_ID
+            Update EMP_EDUCATION edu
+            set edu.ATTACH_NAME = (select att.ATTACHMENT_NAME from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID and att.TABLE_NAME = 'EMP_EDUCATION'),
+                edu.ATTACH_URL = (select att.ATTACHMENT_URL from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID and att.TABLE_NAME = 'EMP_EDUCATION')
+            where edu.ID = add_ids(rec);
+
             select LEVEL_OF_EDU, MAJOR, PLACE, to_char(GRADUATED_DATE, 'DD/MM/YYYY'), ATTACH_NAME, ATTACH_URL
             into n_level_of_edu, n_major, n_place, n_graduated_date, n_attach_name, n_attach_url
             from EMP_EDUCATION
@@ -89,25 +95,9 @@ begin
             v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''>Chuyên ngành / Major</td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| n_major ||'</td></tr>';
             v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''>Tên trường học / Name of school/university/institute </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| n_place ||'</td></tr>';
             v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Năm tốt nghiệp / Graduated date </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| n_graduated_date ||'</td></tr>';
+            v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style=''padding:0 10px; border-right: 1px solid black;margin-bottom:10px''> Đính kèm / Attachment </td><td style=''padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_url, n_attach_name) ||'</td></tr>';
             -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''> Đính kèm / Attachment </td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_file, n_attach_name) ||'</td></tr>';
-            -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''></td></tr>';
-            
-            -- Update attachment for new row in EMP_EDUCATION from TEMP_UPLOAD through TEMP_ID
-            Update EMP_EDUCATION edu
-            set edu.ATTACH_NAME = (select att.ATTACHMENT_NAME from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID),
-                edu.ATTACH_URL = (select att.ATTACHMENT_URL from TEMP_UPLOAD att where att.TEMP_ID = edu.TEMP_ID)
-            where edu.ID = add_ids(rec);
-
-            -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;margin-bottom:10px''> Đính kèm / Attachment </td><td style='' padding:0 10px; border-right: 1px solid black;''>'|| to_href_html(old_attach_url, old_attach_name) ||'</td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_url, n_attach_name) ||'</td></tr>';
-            -- print attachment
-            select ATTACH_NAME, ATTACH_URL into n_attach_name, n_attach_url
-            from EMP_EDUCATION
-            where ID = add_ids(rec);
-
-            if n_attach_url != '' then
-                v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style=''padding:0 10px; border-right: 1px solid black;margin-bottom:10px''> Đính kèm / Attachment </td><td style=''padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''>'|| to_href_html(n_attach_url, n_attach_name) ||'</td></tr>';
-            end if;
-
+            -- v_body := v_body||'<tr style=''border-left: 1px solid black;border-right: 1px solid black;''><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style='' padding:0 10px; border-right: 1px solid black;''></td><td style=''padding:0 10px;''></td></tr>';    
         end loop;
     end if;
 
@@ -271,8 +261,8 @@ begin
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'haitran@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
 
     -- send tester
-        SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'huyen.ptt@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
-        SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thudang@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'huyen.ptt@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thudang@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
         SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thi.tnh@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'ngan.tranvu@vus-etsc.edu.vn' , 'Cập nhật thay đổi thông tin Nhân viên '||:P5_FULL_NAME||'',v_body);
 
