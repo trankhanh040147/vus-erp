@@ -2,6 +2,23 @@
 
 -- 1. Thay đổi resource
 
+create or replace PACKAGE BODY global_vars AS
+    g_resource_url VARCHAR2(1000) := 'https://hra.sandbox.operations.dynamics.com'; -- initial value
+    -- g_resource_url VARCHAR2(1000) := 'https://vustc-test-serverae174d74817432d5aos.axcloud.dynamics.com'; -- initial value
+
+    PROCEDURE set_resource_url(p_url VARCHAR2) IS
+    BEGIN
+        g_resource_url := p_url;
+    END set_resource_url;
+
+    FUNCTION get_resource_url RETURN VARCHAR2 IS
+    BEGIN
+        RETURN g_resource_url;  
+    END get_resource_url;
+
+END global_vars;
+/
+
 -- 4. Đồng bộ thông tin user
 
 -- List các user cần chú ý:

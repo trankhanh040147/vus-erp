@@ -59,13 +59,13 @@
 
     //  Get default values from hidden items
     window.addEventListener("load", function () {
-        var imageUrlsID = apex.item("P3_DEFAULT_IMAGES_URL").getValue();
-        var imageNamesID = apex.item("P3_DEFAULT_IMAGES_NAME").getValue();
-        var imageContainer = document.getElementById("P3_UPLOAD_FILE_GROUP");
+        var imageUrlsID = apex.item("P10_DEFAULT_IMAGES_URL").getValue();
+        var imageNamesID = apex.item("P10_DEFAULT_IMAGES_NAME").getValue();
+        var imageContainer = document.getElementById("P10_UPLOAD_FILE_GROUP");
         const urlArray = imageUrlsID.split(";");
         const nameArray = imageNamesID.split(";");
-        apex.item("P3_URL_FILES").setValue(imageUrlsID);
-        apex.item("P3_NAME_FILES").setValue(imageNamesID);
+        apex.item("P10_URL_FILES").setValue(imageUrlsID);
+        apex.item("P10_NAME_FILES").setValue(imageNamesID);
 
 
         // Create hidden input elements for each default image
@@ -95,17 +95,17 @@
             button.addEventListener("click", handleDeleteClick_PP);
         });
 
-        var userName = apex.item("P3_EMPLOYEE").getValue();
-        var userCode = apex.item("P3_EMPLOYEE_CODE").getValue();
+        var userName = apex.item("P10_EMPLOYEE").getValue();
+        var userCode = apex.item("P10_EMPLOYEE_CODE").getValue();
 
         formData_PP.append("name", userName);
         formData_PP.append("msnv", userCode);
         document
-            .getElementById("P3_UPLOAD_FILE")
+            .getElementById("P10_UPLOAD_FILE")
             .addEventListener("change", function (event) {
                 const imageFiles = event.target.files;
                 const hiddenInputContainer = document.getElementById(
-                    "P3_UPLOAD_FILE_GROUP"
+                    "P10_UPLOAD_FILE_GROUP"
                 );
                 const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
 
@@ -150,7 +150,7 @@
             const elements = document.querySelectorAll(".dynamic-value-page");
             const names = [];
             const hrefs = [];
-            var imageNamesID = apex.item("P3_DEFAULT_IMAGES_NAME").getValue();
+            var imageNamesID = apex.item("P10_DEFAULT_IMAGES_NAME").getValue();
             const nameArray = imageNamesID.split(";");
 
             // document.getElementById('loader-container').style.display = 'block';
@@ -173,8 +173,8 @@
                         fileUrls_PP = responseBody.data.map((item) => item.path).join(";");
                         const newfileUrls_PP = fileArrayUrls_PP.join(";") + ";" + fileUrls_PP;
                         const newfileNames_PP = fileArrayNames_PP.join(";") + ";" + fileNames_PP;
-                        await apex.item("P3_URL_FILES").setValue(newfileUrls_PP);
-                        await apex.item("P3_NAME_FILES").setValue(newfileNames_PP);
+                        await apex.item("P10_URL_FILES").setValue(newfileUrls_PP);
+                        await apex.item("P10_NAME_FILES").setValue(newfileNames_PP);
                     } else {
                         console.log("Upload failed");
                     }
@@ -236,8 +236,8 @@
                     document.getElementById("loader-container").style.display = "none";
                 }
 
-                await apex.item("P3_URL_FILES").setValue(urlString);
-                await apex.item("P3_NAME_FILES").setValue(namesString);
+                await apex.item("P10_URL_FILES").setValue(urlString);
+                await apex.item("P10_NAME_FILES").setValue(namesString);
 
                 setTimeout(function () {
                     apex.submit("Submit");
