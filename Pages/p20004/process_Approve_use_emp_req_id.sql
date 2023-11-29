@@ -10,7 +10,7 @@ begin
     -- Get emp_requests_id
     select ID
     into emp_requests_id
-    from EMP_REQUESTS er where :P20004_REQUEST_ID = er.REQUEST_DETAIL_ID and  REQUEST_TYPE = :P20004_FEATURE;
+    from EMP_REQUESTS er where :P20004_REQUEST_ID = er.REQUEST_DETAIL_ID and  REQUEST_TYPE = 'Scholarship';
 
     -- lấy promotion_code mới
     select cp.PROMOTION_CODE
@@ -31,7 +31,7 @@ begin
         from EMP_REQUESTS er
         join WORKFLOW_APPROVAL wa on wa.WF_PROCESS_ID = er.WF_PROCESS_ID
             -- join WORKFLOW_APPROVAL tmp on tmp.WA_GROUP = wa.WA_GROUP
-        where er.REQUEST_DETAIL_ID = :P20004_REQUEST_ID and er.REQUEST_TYPE = :P20004_FEATURE
+        where er.REQUEST_DETAIL_ID = :P20004_REQUEST_ID 
             and er.STATUS <> 3 
         group by er.CURRENT_STEP,er.NEXT_STEP
     )
@@ -46,7 +46,8 @@ begin
                     MODIFIED_BY_CODE = :APP_EMP_CODE,
                     NEXT_STEP = rec.NEXT_STEP + 1,
                     STATUS = 6 
-                where REQUEST_DETAIL_ID = :P20004_REQUEST_ID and REQUEST_TYPE = :P20004_FEATURE;
+                -- where REQUEST_DETAIL_ID = :P20004_REQUEST_ID;
+                where ID = emp_requests_id and  REQUEST_TYPE = 'Scholarship';
 
                 -- cập nhật bảng SCHOLARSHIP_REQUEST về trạng thái 'in-review'
                 update SCHOLARSHIP_REQUEST 
@@ -78,7 +79,7 @@ begin
                     sysdate,
                     :APP_EMP_CODE,
                     6,
-                    emp_requests_id,
+                    :P20004_REQUEST_ID,
                     rec.NEXT_STEP,
                     :P20004_NOTE
                     );
@@ -89,7 +90,8 @@ begin
                     CURRENT_STEP = rec.NEXT_STEP,
                     MODIFIED_BY_CODE = :APP_EMP_CODE,
                     STATUS = 3 
-                where REQUEST_DETAIL_ID = :P20004_REQUEST_ID and REQUEST_TYPE = :P20004_FEATURE;
+                -- where REQUEST_DETAIL_ID = :P20004_REQUEST_ID;
+                where ID = emp_requests_id and  REQUEST_TYPE = 'Scholarship';
 
                 -- cập nhật bảng SCHOLARSHIP_REQUEST về trạng thái 'active'
                 update SCHOLARSHIP_REQUEST 
@@ -121,7 +123,7 @@ begin
                     sysdate,
                     :APP_EMP_CODE,
                     3,
-                    emp_requests_id,
+                    :P20004_REQUEST_ID,
                     rec.NEXT_STEP,
                     :P20004_NOTE
                     );
@@ -129,7 +131,7 @@ begin
                 -- trường hợp replacement được chấp nhận, đổi status của voucher bị replace thành in-active (7)
                 if :P20004_REPLACEMENT is not null then
                     select id into id_replace from SCHOLARSHIP_REQUEST where VOUCHER_CODE = :P20004_REPLACEMENT;
-                    select id into emp_requests_id_replace from EMP_REQUESTS where REQUEST_DETAIL_ID = id_replace and  REQUEST_TYPE = :P20004_FEATURE;
+                    select id into emp_requests_id_replace from EMP_REQUESTS where REQUEST_DETAIL_ID = id_replace and  REQUEST_TYPE = 'Scholarship';
 
                     update SCHOLARSHIP_REQUEST
                     set STATUS = 7
@@ -137,7 +139,8 @@ begin
 
                     update EMP_REQUESTS 
                     set STATUS = 7 
-                    where REQUEST_DETAIL_ID = id_replace and REQUEST_TYPE = :P20004_FEATURE;
+                    -- where REQUEST_DETAIL_ID = id_replace;
+                    where ID = emp_requests_id_replace and  REQUEST_TYPE = 'Scholarship';
                     
                     -- thêm trạng thái in-active vào workflow_detail
                     insert into WORKFLOW_DETAIL(
