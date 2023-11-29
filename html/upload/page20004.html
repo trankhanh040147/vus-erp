@@ -1,0 +1,146 @@
+<!-- Loading spinner container -->
+<div class="loader-container" id="loader-container">
+    <div class="loader"></div>
+</div>
+
+<script>
+    // GLOBAL FUNCTION
+
+    // Get current date formatted as dd-mm-yyyy
+    function getCurrentDateFormatted() {
+        const currentDate = new Date();
+
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so add 1
+        const year = currentDate.getFullYear();
+
+        return `${day}-${month}-${year}`;
+    }
+
+    // Delete a value from a FormData object
+    function deleteValue(formData, key, value) {
+        const values = formData.getAll(key);
+        const updatedValues = values.filter(v => v !== value);
+
+        // Remove all values associated with the key
+        formData.delete(key);
+
+        // Append the updated values back to the FormData object
+        updatedValues.forEach(updatedValue => {
+            formData.append(key, updatedValue);
+        });
+    }
+
+    function handleDeleteClick_PP(event) {
+        if (event.target.classList.contains("delete-item")) {
+            const itemToRemove = event.target.closest("div");
+            const name = event.target.dataset.name;
+            const url = itemToRemove.querySelector("a").getAttribute("href");
+            const files = formData_PP.getAll("files");
+            const updatedFiles = files.filter((file) => file.name !== name);
+            formData_PP.delete("files");
+            fileArrayNames_PP = fileArrayNames_PP.filter((item) => item !== name);
+            fileArrayUrls_PP = fileArrayNames_PP.filter((item) => item !== url);
+            updatedFiles.forEach((file) => formData_PP.append("files", file));
+            if (itemToRemove) {
+                itemToRemove.remove();
+                document.getElementById("loader-container").style.display = "none";
+            }
+        }
+    }
+</script>
+
+<script>
+    let formData_PP = new FormData();
+    let fileNames_PP;
+    let fileUrls_PP;
+    let fileArrayNames_PP = [];
+    let fileArrayUrls_PP = [];
+
+    //  Get default values from hidden items
+    window.addEventListener("load", function () {
+        var imageUrlsID = apex.item("P20004_DEFAULT_IMAGES_URL").getValue();
+        var imageNamesID = apex.item("P20004_DEFAULT_IMAGES_NAME").getValue();
+        var imageContainer = document.getElementById("P20004_ATTACHMENT_GROUP");
+        const urlArray = imageUrlsID.split(";");
+        const nameArray = imageNamesID.split(";");
+        apex.item("P20004_URL_FILES").setValue(imageUrlsID);
+        apex.item("P20004_NAME_FILES").setValue(imageNamesID);
+
+        // Create hidden input elements for each default image
+        for (let i = 0; i < urlArray.length; i++) {
+            const imageUrl = urlArray[i];
+            const imageName = nameArray[i];
+            fileArrayNames_PP.push(imageName);
+            fileArrayUrls_PP.push(imageUrl);
+            let hiddenInputHTML;
+            if (imageUrl != "" || imageName != "") {
+                hiddenInputHTML = `
+        <div class="file-item ">
+            <span  id="deleteItem${imageName}" data-name="${imageName}" class="delete-item btn-delete vng-true"> X </span>
+            <a name="${imageName}" href="${imageUrl}" target="_blank" class="dynamic-value-page">
+                ${imageName}
+            </a>
+        </div>
+    `;
+            } else {
+                hiddenInputHTML = ``;
+            }
+            imageContainer.insertAdjacentHTML("beforeend", hiddenInputHTML);
+        }
+
+        var deleteButtons = document.querySelectorAll(".btn-delete");
+        deleteButtons.forEach(function (button) {
+            button.addEventListener("click", handleDeleteClick_PP);
+        });
+
+        var userName = apex.item("P20004_USER_FULLNAME").getValue();
+        var userCode = apex.item("P20004_USER_EMPLOYEE_CODE").getValue();
+
+        formData_PP.append("name", userName);
+        formData_PP.append("msnv", userCode);
+        document
+            .getElementById("P20004_ATTACHMENT")
+            .addEventListener("change", function (event) {
+                const imageFiles = event.target.files;
+                const hiddenInputContainer = document.getElementById(
+                    "P20004_ATTACHMENT_GROUP"
+                );
+                const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
+
+                formData_PP.append("date", getCurrentDateFormatted());
+                console.log(getCurrentDateFormatted());
+
+                for (const imageFile of imageFiles) {
+                    const fileName = imageFile.name;
+                    const fileURL = URL.createObjectURL(imageFile);
+                    if (imageFile.size > maxFileSize) {
+                        // Show an error message or take appropriate action
+                        alert(
+                            `File ${fileName} is larger than 1MB. Please choose a smaller file.`
+                        );
+                        continue; // Skip this file
+                    }
+
+                    formData_PP.append("files", imageFile);
+
+                    const hiddenInputHTML = `
+        <div class="file-item id-numb-file">
+            <a href="${fileURL}" target="_blank">
+                ${fileName}
+            </a>
+            <span id="deleteItem${fileName}" data-name="${fileName}" class="delete-item btn-delete"> X </span>
+        </div>
+      `;
+                    hiddenInputContainer.insertAdjacentHTML("beforeend", hiddenInputHTML);
+                }
+                hiddenInputContainer.addEventListener("click", handleDeleteClick_PP);
+            });
+    });
+
+    //UPLOAD FILE
+    //SUBMIT FORM
+
+    //END SUBMIT FORM
+
+</script>

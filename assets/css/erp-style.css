@@ -1762,7 +1762,7 @@ html.page-10 .t-Form-itemText--pre {
     background-size: var(--a-field-select-background-size,2rem 1rem) !important;
 }
 .page-10 .apex-item-group.apex-item-group--textarea textarea,.page-3 .apex-item-group.apex-item-group--textarea textarea{
-height: 20px !important;
+
 background: transparent !important;
 padding: 0 10px !important;
 border :none !important;
@@ -1770,11 +1770,15 @@ border :none !important;
 .page-10 .apex-item-textarea:focus,.page-3 .apex-item-textarea:focus{
   border: 0 !important;
 }
-.page-10 #P10_END_DATE_input:disabled {
+.page-10 #P10_END_DATE_input:disabled,.page-3 #P3_END_DATE_input:disabled {
   padding-left: 10px !important;
 }
 #education-box_ig_grid_vc table tr.a-GV-row td:nth-child(7), #certificate-box_ig_grid_vc table tr.a-GV-row td:nth-child(7) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+body .apex-item-group.apex-item-group--textarea{
+  padding-top:  5px !important;
+  height: unset !important;
 }
