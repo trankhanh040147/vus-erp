@@ -1782,3 +1782,7 @@ body .apex-item-group.apex-item-group--textarea{
   padding-top:  5px !important;
   height: unset !important;
 }
+/* P20002 */
+#P20002_REQUEST_NAME_AB.apex_disabled, #P20004_REQUEST_NAME_AB.apex_disabled {
+  opacity: 1 !important;
+}
