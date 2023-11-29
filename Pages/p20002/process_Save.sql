@@ -2,6 +2,8 @@ declare
 c_date date := to_char(sysdate,'MM/DD/YYYY');
 scholarship_request_id number;
 pro_code nvarchar2(50);
+emp_requests_id number;
+
 begin
 
     --if :P20002_REQUEST_ID is null then
@@ -127,15 +129,34 @@ begin
                 );
         end loop;
 
+    -- Get emp_requests_id
+    select ID
+    into emp_requests_id
+    from EMP_REQUESTS er where scholarship_request_id = er.REQUEST_DETAIL_ID and  REQUEST_TYPE = 'Scholarship';
     
     -- Insert ATTACHMENT_HISTORY
     IF(:P20002_DEFAULT_IMAGES_URL != :P20002_URL_FILES or
        ( :P20002_REQUEST_ID is null and :P20002_URL_FILES is not null )) 
     THEN
         INSERT INTO ATTACHMENT_HISTORY (ATTACHMENT_DATE, EMPLOYEE_CODE, ATTACHMENT_URL, ATTACHMENT_NAME, REQUEST_ID)
-        VALUES(sysdate, :APP_EMP_CODE, :P20002_URL_FILES, :P20002_NAME_FILES, (select ID from EMP_REQUESTS er where scholarship_request_id = er.REQUEST_DETAIL_ID));
+        VALUES(sysdate, :APP_EMP_CODE, :P20002_URL_FILES, :P20002_NAME_FILES, emp_requests_id);
     END IF;
 
+    -- thêm trạng thái in-active vào workflow_detail
+    insert into WORKFLOW_DETAIL(
+        WD_MODIFIED_DATE,
+        WD_MODIFIED_CODE,
+        STATUS,
+        REQUEST_ID,
+        WD_COMMENT
+    ) 
+    values(
+        sysdate,
+        :APP_EMP_CODE,
+        1,
+        emp_requests_id,
+        :P20004_NOTE
+        );
     -- Write log attachments
     -- INSERT INTO OUTPUT_LOGS(NUMBER1, STR1, STR2, STR3)
     -- VALUES ((select ID from EMP_REQUESTS er where scholarship_request_id = er.REQUEST_DETAIL_ID), 'savedraft_scho', :P20002_DEFAULT_IMAGES_URL, :P20002_URL_FILES);
