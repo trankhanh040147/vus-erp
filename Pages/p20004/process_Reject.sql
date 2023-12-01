@@ -6,7 +6,7 @@ begin
     -- Get emp_requests_id
     select ID
     into emp_requests_id
-    from EMP_REQUESTS er where :P20004_REQUEST_ID = er.REQUEST_DETAIL_ID and  REQUEST_TYPE = :P20004_FEATURE;
+    from EMP_REQUESTS er where :P20004_REQUEST_ID = er.REQUEST_DETAIL_ID and REQUEST_TYPE = :P20004_FEATURE;
 
     for rec in (
     --     with temp as (

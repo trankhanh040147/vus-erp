@@ -59,13 +59,13 @@
 
     //  Get default values from hidden items
     window.addEventListener("load", function () {
-        var imageUrlsID = apex.item("P20004_DEFAULT_IMAGES_URL").getValue();
-        var imageNamesID = apex.item("P20004_DEFAULT_IMAGES_NAME").getValue();
-        var imageContainer = document.getElementById("P20004_ATTACHMENT_GROUP");
+        var imageUrlsID = apex.item("P20002_DEFAULT_IMAGES_URL").getValue();
+        var imageNamesID = apex.item("P20002_DEFAULT_IMAGES_NAME").getValue();
+        var imageContainer = document.getElementById("P20002_ATTACHMENT_GROUP");
         const urlArray = imageUrlsID.split(";");
         const nameArray = imageNamesID.split(";");
-        apex.item("P20004_URL_FILES").setValue(imageUrlsID);
-        apex.item("P20004_NAME_FILES").setValue(imageNamesID);
+        apex.item("P20002_URL_FILES").setValue(imageUrlsID);
+        apex.item("P20002_NAME_FILES").setValue(imageNamesID);
 
         // Create hidden input elements for each default image
         for (let i = 0; i < urlArray.length; i++) {
@@ -94,17 +94,23 @@
             button.addEventListener("click", handleDeleteClick_PP);
         });
 
-        var userName = apex.item("P20004_USER_FULLNAME").getValue();
-        var userCode = apex.item("P20004_USER_EMPLOYEE_CODE").getValue();
+        // Hide delete buttons when STATUS is not DRAFT
+        if($v("P20002_STATUS") != 1) {
+            $('.delete-item.btn-delete').hide();
+            $('#P20002_ATTACHMENT_inline_help').hide();
+        }
+
+        var userName = apex.item("P20002_USER_FULLNAME").getValue();
+        var userCode = apex.item("P20002_USER_EMPLOYEE_CODE").getValue();
 
         formData_PP.append("name", userName);
         formData_PP.append("msnv", userCode);
         document
-            .getElementById("P20004_ATTACHMENT")
+            .getElementById("P20002_ATTACHMENT")
             .addEventListener("change", function (event) {
                 const imageFiles = event.target.files;
                 const hiddenInputContainer = document.getElementById(
-                    "P20004_ATTACHMENT_GROUP"
+                    "P20002_ATTACHMENT_GROUP"
                 );
                 const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
 
@@ -143,19 +149,26 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         // Select all buttons by their IDs
-        const buttons = document.querySelectorAll('#approve_btn, #reject_btn');
+        const buttons = document.querySelectorAll('#save_submit_button, #submit_button, #save_button, #update_button');
 
         // Iterate through the buttons and add click event listeners to each
         buttons.forEach(function (button) {
             button.addEventListener('click', async function (event) {
                 // Print btn id
                 let apex_id_btn = '';
+                // set apex_id_btn = case save_submit_button -> T1_SAVE_SUBMIT, submit_button -> T1_SUBMIT, save_button -> T1_SAVE, update_button -> T1_UPDATE
                 switch (this.id) {
-                    case 'approve_btn':
-                        apex_id_btn = 'Approve';
+                    case 'save_submit_button':
+                        apex_id_btn = 'T1_SAVE_SUBMIT';
                         break;
-                    case 'reject_btn':
-                        apex_id_btn = 'Reject';
+                    case 'submit_button':
+                        apex_id_btn = 'T1_SUBMIT';
+                        break;
+                    case 'save_button':
+                        apex_id_btn = 'T1_SAVE';
+                        break;
+                    case 'update_button':
+                        apex_id_btn = 'T1_UPDATE';
                         break;
                     default:
                         break;
@@ -166,7 +179,7 @@
                 const elements = document.querySelectorAll(".dynamic-value-page");
                 const names = [];
                 const hrefs = [];
-                var imageNamesID = apex.item("P20004_DEFAULT_IMAGES_NAME").getValue();
+                var imageNamesID = apex.item("P20002_DEFAULT_IMAGES_NAME").getValue();
                 const nameArray = imageNamesID.split(";");
 
                 // document.getElementById('loader-container').style.display = 'block';
@@ -189,8 +202,8 @@
                             fileUrls_PP = responseBody.data.map((item) => item.path).join(";");
                             const newfileUrls_PP = fileArrayUrls_PP.join(";") + ";" + fileUrls_PP;
                             const newfileNames_PP = fileArrayNames_PP.join(";") + ";" + fileNames_PP;
-                            await apex.item("P20004_URL_FILES").setValue(newfileUrls_PP);
-                            await apex.item("P20004_NAME_FILES").setValue(newfileNames_PP);
+                            await apex.item("P20002_URL_FILES").setValue(newfileUrls_PP);
+                            await apex.item("P20002_NAME_FILES").setValue(newfileNames_PP);
                         } else {
                             console.log("Upload failed");
                         }
@@ -251,8 +264,8 @@
                         document.getElementById("loader-container").style.display = "none";
                     }
 
-                    await apex.item("P20004_URL_FILES").setValue(urlString);
-                    await apex.item("P20004_NAME_FILES").setValue(namesString);
+                    await apex.item("P20002_URL_FILES").setValue(urlString);
+                    await apex.item("P20002_NAME_FILES").setValue(namesString);
 
                     setTimeout(function () {
                         apex.submit(apex_id_btn);
@@ -262,7 +275,6 @@
             });
         });
     });
-
 
     //END SUBMIT FORM
 

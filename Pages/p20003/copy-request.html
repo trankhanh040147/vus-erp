@@ -1,0 +1,22 @@
+<script>
+jQuery(document).on('click', '.copy-request', function (e) {
+    e.preventDefault();
+    var $this = jQuery(this);
+    var id_request_copy = $this.data('request-id');
+
+    // Make the AJAX call
+    apex.server.process("COPY_REQUEST", {
+        x01: id_request_copy
+    }, {
+        success: function (pData) {
+            // Refresh the region
+            apex.region("request").refresh();
+        },
+        error: function (request, status, error) {
+            
+            console.log("AJAX error: " + status + " - " + error);
+        }
+    });
+});
+</script>
+
