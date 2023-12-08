@@ -18,6 +18,9 @@ n_wt_out1_line_id varchar2(50);
 n_wt_in2_line_id varchar2(50);
 n_wt_out2_line_id varchar2(50);
 
+l_count_is_rush_profile NUMBER;
+l_count_is_overtime_profile NUMBER;
+
 BEGIN
 
     -- FOR rec_ets IN (SELECT EMPLOYEE_CODE, WORKER, PROFILE_DATE, TS_HEADER_REC_ID, TRANSFERRED, PROFILE_ID  FROM EMP_TIME_SHEET)
@@ -28,6 +31,13 @@ BEGIN
         -- DBMS_OUTPUT.put_line('');
         SELECT ID into n_TS_ID FROM P_TIME_SHEET pts where pts.TS_HEADER_ID = rec_ets.TS_HEADER_REC_ID;
         SELECT COUNT(*) into n_count_1 FROM P_TIME_SHEET_DETAIL ptsd WHERE ptsd.TS_HEADER_ID = rec_ets.TS_HEADER_REC_ID;
+
+        -- Check rush/ot profile
+        SELECT COUNT(*) INTO l_count_is_overtime_profile FROM WORKING_PROFILE wp
+        WHERE wp.PROFILE_ID = CUSTOM_TRIM_V3(rec_ets.PROFILE_ID) and wp.IS_OVERTIME_PROFILE = 1;
+
+        SELECT COUNT(*) INTO l_count_is_rush_profile FROM WORKING_PROFILE wp
+        WHERE wp.PROFILE_ID = CUSTOM_TRIM_V3(rec_ets.PROFILE_ID) and wp.IS_RUSH_PROFILE = 1;
 
         -- reset time variables
         n_wt_in1 := NULL;
@@ -44,8 +54,8 @@ BEGIN
             SET
                 WT_STANDARD_HOURS = rec_ets.PAY_TIME,
                 WT_FLEX = rec_ets.FLEX_MORE - rec_ets.FLEX_LESS,
-                -- WT_RUSH = rec_ets.PAY_TIME,
-                WT_OT = rec_ets.PAY_OVERTIME,
+                WT_RUSH = CASE WHEN l_count_is_rush_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
+                WT_OT = CASE WHEN l_count_is_overtime_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
                 APPROVED_LEAVES = rec_ets.ABSENCE_TIME
             WHERE
                 ptsd.TS_HEADER_ID = rec_ets.TS_HEADER_REC_ID;
@@ -54,7 +64,7 @@ BEGIN
                 TS_ID,
                 WT_STANDARD_HOURS,
                 WT_FLEX,
-                -- WT_RUSH,
+                WT_RUSH,
                 WT_OT,
                 APPROVED_LEAVES,
                 TS_HEADER_ID
@@ -63,7 +73,8 @@ BEGIN
                 n_TS_ID,
                 rec_ets.PAY_TIME,
                 rec_ets.FLEX_MORE - rec_ets.FLEX_LESS,
-                rec_ets.PAY_OVERTIME,
+                CASE WHEN l_count_is_rush_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
+                CASE WHEN l_count_is_overtime_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
                 rec_ets.ABSENCE_TIME,
                 rec_ets.TS_HEADER_REC_ID
             );
@@ -138,4 +149,3 @@ BEGIN
         -- COMMIT;
     END LOOP;
 END "INSERT_UPDATE_P_TIME_SHEET_DETAIL";
-/
