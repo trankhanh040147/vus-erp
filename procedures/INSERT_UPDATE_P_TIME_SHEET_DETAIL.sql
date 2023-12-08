@@ -60,6 +60,7 @@ BEGIN
             WHERE
                 ptsd.TS_HEADER_ID = rec_ets.TS_HEADER_REC_ID;
         else
+            -- Insert new timesheet record
             INSERT INTO P_TIME_SHEET_DETAIL(
                 TS_ID,
                 WT_STANDARD_HOURS,
@@ -76,7 +77,7 @@ BEGIN
                 CASE WHEN l_count_is_rush_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
                 CASE WHEN l_count_is_overtime_profile > 0 THEN rec_ets.PAY_OVERTIME ELSE 0 END,
                 rec_ets.ABSENCE_TIME,
-                rec_ets.TS_HEADER_REC_ID
+                rec_ets.TS_HEADER_REC_ID                
             );
         END IF;
 
@@ -138,11 +139,12 @@ BEGIN
             ptsd.IN1_TS_LINE_ID = n_wt_in1_line_id,
             ptsd.OUT1_TS_LINE_ID = n_wt_out1_line_id,
             ptsd.IN2_TS_LINE_ID = n_wt_in2_line_id,
-            ptsd.OUT2_TS_LINE_ID = n_wt_out2_line_id
-            -- ptsd.AT_IN1 = CASE WHEN ptsd.AT_IN1 IS NOT NULL THEN n_wt_in1 ELSE ptsd.AT_IN1 END,
-            -- ptsd.AT_OUT1 = CASE WHEN ptsd.AT_OUT1 IS NOT NULL THEN n_wt_out1 ELSE ptsd.AT_OUT1 END,
-            -- ptsd.AT_IN2 = CASE WHEN ptsd.AT_IN2 IS NOT NULL THEN n_wt_in2 ELSE ptsd.AT_IN2 END,
-            -- ptsd.AT_OUT2 = CASE WHEN ptsd.AT_OUT2 IS NOT NULL THEN n_wt_out2 ELSE ptsd.AT_OUT2 END
+            ptsd.OUT2_TS_LINE_ID = n_wt_out2_line_id,
+            -- Set AT_IN1, AT_OUT1, AT_IN2, AT_OUT2 to WT_IN1, WT_OUT1, WT_IN2, WT_OUT2 if they are null
+            ptsd.AT_IN1 = CASE WHEN ptsd.AT_IN1 IS NOT NULL THEN n_wt_in1 ELSE ptsd.AT_IN1 END,
+            ptsd.AT_OUT1 = CASE WHEN ptsd.AT_OUT1 IS NOT NULL THEN n_wt_out1 ELSE ptsd.AT_OUT1 END,
+            ptsd.AT_IN2 = CASE WHEN ptsd.AT_IN2 IS NOT NULL THEN n_wt_in2 ELSE ptsd.AT_IN2 END,
+            ptsd.AT_OUT2 = CASE WHEN ptsd.AT_OUT2 IS NOT NULL THEN n_wt_out2 ELSE ptsd.AT_OUT2 END
         WHERE ptsd.TS_HEADER_ID = rec_ets.TS_HEADER_REC_ID;
 
 
