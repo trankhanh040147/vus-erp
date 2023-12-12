@@ -1,6 +1,7 @@
 create or replace PROCEDURE "SP_SAVE_SPEACIAL_CUSTOMER_COREEDU"
 (
     p_scholarship_request_id number,
+    p_feature_apply NVARCHAR2,
     -- OUT status logs
     p_response_log OUT NVARCHAR2,
     p_response_status OUT NVARCHAR2
@@ -39,9 +40,9 @@ BEGIN
     apex_web_service.g_request_headers(1).name := 'Content-Type';
     apex_web_service.g_request_headers(1).value := 'application/json';
     apex_web_service.g_request_headers(2).name := 'username';
-    apex_web_service.g_request_headers(2).value := 'coreedu-webapi-test';
-    apex_web_service.g_request_headers(3).name := 'password';
-    apex_web_service.g_request_headers(3).value := 'p3$pus?e&lmls&tHaZ_d';
+    apex_web_service.g_request_headers(2).value := 'coreedu-webapi-uat';
+    apex_web_service.g_request_headers(3).name := 'password';   
+    apex_web_service.g_request_headers(3).value := 'zitRofR=bRLPro!ES@u1';
 
         -- BODY:
     -- {
@@ -59,7 +60,7 @@ BEGIN
     -- }
 
     -- Get request status from EMP_REQUESTS
-    select EMP_REQ_STATUS into n_emp_request_status from EMPLOYEE_REQUESTS er where p_scholarship_request_id = er.REQUEST_DETAIL_ID and lower(REQUEST_TYPE) = lower(:P20002_FEATURE) ;
+    select STATUS into n_emp_request_status from EMP_REQUESTS er where p_scholarship_request_id = er.REQUEST_DETAIL_ID and lower(er.REQUEST_TYPE) = lower(p_feature_apply) ;
 
     -- Get data from SCHOLARSHIP_REQUEST
     for rec in (select * from SCHOLARSHIP_REQUEST where ID = p_scholarship_request_id) loop
@@ -100,7 +101,7 @@ BEGIN
         --         --APEX_JSON.parse(
 
         l_response := apex_web_service.make_rest_request(
-                p_url => 'https://coreeduwebapitest.azurewebsites.net/vusapi/v1/DoAction',
+                p_url => 'https://coreeduwebapiuat.azurewebsites.net/vusapi/v1/DoAction',
                 p_http_method => 'POST',
                 p_body => l_body,
                 p_transfer_timeout => 3600
@@ -204,3 +205,14 @@ END;
 -- STATUS	NUMBER(2,0)
 -- DETAIL_ID	NUMBER(10,0)
 -- PROMOTION_CODE	NVARCHAR2(50 CHAR)
+
+
+
+declare
+    response_log NVARCHAR2(2000);
+    response_status NVARCHAR2(2000);
+begin
+    SP_SAVE_SPEACIAL_CUSTOMER_COREEDU('530', 'scholarship', response_log, response_status);
+    DBMS_OUTPUT.put_line('response_log: ' || response_log);
+    DBMS_OUTPUT.put_line('response_status: ' || response_status);
+end;

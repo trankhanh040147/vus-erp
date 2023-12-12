@@ -1,10 +1,13 @@
 CREATE OR REPLACE FUNCTION is_approval_group_present(
     p_approval_groups IN VARCHAR2, 
     p_approval_group IN VARCHAR2
-) RETURN BOOLEAN IS
+) RETURN NUMBER IS
 BEGIN
-    -- Check if p_approval_group is part of the comma-separated list in p_approval_groups
-    RETURN INSTR(',' || p_approval_groups || ',', ',' || p_approval_group || ',') > 0;
+    IF INSTR(',' || p_approval_groups || ',', ',' || p_approval_group || ',') > 0 THEN
+        RETURN 1; -- True
+    ELSE
+        RETURN 0; -- False
+    END IF;
 END is_approval_group_present;
 
 
