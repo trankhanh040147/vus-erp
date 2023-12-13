@@ -1,5 +1,4 @@
--- Update Approval_group for all employees based on level_id; have params to exclude certain USER_NAME
-CREATE OR REPLACE PROCEDURE SP_UPDATE_APPROVAL_GROUP(
+create or replace PROCEDURE SP_UPDATE_APPROVAL_GROUP(
     p_exclude_user_name_list IN VARCHAR2 DEFAULT NULL
 ) IS
     TYPE array_t IS TABLE OF VARCHAR2(100) INDEX BY BINARY_INTEGER;
@@ -19,6 +18,7 @@ CREATE OR REPLACE PROCEDURE SP_UPDATE_APPROVAL_GROUP(
     last_manager_department varchar2(50);
 
     approval_group_result VARCHAR2(200);
+    approval_group_update VARCHAR2(200);
 
     array_list_directors array_t;
     approval_updates approval_rec;
@@ -101,6 +101,20 @@ BEGIN
         END IF;
     END LOOP;
 
+    -- custom setting
+    --- update approval group for specific employees
+    --- user_name: 'hrtest06@vus-etsc.edu.vn' --> append 'head_of_HRA' to approval_groups
+    -- SELECT approval_groups INTO approval_group_update
+    -- FROM employees
+    -- WHERE lower(trim(user_name)) = 'hrtest06@vus-etsc.edu.vn';
+
+    -- approval_group_update := append_approval_group(approval_group_update, 'head_of_HRA');
+
+    -- UPDATE employees
+    -- SET approval_groups = approval_group_update
+    -- WHERE lower(trim(user_name)) = 'hrtest06@vus-etsc.edu.vn';
+
+
     -- Print all employees that have approval_groups
     dbms_output.put_line('Employees that have approval_groups: ');
     for r in (
@@ -123,4 +137,5 @@ END;
 -- APPROVAL_GROUP	NVARCHAR2(50 CHAR)
 -- MANAGER_ID	NVARCHAR2(100 CHAR) : This is employee code of manager
 -- APPROVAL_GROUPS	NVARCHAR2(200 CHAR) : A delimited string that store departments this employee is the head of
--- APPROVAL_GROUPS data: 'head_of_HRA,head_of_MKT,head_of_IT,...'
+-- APPROVAL_GROUPS data: 'head_of_HRA,head_of_MKT,head_of_IT,...';
+/

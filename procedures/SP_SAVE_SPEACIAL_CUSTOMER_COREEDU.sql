@@ -40,9 +40,9 @@ BEGIN
     apex_web_service.g_request_headers(1).name := 'Content-Type';
     apex_web_service.g_request_headers(1).value := 'application/json';
     apex_web_service.g_request_headers(2).name := 'username';
-    apex_web_service.g_request_headers(2).value := 'coreedu-webapi-uat';
+    apex_web_service.g_request_headers(2).value := 'coreedu-webapi-test';
     apex_web_service.g_request_headers(3).name := 'password';   
-    apex_web_service.g_request_headers(3).value := 'zitRofR=bRLPro!ES@u1';
+    apex_web_service.g_request_headers(3).value := 'p3$pus?e&lmls&tHaZ_d';
 
         -- BODY:
     -- {
@@ -79,6 +79,17 @@ BEGIN
         n_effective_date := to_char(rec.EFFECTIVE_DATE, 'YYYY-MM-DD');
         n_expire_date := to_char(rec.EXPIRATION_DATE, 'YYYY-MM-DD');
 
+        -- Set default value
+        if n_promotion_code is NULL then
+            SELECT PROMOTION_CODE
+            INTO n_promotion_code
+            FROM COREEDU_PROMOTION
+            WHERE DISCOUNT_RATE = rec.DISCOUNT_RATE and PROGRAM = rec.PROGRAM and ROWNUM = 1;
+        end if;
+
+        -- if n_to_date is NULL then n_to_date := 31/12/2154
+        n_to_date := NVL(n_to_date, '2154-12-31');
+
         l_body := '{
             "Action":"SaveSpecialCustomer",
             "Fullname":"' || n_full_name || '",
@@ -101,7 +112,7 @@ BEGIN
         --         --APEX_JSON.parse(
 
         l_response := apex_web_service.make_rest_request(
-                p_url => 'https://coreeduwebapiuat.azurewebsites.net/vusapi/v1/DoAction',
+                p_url => 'https://coreeduwebapitest.azurewebsites.net/vusapi/v1/DoAction',
                 p_http_method => 'POST',
                 p_body => l_body,
                 p_transfer_timeout => 3600
@@ -207,12 +218,11 @@ END;
 -- PROMOTION_CODE	NVARCHAR2(50 CHAR)
 
 
-
-declare
-    response_log NVARCHAR2(2000);
-    response_status NVARCHAR2(2000);
-begin
-    SP_SAVE_SPEACIAL_CUSTOMER_COREEDU('530', 'scholarship', response_log, response_status);
-    DBMS_OUTPUT.put_line('response_log: ' || response_log);
-    DBMS_OUTPUT.put_line('response_status: ' || response_status);
-end;
+-- declare
+--     response_log NVARCHAR2(2000);
+--     response_status NVARCHAR2(2000);
+-- begin
+--     SP_SAVE_SPEACIAL_CUSTOMER_COREEDU('530', 'scholarship', response_log, response_status);
+--     DBMS_OUTPUT.put_line('response_log: ' || response_log);
+--     DBMS_OUTPUT.put_line('response_status: ' || response_status);
+-- end;
