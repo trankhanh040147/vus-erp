@@ -1,5 +1,5 @@
 -- function to check if p_employee_code is in the current sequence of approval of the workflow
-create or replace function wf_is_in_next_sequence(p_employee_code in varchar2, p_emp_request_id in varchar2) return number is
+create or replace function wf_is_in_next_sequence(p_employee_code in varchar2, p_emp_request_id in number) return number is
   l_current_step number;
   l_next_step number;
   l_req_status number;
@@ -56,9 +56,11 @@ begin
         and trim(lower(USER_NAME)) = trim(lower(l_wa_user));    
     else
         select count(*) into l_is_in_next_sequence
-        from EMPLOYEES
+        from EMPLOYEES e
         where  EMPLOYEE_CODE = p_employee_code
-        and is_approval_group_present(lower(APPROVAL_GROUPS), lower(l_wa_group)) = 1;
+        -- and is_approval_group_present(lower(APPROVAL_GROUPS), lower(l_wa_group)) = 1;
+        and (is_approval_group_present(lower(APPROVAL_GROUPS), lower(l_wa_group)) = 1
+            or e.APPROVAL_GROUP = lower(l_wa_group));
     end if;
 
     -- print info of the next step
