@@ -1,5 +1,5 @@
--- function to check if p_employee_code is in the current sequence of approval of the workflow
 create or replace function wf_is_in_next_sequence(p_employee_code in varchar2, p_emp_request_id in number) return number is
+-- function to check if p_employee_code is in the current sequence of approval of the workflow
   l_current_step number;
   l_next_step number;
   l_req_status number;
@@ -10,6 +10,10 @@ create or replace function wf_is_in_next_sequence(p_employee_code in varchar2, p
   l_requester_code varchar2(100);
 begin   
     l_is_in_next_sequence := 0;
+
+    IF p_employee_code is null or p_emp_request_id is null then
+        return 0;
+    end if;
 
     -- if request status is not Waiting/In review, return 0
     select status into l_req_status

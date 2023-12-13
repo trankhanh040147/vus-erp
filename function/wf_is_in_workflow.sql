@@ -1,5 +1,5 @@
--- function to check if p_employee_code is in the any sequence of approval of the workflow
 create or replace function wf_is_in_workflow(p_employee_code in varchar2, p_emp_request_id in number) return number is
+-- function to check if p_employee_code is in the any sequence of approval of the workflow
   l_current_step number;
   l_next_step number;
   l_req_status number;
@@ -10,6 +10,10 @@ create or replace function wf_is_in_workflow(p_employee_code in varchar2, p_emp_
   l_requester_code varchar2(100);
 begin   
     l_is_in_workflow := 0;
+
+    if p_emp_request_id is null or p_employee_code is null then
+        return l_is_in_workflow;
+    end if;
 
     -- get the process_id of the workflow
     select WF_PROCESS_ID, EMPLOYEE_CODE into l_process_id, l_requester_code

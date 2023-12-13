@@ -24,11 +24,11 @@ select
     t2.TOTAL_HOUR_REST_WK,
     t2.TOTAL_HOUR_PUBLIC,
     --eor.MANAGER_CODE,
-    eor.DETAIL_ID,
+    -- eor.DETAIL_ID,
     er.ID as REQUEST_ID
 from
-    EMP_OVERTIME_REQUESTS eor
-    join EMP_REQUESTS er on eor.DETAIL_ID = er.REQUEST_DETAIL_ID
+    EMP_REQUESTS er
+    -- join EMP_REQUESTS er on eor.DETAIL_ID = er.REQUEST_DETAIL_ID
     and er.STATUS <> 1
     join temp_2 t2 on t2.DETAIL_ID = er.REQUEST_DETAIL_ID
     join employees emp on emp.employee_code = er.EMPLOYEE_CODE
