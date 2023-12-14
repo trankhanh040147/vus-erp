@@ -218,29 +218,32 @@ BEGIN
                         DAY_OF_WEEK = wpdd.DAY_OF_WEEK
                     WHERE LINE_REC_ID = wpdd.LINE_REC_ID;
                 ELSE
+                    DBMS_OUTPUT.put_line('start_time: ' || wpdd.START_TIME);
+                    DBMS_OUTPUT.put_line('end_time: ' || wpdd.END_TIME);
+
                     -- Nếu LINE_REC_ID chưa tồn tại, thực hiện INSERT mới
-                    INSERT INTO WORKING_PROFILE_LINES (
-                        PROFILE_ID,
-                        PROFILE_TYPE_ID,
-                        DESCRIPTION,
-                        START_TIME,
-                        END_TIME,
-                        START_DAY,
-                        END_DAY,
-                        DAY_OF_WEEK,
-                        LINE_REC_ID
-                    )
-                    VALUES (
-                        wpdd.PROFILE_ID,
-                        LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
-                        wpdd.DESCRIPTION,
-                        TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
-                        TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
-                        wpdd.START_DAY,
-                        wpdd.END_DAY,
-                        wpdd.DAY_OF_WEEK,
-                        wpdd.LINE_REC_ID
-                    );
+                    -- INSERT INTO WORKING_PROFILE_LINES (
+                    --     PROFILE_ID,
+                    --     PROFILE_TYPE_ID,
+                    --     DESCRIPTION,
+                    --     START_TIME,
+                    --     END_TIME,
+                    --     START_DAY,
+                    --     END_DAY,
+                    --     DAY_OF_WEEK,
+                    --     LINE_REC_ID
+                    -- )
+                    -- VALUES (
+                    --     wpdd.PROFILE_ID,
+                    --     LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
+                    --     wpdd.DESCRIPTION,
+                    --     TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                    --     TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                    --     wpdd.START_DAY,
+                    --     wpdd.END_DAY,
+                    --     wpdd.DAY_OF_WEEK,
+                    --     wpdd.LINE_REC_ID
+                    -- );
                 END IF;
 
                 COMMIT;
@@ -265,7 +268,7 @@ BEGIN
                 JOIN PROFILE_TYPES pt on wpd.PROFILE_TYPE_ID = pt.PROFILE_TYPE_ID
                 WHERE wpd.PROFILE_ID = wp.PROFILE_ID 
                 AND wpd.DAY_OF_WEEK = 2 and wpd.START_DAY = 2 and wpd.END_DAY = 2
-                AND pt.PROFILE_TYPE_ID = 'ot')
+                AND pt.PROFILE_TYPE_GROUP = 'ot')
             THEN 1
             ELSE 0
         END,
@@ -286,7 +289,7 @@ BEGIN
                 JOIN PROFILE_TYPES pt on wpd.PROFILE_TYPE_ID = pt.PROFILE_TYPE_ID 
                 WHERE wpd.PROFILE_ID = wp.PROFILE_ID 
                 AND wpd.DAY_OF_WEEK = 2 and wpd.START_DAY = 2 and wpd.END_DAY =2
-                AND pt.PROFILE_TYPE_ID = 'rush')
+                AND pt.PROFILE_TYPE_GROUP = 'rush')
             THEN 1
             ELSE 0
         END;
