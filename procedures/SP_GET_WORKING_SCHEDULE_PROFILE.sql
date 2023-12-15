@@ -143,3 +143,25 @@ create or replace procedure "SP_GET_WORKING_SCHEDULE_PROFILE"
 
 END;
 /
+
+-- table: WORKING_PROFILE_LINES
+-- PROFILE_ID	NVARCHAR2(25 CHAR)
+-- PROFILE_TYPE_ID	NVARCHAR2(25 CHAR)
+-- START_TIME	NVARCHAR2(20 CHAR)
+-- END_TIME	NVARCHAR2(20 CHAR)
+-- START_DAY	NUMBER
+-- END_DAY	NUMBER
+-- DAY_OF_WEEK	NUMBER
+-- LINE_REC_ID	VARCHAR2(20 CHAR)
+
+-- TestDayOff	standardtime		13:30	23:59	2	2	2	1101
+-- TestDayOff	standardtime		00:00	12:00	2	2	2	1102
+
+-- insert these two rows if don't exist
+insert into WORKING_PROFILE_LINES (PROFILE_ID, PROFILE_TYPE_ID, START_TIME, END_TIME, START_DAY, END_DAY, DAY_OF_WEEK, LINE_REC_ID)
+select 'TestDayOff', 'standardtime', '13:30', '23:59', 2, 2, 2, '1101' from dual
+where not exists (select 1 from WORKING_PROFILE_LINES where PROFILE_ID = 'TestDayOff' and LINE_REC_ID = '1101')
+union all
+select 'TestDayOff', 'standardtime', '00:00', '12:00', 2, 2, 2, '1102' from dual
+where not exists (select 1 from WORKING_PROFILE_LINES where PROFILE_ID = 'TestDayOff' and LINE_REC_ID = '1102')
+/

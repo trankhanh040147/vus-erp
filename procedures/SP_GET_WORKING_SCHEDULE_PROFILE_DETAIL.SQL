@@ -211,8 +211,11 @@ BEGIN
                         PROFILE_ID = wpdd.PROFILE_ID,
                         PROFILE_TYPE_ID = LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
                         DESCRIPTION = wpdd.DESCRIPTION,
-                        START_TIME = TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
-                        END_TIME = TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        -- there is case start_time = 24:00:00 --> 24:00
+                        START_TIME = case when wpdd.START_TIME = '24:00:00' then '24:00' else TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI') end,
+                            --  TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        END_TIME = case when wpdd.END_TIME = '24:00:00' then '24:00' else TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI') end,
+                        -- TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
                         START_DAY = wpdd.START_DAY,
                         END_DAY = wpdd.END_DAY,
                         DAY_OF_WEEK = wpdd.DAY_OF_WEEK
@@ -222,28 +225,30 @@ BEGIN
                     DBMS_OUTPUT.put_line('end_time: ' || wpdd.END_TIME);
 
                     -- Nếu LINE_REC_ID chưa tồn tại, thực hiện INSERT mới
-                    -- INSERT INTO WORKING_PROFILE_LINES (
-                    --     PROFILE_ID,
-                    --     PROFILE_TYPE_ID,
-                    --     DESCRIPTION,
-                    --     START_TIME,
-                    --     END_TIME,
-                    --     START_DAY,
-                    --     END_DAY,
-                    --     DAY_OF_WEEK,
-                    --     LINE_REC_ID
-                    -- )
-                    -- VALUES (
-                    --     wpdd.PROFILE_ID,
-                    --     LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
-                    --     wpdd.DESCRIPTION,
-                    --     TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
-                    --     TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
-                    --     wpdd.START_DAY,
-                    --     wpdd.END_DAY,
-                    --     wpdd.DAY_OF_WEEK,
-                    --     wpdd.LINE_REC_ID
-                    -- );
+                    INSERT INTO WORKING_PROFILE_LINES (
+                        PROFILE_ID,
+                        PROFILE_TYPE_ID,
+                        DESCRIPTION,
+                        START_TIME,
+                        END_TIME,
+                        START_DAY,
+                        END_DAY,
+                        DAY_OF_WEEK,
+                        LINE_REC_ID
+                    )
+                    VALUES (
+                        wpdd.PROFILE_ID,
+                        LOWER(REPLACE(TRIM(wpdd.PROFILE_TYPE_ID), ' ', '')),
+                        wpdd.DESCRIPTION,
+                        case when wpdd.START_TIME = '24:00:00' then '24:00' else TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI') end,
+                        case when wpdd.END_TIME = '24:00:00' then '24:00' else TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI') end,
+                        -- TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.START_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        -- TO_CHAR(TO_TIMESTAMP(REPLACE(TRIM(wpdd.END_TIME), ' ', ''), 'HH:MI:SSPM'), 'HH24:MI'),
+                        wpdd.START_DAY,
+                        wpdd.END_DAY,
+                        wpdd.DAY_OF_WEEK,
+                        wpdd.LINE_REC_ID
+                    );
                 END IF;
 
                 COMMIT;
@@ -295,4 +300,16 @@ BEGIN
         END;
 
 END "SP_GET_WORKING_SCHEDULE_PROFILE_DETAIL";
-/
+
+
+-- {
+--     "ProfileId": "ASA",
+--     "ProfileTypeId": "Standard time",
+--     "Description": "Standard time",
+--     "StartTime": "08:00:00 am",
+--     "EndTime": "02:00:00 pm",
+--     "StartDay": "Monday",
+--     "EndDay": "Monday",
+--     "Day": "Monday",
+--     "ProfileIdLineRecId": 5637150578
+-- },

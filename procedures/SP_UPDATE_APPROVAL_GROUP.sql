@@ -114,6 +114,19 @@ BEGIN
     -- SET approval_groups = approval_group_update
     -- WHERE lower(trim(user_name)) = 'hrtest06@vus-etsc.edu.vn';
 
+    -- remove approval group for specific employees
+    -- remove 'head_of_BOD' from approval_groups for employee with user_name: '%hrtest04%'
+
+    select approval_groups into approval_group_update
+    from employees
+    where lower(trim(user_name)) like '%hrtest04%';
+
+    approval_group_update := replace(approval_group_update, 'head_of_BOD', '');
+
+    UPDATE employees
+    SET approval_groups = approval_group_update
+    WHERE lower(trim(user_name)) like '%hrtest04%';
+
 
     -- Print all employees that have approval_groups
     dbms_output.put_line('Employees that have approval_groups: ');
