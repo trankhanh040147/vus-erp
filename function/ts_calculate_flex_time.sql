@@ -3,7 +3,8 @@ create or replace FUNCTION ts_calculate_flex_time(
     at_out1 IN VARCHAR2,
     at_in2 IN VARCHAR2,
     at_out2 IN VARCHAR2,
-    p_profile_id IN VARCHAR2
+    p_profile_id IN VARCHAR2,
+    p_date IN DATE default null
 ) RETURN NUMBER IS
     start_time_1 DATE;
     end_time_1 DATE;
