@@ -1,9 +1,10 @@
-CREATE OR REPLACE FUNCTION ts_calculate_rush_time(
+create or replace FUNCTION ts_calculate_rush_time(
     at_in1 IN VARCHAR2,
     at_out1 IN VARCHAR2,
     at_in2 IN VARCHAR2,
     at_out2 IN VARCHAR2,
-    p_profile_id IN VARCHAR2
+    p_profile_id IN VARCHAR2,
+    p_date IN DATE default null
 ) RETURN NUMBER IS
     start_time_1 DATE;
     end_time_1 DATE;
@@ -12,6 +13,7 @@ CREATE OR REPLACE FUNCTION ts_calculate_rush_time(
     loop_rush_time_start DATE;
     loop_rush_time_end DATE;
     total_rush_time NUMBER(5,2) := 0;
+    is_public_holiday NUMBER(1,0) := 0;
 
     -- Get Rush time of the profile
     CURSOR c_rush_times IS
@@ -27,6 +29,23 @@ BEGIN
     end_time_1 := to_date_hh24mi(at_out1);
     start_time_2 := to_date_hh24mi(at_in2);
     end_time_2 := to_date_hh24mi(at_out2);
+
+    -- If the date is not null
+    IF p_date IS NOT NULL THEN
+        -- check if the date is public holiday
+        -- if the mm/dd is in column PH_DATE of table PUBLIC_HOLIDAYS, then it is public holiday
+        -- Case: PH_DATE = 12/25/2023, PH_DATE is 12/25/2020. Then it is public holiday
+        SELECT COUNT(*) INTO is_public_holiday
+        FROM PUBLIC_HOLIDAYS
+        WHERE TO_CHAR(PH_DATE, 'MMDD') = TO_CHAR(p_date, 'MMDD');
+    
+        IF is_public_holiday > 0 THEN
+            -- total time = end_time - start_time
+            DBMS_OUTPUT.PUT_LINE('Public holiday');
+            RETURN 0; 
+            -- RETURN (end_time_1 - start_time_1) * 24 + (end_time_2 - start_time_2) * 24;
+        END IF;
+    END IF;
 
     -- Calculate total times overlapped with Rush time
     -- Loop through each rush time and calculate the overlap
@@ -54,3 +73,4 @@ END;
 -- BEGIN
 --     DBMS_OUTPUT.PUT_LINE(ts_calculate_rush_time('04:00', '05:30', '20:00', '21:00', 'TestTS-R'));
 -- END;
+/

@@ -3,7 +3,8 @@ CREATE OR REPLACE FUNCTION ts_calculate_standard_hours(
     at_out1 IN VARCHAR2,
     at_in2 IN VARCHAR2,
     at_out2 IN VARCHAR2,
-    p_profile_id IN VARCHAR2
+    p_profile_id IN VARCHAR2,
+    p_date IN DATE default null
 ) RETURN NUMBER IS
     in1 DATE;
     out1 DATE;
@@ -13,12 +14,30 @@ CREATE OR REPLACE FUNCTION ts_calculate_standard_hours(
     total_flex NUMBER(5,2) := 0;
     overlap_flex NUMBER(5,2) := 0;
     total_standard NUMBER(5,2) := 0;
+    is_public_holiday NUMBER(1,0) := 0;
 
 BEGIN
     in1 := to_date_hh24mi(at_in1);
     out1 := to_date_hh24mi(at_out1);
     in2 := to_date_hh24mi(at_in2);
     out2 := to_date_hh24mi(at_out2);
+
+    -- If the date is not null
+    IF p_date IS NOT NULL THEN
+        -- check if the date is public holiday
+        -- if the mm/dd is in column PH_DATE of table PUBLIC_HOLIDAYS, then it is public holiday
+        -- Case: PH_DATE = 12/25/2023, PH_DATE is 12/25/2020. Then it is public holiday
+        SELECT COUNT(*) INTO is_public_holiday
+        FROM PUBLIC_HOLIDAYS
+        WHERE TO_CHAR(PH_DATE, 'MMDD') = TO_CHAR(p_date, 'MMDD');
+    
+        IF is_public_holiday > 0 THEN
+            -- total time = end_time - start_time
+            DBMS_OUTPUT.PUT_LINE('Public holiday');
+            RETURN 0; 
+            -- RETURN (end_time_1 - start_time_1) * 24 + (end_time_2 - start_time_2) * 24;
+        END IF;
+    END IF;
 
 
     FOR r_flex IN (SELECT TO_DATE(START_TIME, 'HH24:MI') AS flex_start, 

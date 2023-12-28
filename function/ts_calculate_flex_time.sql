@@ -16,6 +16,7 @@ create or replace FUNCTION ts_calculate_flex_time(
     total_flex_time NUMBER(5,2) := 0;
     standard_start DATE;
     standard_end DATE;
+    is_public_holiday NUMBER(1,0) := 0;
 
     -- Get Flex time of the profile
     CURSOR c_flex_times IS
@@ -32,11 +33,28 @@ create or replace FUNCTION ts_calculate_flex_time(
         WHERE PROFILE_TYPE_ID LIKE '%standardtime%'
         AND PROFILE_ID = p_profile_id;
 BEGIN
+
     -- Convert the time strings to DATE data type
     start_time_1 := to_date_hh24mi(at_in1);
     end_time_1 := to_date_hh24mi(at_out1);
     start_time_2 := to_date_hh24mi(at_in2);
     end_time_2 := to_date_hh24mi(at_out2);
+
+    -- If the date is not null
+    IF p_date IS NOT NULL THEN
+        -- check if the date is public holiday
+        -- if the mm/dd is in column PH_DATE of table PUBLIC_HOLIDAYS, then it is public holiday
+        -- Case: PH_DATE = 12/25/2023, PH_DATE is 12/25/2020. Then it is public holiday
+        SELECT COUNT(*) INTO is_public_holiday
+        FROM PUBLIC_HOLIDAYS
+        WHERE TO_CHAR(PH_DATE, 'MMDD') = TO_CHAR(p_date, 'MMDD');
+    
+        IF is_public_holiday > 0 THEN
+            -- total time = end_time - start_time
+            DBMS_OUTPUT.PUT_LINE('Public holiday');
+            RETURN 0;
+        END IF;
+    END IF;
 
     -- Calculate total times overlapped with Flex time
     -- Loop through each flex time and calculate the overlap
@@ -88,4 +106,9 @@ END;
 
 -- test cases
 -- SELECT ts_calculate_flex_time('08:00', '16:00', '08:00', '16:00', 'TestTS-OT') FROM DUAL;
+-- select ts_calculate_flex_time('08:00', '16:00', '08:00', '16:00', 'TestTS-OT', to_date('2020-12-25', 'yyyy-mm-dd')) from dual;
+-- begin
+--     dbms_output.put_line(ts_calculate_flex_time('08:00', '16:00', '08:00', '16:00', 'TestTS-OT', to_date('2020-12-25', 'yyyy-mm-dd')));
+-- end;
+--;
 /
