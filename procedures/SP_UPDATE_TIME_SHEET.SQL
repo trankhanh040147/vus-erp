@@ -73,7 +73,10 @@ BEGIN
     DBMS_OUTPUT.put_line(l_body);
 
     
-    -- 
+    -- set o_status to 1 if the API call is successful
+    o_status := 0;
+
+    -- Make the API call 
     l_response := apex_web_service.make_rest_request(
         p_url => global_vars.get_resource_url || '/api/services/VUSTC_TimSheetServiceGroup/TimeSheetService/UpdateTimeSheet',
         p_http_method => 'POST',
@@ -81,10 +84,60 @@ BEGIN
         p_transfer_timeout => 3600
     );
 
+    -- print the response 
     DBMS_OUTPUT.put_line(l_response);
+    DBMS_OUTPUT.put_line('response: ');
 
+    -- parse the response
     APEX_JSON.parse(l_response);
 
+    -- check if the response is successful
+    -- response rule: if TotalRows > 0 then success, otherwise failure check <RESPONSE> sample down below
+    IF APEX_JSON.get_varchar2(p_path => 'TotalRows') > 0 THEN
+        o_status := 1;
+    END IF;
+    
+    DBMS_OUTPUT.put_line(''); -- empty line
+    DBMS_OUTPUT.put_line('o_status: ');
+    DBMS_OUTPUT.put_line(o_status);
+
+    -- write API response log into OUTPUT_LOGS table
+    INSERT INTO LOGS_API_RESPONSE (
+        API_ENDPOINT,
+        REQUEST_HEADERS,
+        REQUEST_BODY,
+        RESPONSE_CODE,
+        RESPONSE_BODY,
+        CALL_TIMESTAMP,
+        NOTE
+    ) VALUES (
+        'UpdateTimeSheet', -- Endpoint you just called
+        apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
+        l_body, -- The request body you sent
+        apex_web_service.g_status_code, -- Response status code
+        l_response, -- The response body you received
+        SYSDATE, -- The current timestamp
+        'header_id=' || p_ts_header_id || 'worker=' || n_worker || ' profile=' || n_profile || ' profile_date=' || TO_CHAR(n_profile_date, 'MM-DD-YYYY') || ' status=' || o_status -- Any additional notes
+    );
 
 END;
-/
+
+    -- <RESPONSE> sample:
+    -- {
+    --     "LegalEntityID": "V01",
+    --     "StatusDescription": "",
+    --     "TotalRows": 0,
+    --     "FromDate": "1900-01-01T12:00:00",
+    --     "ToDate": "1900-01-01T12:00:00",
+    --     "TimeSheetHeader": [
+    --         {
+    --             "ProfileDate": "",
+    --             "Profile": "",
+    --             "Worker": 0,
+    --             "TimeSheetHeaderRecId": 0,
+    --             "StatusUpdated": 0,
+    --             "Description Update": "",
+    --             "TimeSheetLine": null
+    --         }
+    --     ]
+    -- }
