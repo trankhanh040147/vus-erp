@@ -18,6 +18,8 @@
 
 declare
     o_status number;
+    v_start_time NUMBER;
+    v_end_time NUMBER;
 begin
     if trim(:P33_EMPLOYEE_NAME) = 'all' then    -- case when select all employee
 
@@ -25,6 +27,12 @@ begin
         for rec in (select TS_HEADER_ID from P_TIME_SHEET where STATUS = 12 and DATE_TS BETWEEN :P33_DATE_FROM AND :P33_DATE_TO)
         loop
             SP_UPDATE_TIME_SHEET(rec.TS_HEADER_ID, o_status);
+
+            v_start_time := DBMS_UTILITY.GET_TIME;  -- Current time in 1/100ths of a second
+            LOOP
+                v_end_time := DBMS_UTILITY.GET_TIME;
+                EXIT WHEN (v_end_time - v_start_time) > (2 * 100);  -- 5 seconds
+            END LOOP;
 
             -- update status of P_TIME_SHEET
             if o_status = 1 then -- Send API successfully
@@ -45,6 +53,12 @@ begin
         loop
             SP_UPDATE_TIME_SHEET(rec.TS_HEADER_ID, o_status);
 
+            v_start_time := DBMS_UTILITY.GET_TIME;  -- Current time in 1/100ths of a second
+            LOOP
+                v_end_time := DBMS_UTILITY.GET_TIME;
+                EXIT WHEN (v_end_time - v_start_time) > (2 * 100);  -- 5 seconds
+            END LOOP;
+
             -- update status of P_TIME_SHEET
             if o_status = 1 then -- Send API successfully
                 UPDATE P_TIME_SHEET 
@@ -57,7 +71,7 @@ begin
         -- write log
         INSERT INTO OUTPUT_LOGS (DATE1, STR1, STR2, STR3)
         VALUES (sysdate, 'TIMESHEET: SEND_TO_D365', :P33_EMPLOYEE_NAME, 'From: ' || :P33_DATE_FROM || ' To: ' || :P33_DATE_TO);
-    end if;     
+    end if; 
 
     commit;
 end;
