@@ -1,6 +1,6 @@
 create or replace PROCEDURE SP_UPDATE_TIME_SHEET(
     p_ts_header_id NUMBER,
-    o_status NUMBER default null -- API request status    
+    o_status OUT NUMBER -- API request status    
 ) IS
     l_token_type NVARCHAR2(2000);
     l_body NVARCHAR2(4000); -- increased size
@@ -85,8 +85,8 @@ BEGIN
     );
 
     -- print the response 
-    DBMS_OUTPUT.put_line(l_response);
     DBMS_OUTPUT.put_line('response: ');
+    DBMS_OUTPUT.put_line(l_response);
 
     -- parse the response
     APEX_JSON.parse(l_response);
@@ -109,6 +109,7 @@ BEGIN
         RESPONSE_CODE,
         RESPONSE_BODY,
         CALL_TIMESTAMP,
+        RESPONSE_STATUS,
         NOTE
     ) VALUES (
         'UpdateTimeSheet', -- Endpoint you just called
@@ -116,7 +117,8 @@ BEGIN
         l_body, -- The request body you sent
         apex_web_service.g_status_code, -- Response status code
         l_response, -- The response body you received
-        SYSDATE, -- The current timestamp
+        SYSDATE, -- The current timestamp,
+        o_status, -- 1 if successful, 0 if failed
         'header_id=' || p_ts_header_id || 'worker=' || n_worker || ' profile=' || n_profile || ' profile_date=' || TO_CHAR(n_profile_date, 'MM-DD-YYYY') || ' status=' || o_status -- Any additional notes
     );
 
@@ -141,3 +143,13 @@ END;
     --         }
     --     ]
     -- }
+
+
+-- call the procedure to test
+-- DECLARE
+--     o_status NUMBER;
+-- BEGIN
+--     -- SP_UPDATE_TIME_SHEET(5637210577, o_status);
+--     SP_UPDATE_TIME_SHEET_TESTING(5637210577, o_status);
+-- END;
+/

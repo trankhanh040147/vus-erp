@@ -7,10 +7,11 @@
 		-- 7	Sent to D365	11	-	-
 		-- 8	Transferred	9	-	-
 declare
-    v_start_time NUMBER;
-    v_end_time NUMBER;
+   v_start_time NUMBER;
+   v_end_time NUMBER;
    header_id nvarchar2(50);
    total_header_id_eligible NUMBER;
+   o_status NUMBER;
 begin
 
   for rec in (select regexp_substr (
@@ -26,18 +27,26 @@ begin
 
         -- output 
         DBMS_OUTPUT.PUT_LINE('rec.value: ' || rec.value);
-        DBMS_OUTPUT.PUT_LINE('header_id: ' || header_id);
-        DBMS_OUTPUT.PUT_LINE('total_header_id_eligible: ' || total_header_id_eligible);
+        -- DBMS_OUTPUT.PUT_LINE('header_id: ' || header_id);
+        -- DBMS_OUTPUT.PUT_LINE('total_header_id_eligible: ' || total_header_id_eligible);
         
-        update P_TIME_SHEET set STATUS = 11 where id = rec.value and STATUS in (12) and rownum = 1;
+        SELECT TS_HEADER_ID INTO header_id FROM P_TIME_SHEET where id = to_number(rec.value) and STATUS in (12) and rownum = 1;
+        SP_UPDATE_TIME_SHEET(header_id, o_status);
+        -- update P_TIME_SHEET set STATUS = 11 where id = rec.value and STATUS in (12) and rownum = 1;
+        
+        if o_status = 1 then
+            update P_TIME_SHEET set STATUS = 11 where TS_HEADER_ID = header_id;
+        else 
+            -- raise error
+            raise_application_error(-20001, 'Send time sheet to D365 failed, check log for details');
+        end if;
 
-        SELECT TS_HEADER_ID INTO header_id FROM P_TIME_SHEET where id = rec.value and STATUS in (11) and rownum = 1;
-        -- SELECT TS_HEADER_ID INTO header_id FROM P_TIME_SHEET WHERE ID = rec.value;
         -- SELECT COUNT(*) into total_header_id_eligible FROM P_TIME_SHEET where STATUS in (12) and TS_HEADER_ID = header_id;
+
 
         -- SP_UPDATE_TIME_SHEET
         -- IF total_header_id_eligible > 0 THEN
-            SP_UPDATE_TIME_SHEET(header_id);
+            -- SP_UPDATE_TIME_SHEET(header_id);
         -- END IF;
 
         v_start_time := DBMS_UTILITY.GET_TIME;  -- Current time in 1/100ths of a second
@@ -46,8 +55,7 @@ begin
             EXIT WHEN (v_end_time - v_start_time) > (3 * 100);  -- 5 seconds
         END LOOP;
 
-    end loop;   
+    end loop;
+
 
     end;
-           
--- SELECT * FROM  P_TIME_SHEET  where id = rec.value and STATUS in (12) and rownum = 1;
