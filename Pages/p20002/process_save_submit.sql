@@ -117,7 +117,7 @@ begin
         )
         returning ID into scholarship_request_id;
 
-    -- Insert into EMP_REQUEST
+    -- Insert into EMP_REQUESTS
     FOR REC IN (
         SELECT
             WF_FEATURE_APPLY,
@@ -129,7 +129,7 @@ begin
             lower(WF_FEATURE_APPLY) = lower(:P20002_FEATURE) 
             AND WF_EXPIRATION_DATE >= SYSDATE
             -- AND ROWNUM = 1      -- do hiện tại đang có 2 workflow áp dụng mà ko phân biệt được (nếu đúng là phải phân biệt bằng 'condition' nhưng chưa làm đc)
-        -- get the workflow have most conditions that match with the request
+        -- The purpose of this code is to prioritize the WF_PROCESS_IDs based on total rows WORKFLOW_CONDITIONS table.
         ORDER BY (select count(*) from WORKFLOW_CONDITIONS wc where wc.WF_PROCESS_ID = wf.WF_PROCESS_ID) desc
     )LOOP        
         if WF_CHECK_CONDITIONS(scholarship_request_id, rec.WF_PROCESS_ID) = 1 THEN
@@ -164,12 +164,13 @@ begin
         end if;
     END LOOP; 
 
--- trường hợp đơn dành cho đối tác giám đốc
-    if :P20002_SCHOLARSHIP_RECIPIENT = 'D' then
-        UPDATE EMP_REQUESTS
-        SET WF_PROCESS_ID = 'WORKFLOW2023-010'
-        WHERE REQUEST_DETAIL_ID = scholarship_request_id and lower(REQUEST_TYPE) = lower(:P20002_FEATURE);
-    end if;
+    -- [UPDATE] - 01/11/2023: comment codes below 
+    -- trường hợp đơn dành cho đối tác giám đốc
+    -- if :P20002_SCHOLARSHIP_RECIPIENT = 'D' then
+    --     UPDATE EMP_REQUESTS
+    --     SET WF_PROCESS_ID = 'WORKFLOW2023-010'
+    --     WHERE REQUEST_DETAIL_ID = scholarship_request_id and lower(REQUEST_TYPE) = lower(:P20002_FEATURE);
+    -- end if;
 
     -- Get emp_requests_id
     select ID
