@@ -1,0 +1,181 @@
+//UPDATE - body
+{
+    "_jsonRequest":{
+        "LegalEntityID": "V01",
+        "TimeSheetHeader":[
+            {
+                "ProfileDate": "9-12-2023", //MM-dd-YYYY
+                "Profile": "thu test",
+                "Worker": 5637182862,
+                "TimeSheetLine":[
+                {
+                    "TimeSheetLineRecId": 5637188826,
+                    "RegType": "Clock in",
+                    "JobRef": "System",
+                    "JobId": "",
+                    "StartTime": "7:00:00 AM",
+                    "EndTime": "7:00:00 AM"
+                },
+                {
+                    "TimeSheetLineRecId": 5637187327,
+                    "RegType": "Clock out",
+                    "JobRef": "System",
+                    "JobId": "",
+                    "StartTime": "6:00:00 pm",
+                    "EndTime": "6:00:00 pm"
+                }
+            ]
+            },
+            {
+                "ProfileDate": "08-26-2023",
+                "Profile": "Office 2",
+                "Worker":5637182862,
+                "TimeSheetLine":[]
+            }
+        ]
+    }
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+{
+    "ProfileDate": "11-24-2023",
+    "Profile": "Office 1",
+    "Worker": 5637182863,
+    "TimeSheetHeaderRecId": 5637233830,
+    "Calculated": 1,
+    "Approved": 0,
+    "Transferred": 0,
+    "SpecialDayId": "",
+    "ProfilePaidHours": "08.50",
+    "PayTime": "08.50",
+    "PayOvertime": "00.00",
+    "Absencetime": "02.00",
+    "Flex+": "00.00",
+    "Flex-": "02.00",
+    "ProfileStartTime": "08:00:00 am",
+    "ProfileEndTime": "06:00:00 pm",
+    "WorkStartDate": "2023-11-24T12:00:00",
+    "WorkEndDate": "2023-11-24T12:00:00",
+    "WorkStart": "02:00:00 am",
+    "WorkEnd": "04:00:00 pm",
+    "WorkTime": "06.50",
+    "PayStart": "2023-11-24T12:00:00",
+    "PayEnd": "2023-11-24T12:00:00",
+    "StartTime": "02:00:00 am",
+    "EndTime": "04:00:00 pm",
+    "LegalAbsence": "02.00",
+    "IllegalAbsence": "00.00",
+    "PaidBreakTime": "00.00",
+    "NonPaidBreakTime": "01.50",
+    "TotalBreakTime": "01.50",
+    "TimeSheetLine": [
+        {
+            "TimeSheetLineRecId": 5637218136,
+            "RegType": "Clock in",
+            "JobRef": "System",
+            "JobId": "V01-001181",
+            "StartTime": "02:00:00 am",
+            "EndTime": "02:00:00 am",
+            "Description": "Clock in",
+            "TransId": "1",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637218176,
+            "RegType": "Indirect activity",
+            "JobRef": "System",
+            "JobId": "V01-001187",
+            "StartTime": "02:00:00 am",
+            "EndTime": "04:00:00 pm",
+            "Description": "Waiting job",
+            "TransId": "4",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637218137,
+            "RegType": "Clock out",
+            "JobRef": "System",
+            "JobId": "V01-001182",
+            "StartTime": "04:00:00 pm",
+            "EndTime": "04:00:00 pm",
+            "Description": "Clock out",
+            "TransId": "3",
+            "Time": "00.00"
+        },
+        {
+            "TimeSheetLineRecId": 5637218828,
+            "RegType": "Absence",
+            "JobRef": "Flex",
+            "JobId": "V01-001249",
+            "StartTime": "04:00:00 pm",
+            "EndTime": "06:00:00 pm",
+            "Description": "Flex time",
+            "TransId": "5",
+            "Time": "00.00"
+        }
+    ]
+}
+
+--> Turn this data to body like format above
+
+
+{
+    "_jsonRequest":{
+        "LegalEntityID": "V01",
+        "TimeSheetHeader":[
+            {
+                "ProfileDate": "11-24-2023", //MM-dd-YYYY
+                "Profile": "Office 1",
+                "Worker": 5637182863,
+                "TimeSheetLine":[
+                {
+                    "TimeSheetLineRecId": 5637218136,
+                    "RegType": "Clock in",
+                    "JobRef": "System",
+                    "JobId": "V01-001181",
+                    "StartTime": "02:00:00 am",
+                    "EndTime": "02:00:00 am",
+                    "Description": "Clock in",
+                    "TransId": "1",
+                    "Time": "00.00"
+                },
+                {
+                    "TimeSheetLineRecId": 5637218176,
+                    "RegType": "Indirect activity",
+                    "JobRef": "System",
+                    "JobId": "V01-001187",
+                    "StartTime": "02:00:00 am",
+                    "EndTime": "04:00:00 pm",
+                    "Description": "Waiting job",
+                    "TransId": "4",
+                    "Time": "00.00"
+                },
+                {
+                    "TimeSheetLineRecId": 5637218137,
+                    "RegType": "Clock out",
+                    "JobRef": "System",
+                    "JobId": "V01-001182",
+                    "StartTime": "04:00:00 pm",
+                    "EndTime": "04:00:00 pm",
+                    "Description": "Clock out",
+                    "TransId": "3",
+                    "Time": "00.00"
+                },
+                {
+                    "TimeSheetLineRecId": 5637218828,
+                    "RegType": "Absence",
+                    "JobRef": "Flex",
+                    "JobId": "V01-001249",
+                    "StartTime": "04:00:00 pm",
+                    "EndTime": "06:00:00 pm",
+                    "Description": "Flex time",
+                    "TransId": "5",
+                    "Time": "00.00"
+                }
+            ]
+            }
+        ]
+    }
+}

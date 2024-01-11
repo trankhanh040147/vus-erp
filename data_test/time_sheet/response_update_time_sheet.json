@@ -1,0 +1,23 @@
+//UPDATE - response
+
+// case: Update fail, total rows = 0
+{
+    "LegalEntityID": "V01",
+    "StatusDescription": "",
+    "TotalRows": 0,
+    "FromDate": "1900-01-01T12:00:00",
+    "ToDate": "1900-01-01T12:00:00",
+    "TimeSheetHeader": [
+        {
+            "ProfileDate": "",
+            "Profile": "",
+            "Worker": 0,
+            "TimeSheetHeaderRecId": 0,
+            "StatusUpdated": 0,
+            "Description Update": "",
+            "TimeSheetLine": null
+        }
+    ]
+}
+
+// case: Update successfully
