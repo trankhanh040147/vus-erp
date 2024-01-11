@@ -123,40 +123,46 @@ begin
             WF_FEATURE_APPLY,
             WF_PROCESS_ID
         FROM
-            WORKFLOW
+            WORKFLOW wf
         WHERE
             -- WF_FEATURE_APPLY = :P20002_FEATURE
             lower(WF_FEATURE_APPLY) = lower(:P20002_FEATURE) 
             AND WF_EXPIRATION_DATE >= SYSDATE
-            AND ROWNUM = 1      -- do hiện tại đang có 2 workflow áp dụng mà ko phân biệt được (nếu đúng là phải phân biệt bằng 'condition' nhưng chưa làm đc)
-        ORDER BY ID
-    )LOOP
-        INSERT INTO EMP_REQUESTS(
-            REQUEST_TYPE,
-            SUBMIT_DATE,
-            EMPLOYEE_CODE,
-            STATUS,
-            NOTE,
-            CREATE_DATE,
-            REQUEST_DETAIL_ID,
-            WF_PROCESS_ID,
-            LINE_MANAGER
-        ) VALUES(
-            REC.WF_FEATURE_APPLY,
-            SYSDATE,
-            :APP_EMP_CODE,
-            2,
-            -- :P20002_NOTE,
-            CASE 
-                WHEN :P20002_SCHOLARSHIP_RECIPIENT = 'A' OR :P20002_SCHOLARSHIP_RECIPIENT = 'B' THEN :P20002_NOTE
-                ELSE :P20002_REASON_REQUEST
-            END,
-            SYSDATE,
-            scholarship_request_id,
-            REC.WF_PROCESS_ID,
-            line_manager_code
-        );
-    END LOOP;
+            -- AND ROWNUM = 1      -- do hiện tại đang có 2 workflow áp dụng mà ko phân biệt được (nếu đúng là phải phân biệt bằng 'condition' nhưng chưa làm đc)
+        -- get the workflow have most conditions that match with the request
+        ORDER BY (select count(*) from WORKFLOW_CONDITIONS wc where wc.WF_PROCESS_ID = wf.WF_PROCESS_ID) desc
+    )LOOP        
+        if WF_CHECK_CONDITIONS(scholarship_request_id, rec.WF_PROCESS_ID) = 1 THEN
+            -- DBMS_OUTPUT.put_line(rec.WF_PROCESS_ID);
+            INSERT INTO EMP_REQUESTS(
+                REQUEST_TYPE,
+                SUBMIT_DATE,
+                EMPLOYEE_CODE,
+                STATUS,
+                NOTE,
+                CREATE_DATE,
+                REQUEST_DETAIL_ID,
+                WF_PROCESS_ID,
+                LINE_MANAGER
+            ) VALUES(
+                REC.WF_FEATURE_APPLY,
+                SYSDATE,
+                :APP_EMP_CODE,
+                2,
+                -- :P20002_NOTE,
+                CASE 
+                    WHEN :P20002_SCHOLARSHIP_RECIPIENT = 'A' OR :P20002_SCHOLARSHIP_RECIPIENT = 'B' THEN :P20002_NOTE
+                    ELSE :P20002_REASON_REQUEST
+                END,
+                SYSDATE,
+                scholarship_request_id,
+                REC.WF_PROCESS_ID,  
+                line_manager_code
+            );
+
+            exit;
+        end if;
+    END LOOP; 
 
 -- trường hợp đơn dành cho đối tác giám đốc
     if :P20002_SCHOLARSHIP_RECIPIENT = 'D' then
