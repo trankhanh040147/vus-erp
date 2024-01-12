@@ -158,3 +158,4 @@ end;
 --     l_is_in_workflow := wf_is_in_workflow('0000000001', '1');
 --     dbms_output.put_line('is_in_workflow: ' || l_is_in_workflow);
 -- end;
+/
