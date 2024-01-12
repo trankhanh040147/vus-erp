@@ -8,6 +8,7 @@ create or replace function wf_is_in_workflow(p_employee_code in varchar2, p_emp_
   l_wa_group varchar2(200);
   l_wa_user varchar2(100);
   l_requester_code varchar2(100);
+  l_requester_department varchar2(100);
 begin   
     l_is_in_workflow := 0;
 
@@ -15,10 +16,17 @@ begin
         return l_is_in_workflow;
     end if;
 
+
     -- get the process_id of the workflow
     select WF_PROCESS_ID, EMPLOYEE_CODE into l_process_id, l_requester_code
     from emp_requests
     where id = p_emp_request_id;
+
+    -- get employee data
+    select GET_DEPARTMENT_ID(DEPARTMENT_ID) 
+    from EMPLOYEES
+    into l_requester_department
+    where EMPLOYEE_CODE = l_requester_code;
 
     -- loop through the workflow_approval table to get all wa_group and wa_user
     for wa in (select wa_sequence_number, wa_group, wa_user
@@ -45,6 +53,12 @@ begin
             where  EMPLOYEE_CODE = p_employee_code
             and IS_HR_ADMIN = 1;
             dbms_output.put_line('hr_admin: ' || l_is_in_workflow);
+        elsif wa.wa_group = 'head_of_department' then
+            select count(*) into l_is_in_workflow
+            from EMPLOYEES
+            where  EMPLOYEE_CODE = p_employee_code
+            and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' + l_requester_department)) = 1
+            dbms_output.put_line('head_of_department: ' || l_is_in_workflow);
         elsif wa.wa_group = 'user' then
             select count(*) into l_is_in_workflow
             from EMPLOYEES
