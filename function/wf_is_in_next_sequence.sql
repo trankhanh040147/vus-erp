@@ -32,9 +32,12 @@ begin
 
     -- get employee data
     select GET_DEPARTMENT_ID(DEPARTMENT_ID) 
-    from EMPLOYEES
     into l_requester_department
+    from EMPLOYEES
     where EMPLOYEE_CODE = l_requester_code;
+
+    -- dbms_output.put_line('department: ' || l_requester_department);
+
 
     -- get the group and user of the next step
     -- [TODO] deal with multiple wa_sequence_number = l_next_step
@@ -69,7 +72,7 @@ begin
         select count(*) into l_is_in_next_sequence
         from EMPLOYEES
         where  EMPLOYEE_CODE = p_employee_code
-        and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' + l_requester_department)) = 1
+        and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' || l_requester_department)) = 1;
         dbms_output.put_line('head_of_department: ' || l_is_in_next_sequence);
     else
         select count(*) into l_is_in_next_sequence

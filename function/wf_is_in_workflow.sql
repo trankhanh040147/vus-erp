@@ -24,8 +24,8 @@ begin
 
     -- get employee data
     select GET_DEPARTMENT_ID(DEPARTMENT_ID) 
-    from EMPLOYEES
     into l_requester_department
+    from EMPLOYEES
     where EMPLOYEE_CODE = l_requester_code;
 
     -- loop through the workflow_approval table to get all wa_group and wa_user
@@ -57,7 +57,8 @@ begin
             select count(*) into l_is_in_workflow
             from EMPLOYEES
             where  EMPLOYEE_CODE = p_employee_code
-            and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' + l_requester_department)) = 1
+            and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' || l_requester_department)) = 1;
+            -- dbms_output.put_line('head_of_department: ' || lower('head_of_' || l_requester_department));
             dbms_output.put_line('head_of_department: ' || l_is_in_workflow);
         elsif wa.wa_group = 'user' then
             select count(*) into l_is_in_workflow
