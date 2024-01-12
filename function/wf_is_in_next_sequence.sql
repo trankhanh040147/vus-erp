@@ -8,6 +8,7 @@ create or replace function wf_is_in_next_sequence(p_employee_code in varchar2, p
   l_wa_group varchar2(200);
   l_wa_user varchar2(100);
   l_requester_code varchar2(100);
+  l_requester_department varchar2(100);
 begin   
     l_is_in_next_sequence := 0;
 
@@ -28,6 +29,12 @@ begin
     select current_step, next_step, WF_PROCESS_ID, EMPLOYEE_CODE into l_current_step, l_next_step, l_process_id, l_requester_code
     from emp_requests
     where id = p_emp_request_id;
+
+    -- get employee data
+    select GET_DEPARTMENT_ID(DEPARTMENT_ID) 
+    from EMPLOYEES
+    into l_requester_department
+    where EMPLOYEE_CODE = l_requester_code;
 
     -- get the group and user of the next step
     -- [TODO] deal with multiple wa_sequence_number = l_next_step
@@ -58,6 +65,12 @@ begin
         from EMPLOYEES
         where  EMPLOYEE_CODE = p_employee_code
         and trim(lower(USER_NAME)) = trim(lower(l_wa_user));    
+    elsif l_wa_group = 'head_of_department' then
+        select count(*) into l_is_in_next_sequence
+        from EMPLOYEES
+        where  EMPLOYEE_CODE = p_employee_code
+        and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' + l_requester_department)) = 1
+        dbms_output.put_line('head_of_department: ' || l_is_in_next_sequence);
     else
         select count(*) into l_is_in_next_sequence
         from EMPLOYEES e
