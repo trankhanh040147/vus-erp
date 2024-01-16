@@ -1,43 +1,3 @@
--- table: EMP_REQUESTS
--- ID	NUMBER(10,0)
--- REQUEST_TYPE	NVARCHAR2(100 CHAR)
--- SUBMIT_DATE	DATE
--- EMPLOYEE_CODE	NVARCHAR2(200 CHAR)
--- STATUS	NUMBER(2,0)
--- NOTE	NVARCHAR2(2000 CHAR)
--- MODIFIED_BY_CODE	NVARCHAR2(500 CHAR)
--- MODIFIED_DATE	DATE
--- REQUEST_DETAIL_ID	NUMBER(10,0)
--- WF_PROCESS_ID	NVARCHAR2(500 CHAR)
--- LINE_MANAGER	NVARCHAR2(100 CHAR)
--- CURRENT_STEP	NUMBER(5,0)
--- CREATE_DATE	DATE
--- NEXT_STEP	NUMBER(5,0)
-
--- table: WORKFLOW
--- ID	NUMBER(10,0)
--- WF_PROCESS_ID	NVARCHAR2(100 CHAR)
--- WF_NAME	NVARCHAR2(100 CHAR)
--- WF_DESCRIPTION	NVARCHAR2(200 CHAR)
--- WF_FEATURE_APPLY	NVARCHAR2(100 CHAR)
--- WF_CONDITIONAL_ID	NUMBER
--- WF_EFFECTIVE_DATE	DATE
--- WF_EXPIRATION_DATE	DATE
--- WF_MODIFIER_CODE	NVARCHAR2(50 CHAR)
--- WF_PAGE_APPLY	NUMBER(5,0)
-
--- table: WORKFLOW_APPROVAL
--- WF_PROCESS_ID	NVARCHAR2(100 CHAR)
--- WA_ID	NUMBER(5,0)
--- WA_SEQUENCE_NUMBER	NUMBER(5,0) -- step
--- WA_GROUP	NVARCHAR2(200 CHAR)
-
--- table: EMPLOYEES
--- ID	NUMBER(10,0)
--- EMPLOYEE_CODE	NVARCHAR2(100 CHAR)
--- APPROVAL_GROUP	NVARCHAR2(50 CHAR)
-
-
 create or replace FUNCTION get_manager_next_sequence (
     p_emp_request_id IN NUMBER
 ) RETURN NVARCHAR2
@@ -65,11 +25,11 @@ begin
     where ID = p_emp_request_id;
 
     -- get row in WORKFLOW_APPROVAL base on current step
-    select WA_SEQUENCE_NUMBER, WA_GROUP
-    into v_wa_sequence_number, v_wa_group
-    from WORKFLOW_APPROVAL
-    where WF_PROCESS_ID = v_process_id
-    and WA_SEQUENCE_NUMBER = v_current_step;
+    -- select WA_SEQUENCE_NUMBER, WA_GROUP
+    -- into v_wa_sequence_number, v_wa_group
+    -- from WORKFLOW_APPROVAL
+    -- where WF_PROCESS_ID = v_process_id
+    -- and WA_SEQUENCE_NUMBER = v_current_step;
 
     -- get next step in WORKFLOW_APPROVAL (return -1 when no data found: select coallesce)
     select coalesce(min(WA_SEQUENCE_NUMBER), -1)      
@@ -79,12 +39,22 @@ begin
     and WA_SEQUENCE_NUMBER > v_current_step;
 
     if v_next_step != -1 then
-        -- get row in WORKFLOW_APPROVAL base on next step
-        select WA_GROUP
-        into v_wa_group_next_step
-        from WORKFLOW_APPROVAL
-        where WF_PROCESS_ID = v_process_id
-        and WA_SEQUENCE_NUMBER = v_next_step;
+        -- v_next_step = 1: trường hợp này đang là line manager => cần cộng thêm 1 để chạy trường hợp tiếp theo
+        if v_next_step = 1 then
+            v_next_step := v_next_step + 1;
+            -- get row in WORKFLOW_APPROVAL base on next step
+            select WA_GROUP
+            into v_wa_group_next_step
+            from WORKFLOW_APPROVAL
+            where WF_PROCESS_ID = v_process_id
+            and WA_SEQUENCE_NUMBER = v_next_step;
+        else
+            select WA_GROUP
+            into v_wa_group_next_step
+            from WORKFLOW_APPROVAL
+            where WF_PROCESS_ID = v_process_id
+            and WA_SEQUENCE_NUMBER = v_next_step;
+        end if;
     else 
         return NULL;
     end if;
@@ -96,31 +66,16 @@ begin
     select listagg(EMPLOYEE_CODE, ',') within group (order by EMPLOYEE_CODE)
     into v_result
     from EMPLOYEES
+    -- where instr(APPROVAL_GROUPS,v_wa_group_next_step) > 0;
     where APPROVAL_GROUP = v_wa_group_next_step;
 
     
     -- print log
     -- dbms_output.put_line('v_wa_sequence_number: ' || v_wa_sequence_number);
 
-    dbms_output.put_line('v_next_step: ' || v_next_step || ' - v_wa_group_next_step: ' || v_wa_group_next_step);
+    -- dbms_output.put_line('v_next_step: ' || v_next_step || ' - v_wa_group_next_step: ' || v_wa_group_next_step);
 
     -- return v_wa_group || ' - ' || v_wa_sequence_number;
     return v_result;
 end;
-
-
-
-declare 
-    v_emp_request_id NUMBER;
-    result NVARCHAR2(100);
-BEGIN
-    v_emp_request_id := 479;
-    -- v_emp_request_id := 413;
-    result := get_manager_next_sequence(v_emp_request_id);
-    -- dbms_output.put_line('result: ' || result);
-    if result is null then
-        dbms_output.put_line('null');
-    else
-        dbms_output.put_line('result' || result);
-    end if;
-END;
+/
