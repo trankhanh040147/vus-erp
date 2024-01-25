@@ -24,51 +24,22 @@ begin
     from EMP_REQUESTS
     where ID = p_emp_request_id;
 
-    -- get row in WORKFLOW_APPROVAL base on current step
-    -- select WA_SEQUENCE_NUMBER, WA_GROUP
-    -- into v_wa_sequence_number, v_wa_group
-    -- from WORKFLOW_APPROVAL
-    -- where WF_PROCESS_ID = v_process_id
-    -- and WA_SEQUENCE_NUMBER = v_current_step;
-
     -- get next step in WORKFLOW_APPROVAL (return -1 when no data found: select coallesce)
+    -- This selection retrieves the minimum value of the WA_SEQUENCE_NUMBER column from the WORKFLOW_APPROVAL table, 
+    -- where the WF_PROCESS_ID is equal to v_process_id and the WA_SEQUENCE_NUMBER is greater than v_current_step. The retrieved value is stored in the v_next_step variable. If no matching records are found, the v_next_step variable is set to -1.
     select coalesce(min(WA_SEQUENCE_NUMBER), -1)      
     into v_next_step
     from WORKFLOW_APPROVAL
     where WF_PROCESS_ID = v_process_id
     and WA_SEQUENCE_NUMBER > v_current_step;
 
-    if v_next_step != -1 then
-        -- v_next_step = 1: trường hợp này đang là line manager => cần cộng thêm 1 để chạy trường hợp tiếp theo
-        if v_next_step = 1 then
-            v_next_step := v_next_step + 1;
-            -- get row in WORKFLOW_APPROVAL base on next step
-            select WA_GROUP
-            into v_wa_group_next_step
-            from WORKFLOW_APPROVAL
-            where WF_PROCESS_ID = v_process_id
-            and WA_SEQUENCE_NUMBER = v_next_step;
-        else
-            select WA_GROUP
-            into v_wa_group_next_step
-            from WORKFLOW_APPROVAL
-            where WF_PROCESS_ID = v_process_id
-            and WA_SEQUENCE_NUMBER = v_next_step;
-        end if;
-    else 
-        return NULL;
-    end if;
-
-    -- find all employee codes where APPROVAL_GROUP = v_wa_group_next_step
-    -- join which ',' to string
-    -- result belike: 'EMP001' or 'EMP001,EMP002,EMP003'
     v_result := '';
+
     select listagg(EMPLOYEE_CODE, ',') within group (order by EMPLOYEE_CODE)
     into v_result
-    from EMPLOYEES
+    from EMPLOYEES e
     -- where instr(APPROVAL_GROUPS,v_wa_group_next_step) > 0;
-    where APPROVAL_GROUP = v_wa_group_next_step;
-
+    where wf_is_in_next_sequence(e.EMPLOYEE_CODE, p_emp_request_id) = 1;
     
     -- print log
     -- dbms_output.put_line('v_wa_sequence_number: ' || v_wa_sequence_number);

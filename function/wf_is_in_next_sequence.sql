@@ -73,7 +73,7 @@ begin
         from EMPLOYEES
         where  EMPLOYEE_CODE = p_employee_code
         and is_approval_group_present(lower(APPROVAL_GROUPS), lower('head_of_' || l_requester_department)) = 1;
-        dbms_output.put_line('head_of_department: ' || l_is_in_next_sequence);
+        -- dbms_output.put_line('head_of_department: ' || l_is_in_next_sequence);
     else
         select count(*) into l_is_in_next_sequence
         from EMPLOYEES e
@@ -84,10 +84,10 @@ begin
     end if;
 
     -- print info of the next step
-    dbms_output.put_line('current step: ' || l_current_step);
-    dbms_output.put_line('next step: ' || l_next_step);
-    dbms_output.put_line('group: ' || l_wa_group);
-    dbms_output.put_line('user: ' || l_wa_user);
+    -- dbms_output.put_line('current step: ' || l_current_step);
+    -- dbms_output.put_line('next step: ' || l_next_step);
+    -- dbms_output.put_line('group: ' || l_wa_group);
+    -- dbms_output.put_line('user: ' || l_wa_user);
 
     return l_is_in_next_sequence;
 end;

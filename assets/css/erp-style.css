@@ -1690,22 +1690,29 @@ html.page-10 .t-Form-itemText--pre {
 .page-43 #R14112905306957645>div {
   max-width: 100% !important;
 }
+
 .page-5 #identify-detail>div>ul {
   height: max-content;
   box-shadow: 0px 0px 4px #0000006b;
 }
-.page-23 .a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle,.page-44  div.a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle.is-stuck {
+
+.page-23 .a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle,
+.page-44 div.a-GV-hdr.a-GV-hdr--fixed.js-stickyWidget-toggle.is-stuck {
   position: absolute !important;
   top: 0 !important;
 }
-.page-23 .a-GV-w-scroll::-webkit-scrollbar-thumb,.page-8 .a-GV-w-scroll::-webkit-scrollbar-thumb {
+
+.page-23 .a-GV-w-scroll::-webkit-scrollbar-thumb,
+.page-8 .a-GV-w-scroll::-webkit-scrollbar-thumb {
   background-color: #0000003d;
 }
- .page-23 .a-GV-w-scroll{
+
+.page-23 .a-GV-w-scroll {
   overflow-y: auto;
   height: 350px !important;
 }
-.page-43 .apex-icons-fontapex .event-calendar.fa:before{
+
+.page-43 .apex-icons-fontapex .event-calendar.fa:before {
   z-index: 1000;
   top: 0;
   right: 0;
@@ -1713,76 +1720,177 @@ html.page-10 .t-Form-itemText--pre {
   color: black !important;
   font-size: 8px;
 }
-.page-43 .fc-direction-ltr a.fc-timeline-event.fc-event-end{
+
+.page-43 .fc-direction-ltr a.fc-timeline-event.fc-event-end {
   position: relative;
   width: 100%;
 }
-.page-43 div.close{
+
+.page-43 div.close {
   border-radius: 7px;
   opacity: 1;
   cursor: pointer;
   color: white;
-  padding: 10px 10px;
+  padding: 8px 10px;
   font-size: 12px;
-  background-color: #0000ffc9!important;
+  background-color: #1b5895 !important;
   width: max-content;
 }
-.page-43 .modal-header{
+
+.page-43 #calendar-custom div.close.delete-date {
+  background-color: transparent !important;
+  color: rgb(239, 6, 6) !important;
+  text-decoration: underline !important;
+  font-weight: 600 !important;
+}
+
+.page-43 .modal-header {
   background-color: #0303d9;
   padding: 5px 15px !important;
 }
-.page-43 .modal-body{
+
+.page-43 .modal-body {
   flex-direction: column !important;
   display: flex;
 }
-.page-43 .modal-body #event-title-star{
+
+.page-43 .modal-body #event-title-star {
   box-shadow: 0 0 5px #0000002b;
   border: none;
   margin-bottom: 20px;
-  min-height: 200px;
+  min-height: 40px;
   margin-top: 15px;
 }
-.page-43 .modal-title{
-  color:  white !important;
-}
-.page-43 .modal-header button.close span{
+
+.page-43 .modal-title {
   color: white !important;
 }
-.page-5 .a-GV-cell .a-GV-columnItem input:not([type=radio]):not([type=checkbox]):focus, .a-GV-cell .a-GV-columnItem select[size="1"]:focus {
+
+.page-43 .modal-header button.close span {
+  color: white !important;
+}
+
+.page-5 .a-GV-cell .a-GV-columnItem input:not([type=radio]):not([type=checkbox]):focus,
+.a-GV-cell .a-GV-columnItem select[size="1"]:focus {
   border: none !important;
   box-shadow: none !important;
 }
 
-.page-5 .apex-item-select{
-      background-image: var(--a-field-select-background-image) !important;
-    background-position: 100% !important;
-    background-position-x: 100% !important;
-    background-position-y: center !important;
-    background-repeat: no-repeat !important;
-    background-size: var(--a-field-select-background-size,2rem 1rem) !important;
+.page-5 .apex-item-select {
+  background-image: var(--a-field-select-background-image) !important;
+  background-position: 100% !important;
+  background-position-x: 100% !important;
+  background-position-y: center !important;
+  background-repeat: no-repeat !important;
+  background-size: var(--a-field-select-background-size, 2rem 1rem) !important;
 }
-.page-10 .apex-item-group.apex-item-group--textarea textarea,.page-3 .apex-item-group.apex-item-group--textarea textarea{
 
-background: transparent !important;
-padding: 0 10px !important;
-border :none !important;
+.page-10 .apex-item-group.apex-item-group--textarea textarea,
+.page-3 .apex-item-group.apex-item-group--textarea textarea {
+
+  background: transparent !important;
+  padding: 0 10px !important;
+  border: none !important;
 }
-.page-10 .apex-item-textarea:focus,.page-3 .apex-item-textarea:focus{
+
+.page-10 .apex-item-textarea:focus,
+.page-3 .apex-item-textarea:focus {
   border: 0 !important;
 }
-.page-10 #P10_END_DATE_input:disabled,.page-3 #P3_END_DATE_input:disabled {
+
+.page-10 #P10_END_DATE_input:disabled,
+.page-3 #P3_END_DATE_input:disabled {
   padding-left: 10px !important;
 }
-#education-box_ig_grid_vc table tr.a-GV-row td:nth-child(7), #certificate-box_ig_grid_vc table tr.a-GV-row td:nth-child(7) {
+
+#education-box_ig_grid_vc table tr.a-GV-row td:nth-child(7),
+#certificate-box_ig_grid_vc table tr.a-GV-row td:nth-child(7) {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-body .apex-item-group.apex-item-group--textarea{
-  padding-top:  5px !important;
+
+body .apex-item-group.apex-item-group--textarea {
+  padding-top: 5px !important;
   height: unset !important;
 }
+
 /* P20002 */
-#P20002_REQUEST_NAME_AB.apex_disabled, #P20004_REQUEST_NAME_AB.apex_disabled {
+#P20002_REQUEST_NAME_AB.apex_disabled,
+#P20004_REQUEST_NAME_AB.apex_disabled {
   opacity: 1 !important;
+}
+
+.page-20002 .apex_disabled,
+.page-20003 .apex_disabled,
+.page-20004 .apex_disabled,
+.page-20005 .apex_disabled {
+  opacity: 1 !important;
+}
+
+.page-20002 input.apex_disabled,
+.page-20003 input.apex_disabled,
+.page-20004 input.apex_disabled,
+.page-20005 input.apex_disabled {
+  color: #222f6e69 !important;
+}
+
+.page-20002 .apex_disabled .t-Form-inputContainer,
+.page-20002 .apex_disabled .apex-item-group--popup-lov,
+.page-20002 .apex_disabled input,
+.page-20002 .apex_disabled button,
+.page-20002 a-date-picker.apex_disabled,
+.page-20003 .apex_disabled .t-Form-inputContainer,
+.page-20003 .apex_disabled .apex-item-group--popup-lov,
+.page-20003 .apex_disabled input,
+.page-20003 .apex_disabled button,
+.page-20003 a-date-picker.apex_disabled,
+.page-20004 .apex_disabled .t-Form-inputContainer,
+.page-20004 .apex_disabled .apex-item-group--popup-lov,
+.page-20004 .apex_disabled input,
+.page-20004 .apex_disabled button,
+.page-20004 a-date-picker.apex_disabled,
+.page-20005 .apex_disabled .t-Form-inputContainer,
+.page-20005 .apex_disabled .apex-item-group--popup-lov,
+.page-20005 .apex_disabled input,
+.page-20005 .apex_disabled button,
+.page-20005 a-date-picker.apex_disabled {
+  background: #e4e4e4 !important;
+  color: #222f6e69 !important;
+
+}
+
+.page-20002 .apex_disabled button,
+.page-20003 .apex_disabled button,
+.page-20004 .apex_disabled button,
+.page-20005 .apex_disabled button {
+  opacity: .5 !important;
+}
+
+.page-43 .apex-icons-fontapex .fa:before {
+  line-height: 8px !important;
+  font-size: 8px !important;
+  position: absolute;
+  color: black !important;
+  right: 0;
+  z-index: 10;
+  top: 0 !important;
+}
+
+.page-43 #modal-content>div.row {
+  margin: 0 !important;
+  gap: 15px;
+}
+
+.page-43 .t-Region-title {
+  display: none !important;
+}
+
+.t-BreadcrumbRegion-top {
+  justify-content: space-between;
+
+}
+/* hide .apex-item-file from apex 23.2  */
+.apex-item-file {
+  display: none !important;
 }
