@@ -734,5 +734,24 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     }
+
+    // when click on button #filter-profiles, 
+    // the P43_PROFILE_LINES_FILTER will be updated
+    // so we need to update the external-events 
+    // with the new data
+    var filterProfilesButton = document.querySelector("#filter-profiles");
+    if (filterProfilesButton) {
+      filterProfilesButton.addEventListener("click", function () {
+        const inputProfileTimes = document.getElementById(
+          "P43_PROFILE_LINES_FILTER"
+        );
+        const inputValueProfileTimes = inputProfileTimes.value;
+        const jsonObjectProfileTimesFilter =
+          convertHtmlEncodedJson(inputValueProfileTimes) ?? [];
+        const eventContainer = document.getElementById("external-events");
+        removeAllChildren(eventContainer);
+        renderEvents(jsonObjectProfileTimesFilter);
+      });
+    }
   });
   
