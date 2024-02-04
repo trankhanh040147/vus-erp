@@ -45,4 +45,8 @@
     width: 40px !important;
     flex-grow: 0;
 }
+.apex-item-wrapper--file .t-Form-inlineHelp {
+    width: max-content;
+    display: none;
+}
 /* END: File Upload */
