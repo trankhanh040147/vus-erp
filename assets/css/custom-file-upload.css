@@ -1,0 +1,48 @@
+/* START: File Upload */
+/* ? Update since <File Browser> DEPRECATED in Apex 23.2 */
+.btn-delete{
+    color: white;font-size: 12px;cursor: pointer;background: red !important;display: block;width: 20px;height:20px;text-align: center;border-radius: 50%;
+}
+.file-item{
+    display:flex; gap:10px;margin:15px;
+    z-index: 100;
+    grid-area: body;    
+    align-items: flex-start;
+}
+.file-item:first{
+    margin-top: 20px !important;
+}
+.apex-item-group.apex-item-group--file.apex-item-group--file-browse {
+    margin-top: 0 !important;
+    height: max-content !important;
+}
+.a-FileDrop-progress,.a-FileDrop-action,.a-FileDrop-body,.a-FileDrop-description,.a-FileDrop-remove {
+    display: none;
+}
+.ATTACH_GROUP {
+    margin-top: 0px !important;
+    height: max-content;    
+    /* inherited from .t-Form-inputContainer */
+    flex-grow: 1 !important;
+    flex-wrap: wrap;
+    grid-area: field;
+    max-width: 100%;
+    min-inline-size: 0;
+    /* order: 3; */
+    padding: 0;
+    width: 100%;
+}
+.apex-item-wrapper--file>.t-Form-itemText--pre {
+    height: max-content;
+    padding: 10px 0 10px 20px;
+}
+
+.ATTACH_GROUP .file-item:first-child {
+    margin-top: 10px;
+}
+
+.apex-item-wrapper--file .t-Form-inputContainer {
+    width: 40px !important;
+    flex-grow: 0;
+}
+/* END: File Upload */
