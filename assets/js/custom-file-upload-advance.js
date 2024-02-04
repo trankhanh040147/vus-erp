@@ -131,33 +131,25 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
         });
 }
 
-function BindEventSubmitBtn(fileUpload, eleSelector) {
+function BindEventSubmitBtn(fileUpload, eleSelector, btnEles) {
+    // define an object that store {save_submit_button: T1_SAVE_SUBMIT, submit_button: T1_SUBMIT, save_button: T1_SAVE, update_button: T1_UPDATE}
+    
+    btnElesIdSelectors = Object.keys(btnEles).map((key) => `#${key}`).join(', ');
+        
     // Select all buttons by their IDs
-    const buttons = document.querySelectorAll('#save_submit_button, #submit_button, #save_button, #update_button');
+    const buttons = document.querySelectorAll(btnElesIdSelectors);
 
     // Iterate through the buttons and add click event listeners to each
     buttons.forEach(function (button) {
+
+        apex_id_btn = btnEles[button.id];
+
         button.addEventListener('click', async function (event) {
-            // Print btn id
-            let apex_id_btn = '';
-            // set apex_id_btn = case save_submit_button -> T1_SAVE_SUBMIT, submit_button -> T1_SUBMIT, save_button -> T1_SAVE, update_button -> T1_UPDATE
-            switch (this.id) {
-                case 'save_submit_button':
-                    apex_id_btn = 'T1_SAVE_SUBMIT';
-                    break;
-                case 'submit_button':
-                    apex_id_btn = 'T1_SUBMIT';
-                    break;
-                case 'save_button':
-                    apex_id_btn = 'T1_SAVE';
-                    break;
-                case 'update_button':
-                    apex_id_btn = 'T1_UPDATE';
-                    break;
-                default:
-                    break;
+            // Print button clicked
+            if (log_mode == 1) {
+                console.log('button id:' + button.id);
+                console.log("Button clicked: " + apex_id_btn);
             }
-            console.log(apex_id_btn);
 
             // document
             //     .getElementById(eleSelector.eleBtnSubmit)
