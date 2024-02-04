@@ -82,9 +82,9 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
     });
 
     // Hide delete buttons when STATUS is not DRAFT
-    if ($v("P20002_STATUS") != 1) {
+    if ($v(eleSelector.eleStatus) != 1) {
         $('.delete-item.btn-delete').hide();
-        $('#P20002_ATTACHMENT_inline_help').hide();
+        $(eleSelector.eleInlineHelp).hide();
     }
 
     var userName = apex.item(eleSelector.eleEmpName).getValue();
