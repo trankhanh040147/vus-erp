@@ -48,42 +48,20 @@
         }
         );
     }
-</script>
 
-<script>
-    // let formData = new FormData();
-    // let filesName;
-    // let filesUrl;
-    // let fileArrayNames = [];
-    // let fileArrayUrls = [];
-
-    // Create class CustomFileUpload to store all variables
-    class CustomFileUpload {
-        constructor() {
-            this.formData = new FormData();
-            this.filesName;
-            this.filesUrl;
-            this.fileArrayNames = [];
-            this.fileArrayUrls = [];
-        }
-    }
-
-    // Create new object from class CustomFileUpload
-    const fileUpload = new CustomFileUpload()
-    const ele_btn_submit = "btn_submit"
-
-    window.addEventListener("load", function () {
+    // BindEvent functions
+    function BindFileUploadEvent(fileUpload) {
 
         jQuery('.apex-item-wrapper--file').append('<div class="ATTACH_GROUP t-Form-inputContainer"></div>');
 
-        var imageUrlsID = apex.item("P21_DEFAULT_IMAGES_URL").getValue();
-        var imageNamesID = apex.item("P21_DEFAULT_IMAGES_NAME").getValue();
-        var imageContainer = document.querySelector("#P21_ATTACH_CONTAINER .ATTACH_GROUP")
+        var imageUrlsID = apex.item(eleDefUrl).getValue();
+        var imageNamesID = apex.item(eleDefName).getValue();
+        var imageContainer = document.querySelector(eleAttCon + " .ATTACH_GROUP")
         const urlArray = imageUrlsID.split(";");
         const nameArray = imageNamesID.split(";");
 
-        apex.item("P21_ATTACHMENT_URL").setValue(imageUrlsID);
-        apex.item("P21_ATTACHMENT_NAME").setValue(imageNamesID);
+        apex.item(eleAttUrl).setValue(imageUrlsID);
+        apex.item(eleAttName).setValue(imageNamesID);
 
         for (let i = 0; i < urlArray.length; i++) {
             const imageUrl = urlArray[i];
@@ -95,7 +73,7 @@
                 hiddenInputHTML = `
         <div class="file-item ">
             <span  id="deleteItem${imageName}" data-name="${imageName}" class="delete-item btn-delete vng-true"> X </span>
-            <a name="${imageName}" href="${imageUrl}" target="_blank" class="dynamic-value-page">
+            <a name="${imageName}" href="${imageUrl}" target="_blank" class="${eleDynamicValue}">
                 ${imageName}
             </a>
         </div>
@@ -112,16 +90,16 @@
             });
         });
 
-        var userName = apex.item("P21_FULL_NAME").getValue();
-        var userCode = apex.item("P21_EMPLOYEE_CODE").getValue();
+        var userName = apex.item(eleEmpName).getValue();
+        var userCode = apex.item(eleEmpCode).getValue();
 
         fileUpload.formData.append("name", userName);
         fileUpload.formData.append("msnv", userCode);
         document
-            .getElementById("P21_ATTACH")
+            .getElementById(eleAtt)
             .addEventListener("change", function (event) {
                 const imageFiles = event.target.files;
-                const hiddenInputContainer = document.querySelector("#P21_ATTACH_CONTAINER .ATTACH_GROUP");
+                const hiddenInputContainer = document.querySelector(eleAttCon + " .ATTACH_GROUP");
                 const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
 
                 fileUpload.formData.append("date", getCurrentDateFormatted());
@@ -154,19 +132,17 @@
                     handleDeleteClick(event, fileUpload.formData, fileUpload.fileArrayNames, fileUpload.fileArrayUrls);
                 });
             });
-    });
+    }
 
-    //UPLOAD FILE
-    //SUBMIT FORM
-    document.addEventListener('DOMContentLoaded', function () {
+    function BindEventSubmitBtn(fileUpload) {
         document
-            .getElementById(ele_btn_submit)
+            .getElementById(eleBtnSubmit)
             .addEventListener("click", async function (event) {
                 let nullFormData = false;
                 const elements = document.querySelectorAll(".dynamic-value-page");
                 const names = [];
                 const hrefs = [];
-                var imageNamesID = apex.item("P21_DEFAULT_IMAGES_NAME").getValue();
+                var imageNamesID = apex.item(eleDefName).getValue();
                 const nameArray = imageNamesID.split(";");
 
                 // document.getElementById('loader-container').style.display = 'block';
@@ -191,8 +167,8 @@
                             fileUpload.filesUrl = responseBody.data.map((item) => item.path).join(";");
                             const newfilesUrl = fileUpload.fileArrayUrls.join(";") + ";" + fileUpload.filesUrl;
                             const newfilesName = fileUpload.fileArrayNames.join(";") + ";" + fileUpload.filesName;
-                            await apex.item("P21_ATTACHMENT_URL").setValue(newfilesUrl);
-                            await apex.item("P21_ATTACHMENT_NAME").setValue(newfilesName);
+                            await apex.item(eleAttUrl).setValue(newfilesUrl);
+                            await apex.item(eleAttName).setValue(newfilesName);
                         } else {
                             console.log("Upload failed");
                         }
@@ -201,7 +177,7 @@
                     } finally {
                         document.getElementById("loader-container").style.display = "none";
                         setTimeout(function () {
-                            apex.submit(ele_btn_submit);
+                            apex.submit(eleBtnSubmit);
                         }, 500);
                     }
                 } else {
@@ -251,14 +227,69 @@
                         document.getElementById("loader-container").style.display = "none";
                     }
 
-                    await apex.item("P21_ATTACHMENT_URL").setValue(urlString);
-                    await apex.item("P21_ATTACHMENT_NAME").setValue(namesString);
-                    // apex.submit(ele_btn_submit);
+                    await apex.item(eleAttUrl).setValue(urlString);
+                    await apex.item(eleAttName).setValue(namesString);
+                    // apex.submit(eleBtnSubmit);
                     setTimeout(function () {
-                        apex.submit(ele_btn_submit);
+                        apex.submit(eleBtnSubmit);
                     }, 500);
                 }
                 document.getElementById("loader-container").style.display = "none";
             });
+    }
+</script>
+
+<script>
+
+    // Create class CustomFileUpload to store all variables
+    class CustomFileUpload {
+        constructor() {
+            this.formData = new FormData();
+            this.filesName;
+            this.filesUrl;
+            this.fileArrayNames = [];
+            this.fileArrayUrls = [];
+        }
+    }
+
+    // Create new object from class CustomFileUpload
+    const fileUpload = new CustomFileUpload()
+
+    // store all element selector to variable
+    
+    const eleBtnSubmit = "btn_submit"
+    const eleDefUrl = "P21_DEFAULT_IMAGES_URL"
+    const eleDefName = "P21_DEFAULT_IMAGES_NAME"
+    const eleAtt = "P21_ATTACH"
+    const eleAttCon = "#P21_ATTACH_CONTAINER"
+    const eleAttUrl = "P21_ATTACHMENT_URL"
+    const eleAttName = "P21_ATTACHMENT_NAME"
+    const eleEmpName = "P21_FULL_NAME"
+    const eleEmpCode = "P21_EMPLOYEE_CODE"
+    const eleDynamicValue = "dynamic-value-page"
+
+    // define an object to store all element selector
+    const eleSelector = {
+        eleBtnSubmit: "btn_submit",
+        eleDefUrl: "P21_DEFAULT_IMAGES_URL",
+        eleDefName: "P21_DEFAULT_IMAGES_NAME",
+        eleAtt: "P21_ATTACH",
+        eleAttCon: "#P21_ATTACH_CONTAINER",
+        eleAttUrl: "P21_ATTACHMENT_URL",
+        eleAttName: "P21_ATTACHMENT_NAME",
+        eleEmpName: "P21_FULL_NAME",
+        eleEmpCode: "P21_EMPLOYEE_CODE",
+        eleDynamicValue: "dynamic-value-page"
+    }
+
+
+    window.addEventListener("load", function () {
+        BindFileUploadEvent(fileUpload);
+    });
+
+    //UPLOAD FILE
+    //SUBMIT FORM
+    document.addEventListener('DOMContentLoaded', function () {
+
     });
 </script>
