@@ -127,7 +127,7 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
 
 function BindEventSubmitBtn(fileUpload, eleSelector) {
     document
-        .getElementById(eleSelector.eleBtnSubmit)
+        .getElementById(eleSelector.eleBtnSubmitId)
         .addEventListener("click", async function (event) {
             let nullFormData = false;
             const elements = document.querySelectorAll(".dynamic-value-page");
@@ -171,7 +171,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                         if (log_mode == 1) {
                             console.log("Submit button clicked");
                         } else {
-                            apex.submit(eleSelector.eleBtnSubmit);
+                            apex.submit(eleSelector.eleBtnSubmitApexName);
                         }
                     }, 500);
                 }
@@ -229,7 +229,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                     if (log_mode == 1) {
                         console.log("Submit button clicked");
                     } else {
-                        apex.submit(eleSelector.eleBtnSubmit);
+                        apex.submit(eleSelector.eleBtnSubmitApexName);
                     }
                 }, 500);
             }
