@@ -81,6 +81,12 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
         });
     });
 
+    // Hide delete buttons when STATUS is not DRAFT
+    if ($v("P20002_STATUS") != 1) {
+        $('.delete-item.btn-delete').hide();
+        $('#P20002_ATTACHMENT_inline_help').hide();
+    }
+
     var userName = apex.item(eleSelector.eleEmpName).getValue();
     var userCode = apex.item(eleSelector.eleEmpCode).getValue();
 
@@ -126,9 +132,36 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
 }
 
 function BindEventSubmitBtn(fileUpload, eleSelector) {
-    document
-        .getElementById(eleSelector.eleBtnSubmit)
-        .addEventListener("click", async function (event) {
+    // Select all buttons by their IDs
+    const buttons = document.querySelectorAll('#save_submit_button, #submit_button, #save_button, #update_button');
+
+    // Iterate through the buttons and add click event listeners to each
+    buttons.forEach(function (button) {
+        button.addEventListener('click', async function (event) {
+            // Print btn id
+            let apex_id_btn = '';
+            // set apex_id_btn = case save_submit_button -> T1_SAVE_SUBMIT, submit_button -> T1_SUBMIT, save_button -> T1_SAVE, update_button -> T1_UPDATE
+            switch (this.id) {
+                case 'save_submit_button':
+                    apex_id_btn = 'T1_SAVE_SUBMIT';
+                    break;
+                case 'submit_button':
+                    apex_id_btn = 'T1_SUBMIT';
+                    break;
+                case 'save_button':
+                    apex_id_btn = 'T1_SAVE';
+                    break;
+                case 'update_button':
+                    apex_id_btn = 'T1_UPDATE';
+                    break;
+                default:
+                    break;
+            }
+            console.log(apex_id_btn);
+
+            // document
+            //     .getElementById(eleSelector.eleBtnSubmit)
+            //     .addEventListener("click", async function (event) {
             let nullFormData = false;
             const elements = document.querySelectorAll(".dynamic-value-page");
             const names = [];
@@ -168,7 +201,8 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                 } finally {
                     document.getElementById("loader-container").style.display = "none";
                     setTimeout(function () {
-                        apex.submit(eleSelector.eleBtnSubmit);
+                        // apex.submit(eleSelector.eleBtnSubmit);
+                        apex.submit(apex_id_btn);
                     }, 500);
                 }
             } else {
@@ -222,11 +256,14 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                 await apex.item(eleSelector.eleAttName).setValue(namesString);
                 // apex.submit(eleSelector.eleBtnSubmit);
                 setTimeout(function () {
-                    apex.submit(eleSelector.eleBtnSubmit);
+                    // apex.submit(eleSelector.eleBtnSubmit);
+                    apex.submit(apex_id_btn);
                 }, 500);
             }
             document.getElementById("loader-container").style.display = "none";
         });
+    })
+
 }
 
 // Create class CustomFileUpload to store all variables
