@@ -3,6 +3,12 @@
     <div class="loader"></div>
 </div>
 <script>
+    // domcontentloaded event
+    document.addEventListener('DOMContentLoaded', function () {
+        jQuery('#P21_ATTACH_CONTAINER').append('<div class="ATTACH_GROUP t-Form-inputContainer"></div>');
+    })
+</script>
+<script>
 
     let formDataIdNumber = new FormData();
     let fileNamesID;
@@ -56,7 +62,8 @@
         var imageUrlsID = apex.item('P21_DEFAULT_IMAGES_URL').getValue();
         var imageNamesID = apex.item('P21_DEFAULT_IMAGES_NAME').getValue();
 
-        var imageContainer = document.getElementById('P21_ATTACH_GROUP');
+        // var imageContainer = document.getElementById('P21_ATTACH_GROUP');
+        var imageContainer = document.getElementsByClassName('ATTACH_GROUP')[0];
 
         const urlArray = imageUrlsID.split(";");
         const nameArray = imageNamesID.split(";");
@@ -98,8 +105,8 @@
     //UPLOAD FILE
     document.getElementById('P21_ATTACH').addEventListener('change', function (event) {
         const imageFiles = event.target.files;
-        const hiddenInputContainer = document.getElementById('P21_ATTACH_GROUP');
-       
+        // const hiddenInputContainer = document.getElementById('.ATTACH_GROUP');
+        const hiddenInputContainer = document.getElementsByClassName('ATTACH_GROUP')[0];
 
         formDataIdPP.append('date', getCurrentDateFormatted());
         console.log(getCurrentDateFormatted());
@@ -216,12 +223,12 @@
 
 
         document.getElementById('loader-container').style.display = 'none';
-    })
-
+    })    
     var deleteButtons = document.querySelectorAll(".btn-delete");
     deleteButtons.forEach(function (button) {
         button.addEventListener("click", handleDeleteClick);
     });
+
 
 
 </script>
