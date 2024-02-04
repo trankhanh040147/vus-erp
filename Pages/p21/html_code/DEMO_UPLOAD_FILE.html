@@ -2,17 +2,8 @@
 <div class="loader-container" id="loader-container">
     <div class="loader"></div>
 </div>
-<script>
-    // domcontentloaded event
-    document.addEventListener('DOMContentLoaded', function () {
-        jQuery('#P21_ATTACH_CONTAINER').append('<div class="ATTACH_GROUP t-Form-inputContainer"></div>');
-    })
-</script>
-<script>
 
-    let formDataIdNumber = new FormData();
-    let fileNamesID;
-    let fileUrlsID;
+<script>
 
     // GLOBAL FUNCTION
     function getCurrentDateFormatted() {
@@ -36,7 +27,6 @@
             formData.append(key, updatedValue);
         });
     }
-
     function handleDeleteClick(event) {
         if (event.target.classList.contains("delete-item")) {
             const name = event.target.dataset.name;
@@ -52,13 +42,19 @@
         }
     }
 
-
     // Define a function to create HTML for file items
 
     let formDataIdPP = new FormData();
     let fileNamesPP;
     let fileUrlsPP;
+    let formDataIdNumber = new FormData();
+    let fileNamesID;
+    let fileUrlsID;
+    
     window.addEventListener('load', function () {
+
+        jQuery('.apex-item-wrapper--file').append('<div class="ATTACH_GROUP t-Form-inputContainer"></div>');
+
         var imageUrlsID = apex.item('P21_DEFAULT_IMAGES_URL').getValue();
         var imageNamesID = apex.item('P21_DEFAULT_IMAGES_NAME').getValue();
 
@@ -223,7 +219,7 @@
 
 
         document.getElementById('loader-container').style.display = 'none';
-    })    
+    })
     var deleteButtons = document.querySelectorAll(".btn-delete");
     deleteButtons.forEach(function (button) {
         button.addEventListener("click", handleDeleteClick);
