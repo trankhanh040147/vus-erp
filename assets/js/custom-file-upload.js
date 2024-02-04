@@ -168,7 +168,11 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                 } finally {
                     document.getElementById("loader-container").style.display = "none";
                     setTimeout(function () {
-                        apex.submit(eleSelector.eleBtnSubmit);
+                        if (log_mode == 1) {
+                            console.log("Submit button clicked");
+                        } else {
+                            apex.submit(eleSelector.eleBtnSubmit);
+                        }
                     }, 500);
                 }
             } else {
@@ -222,7 +226,11 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                 await apex.item(eleSelector.eleAttName).setValue(namesString);
                 // apex.submit(eleSelector.eleBtnSubmit);
                 setTimeout(function () {
-                    apex.submit(eleSelector.eleBtnSubmit);
+                    if (log_mode == 1) {
+                        console.log("Submit button clicked");
+                    } else {
+                        apex.submit(eleSelector.eleBtnSubmit);
+                    }
                 }, 500);
             }
             document.getElementById("loader-container").style.display = "none";
@@ -239,3 +247,6 @@ class CustomFileUpload {
         this.fileArrayUrls = [];
     }
 }
+
+// get log_mode from params url /?log_mode=1
+const log_mode = new URLSearchParams(window.location.search).get("log_mode");
