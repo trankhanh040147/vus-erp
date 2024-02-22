@@ -22,7 +22,9 @@ create or replace PROCEDURE SP_UPDATE_APPROVAL_GROUP(
 
     array_list_directors array_t;
     approval_updates approval_rec;
-    array_size NUMBER := 0;
+    array_size number := 0;
+
+    n_count_emp number;
 
     FUNCTION is_excluded(p_user_name VARCHAR2) RETURN BOOLEAN IS
     BEGIN
@@ -67,8 +69,13 @@ BEGIN
         loop
             current_emp_code := current_manager_id;
 
-            -- get manager info
+            -- if there is no employee with current_manager_id, then break the loop
+            select count(*) into n_count_emp from EMPLOYEES where employee_code = current_emp_code;
+            if n_count_emp = 0 then
+                exit;
+            end if;
 
+            -- get manager info
             select manager_id, level_id, department_id 
             into current_manager_id, current_manager_level, current_manager_department
             from employees
@@ -117,15 +124,15 @@ BEGIN
     -- remove approval group for specific employees
     -- remove 'head_of_BOD' from approval_groups for employee with user_name: '%hrtest04%'
 
-    select approval_groups into approval_group_update
-    from employees
-    where lower(trim(user_name)) like '%hrtest04%';
+    -- select approval_groups into approval_group_update
+    -- from employees
+    -- where lower(trim(user_name)) like '%hrtest04%';
 
-    approval_group_update := replace(approval_group_update, 'head_of_BOD', '');
+    -- approval_group_update := replace(approval_group_update, 'head_of_BOD', '');
 
-    UPDATE employees
-    SET approval_groups = approval_group_update
-    WHERE lower(trim(user_name)) like '%hrtest04%';
+    -- UPDATE employees
+    -- SET approval_groups = approval_group_update
+    -- WHERE lower(trim(user_name)) like '%hrtest04%';
 
 
     -- Print all employees that have approval_groups
