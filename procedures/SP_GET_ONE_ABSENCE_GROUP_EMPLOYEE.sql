@@ -144,6 +144,15 @@ BEGIN
 
             ----- <6. Insert data into the table ABSENCE_GROUP_EMPLOYEE
 
+            ----- <6.1 Accept the the first record of "ALPL%" HRMAbsenceCodeId
+            IF (n_hrm_absence_code_id like 'ALPL%' and n_can_cf = 0) THEN
+                -- Check if the record exists in the table
+                SELECT COUNT(*) INTO l_count_idemp FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code AND HRM_ABSENCE_CODE_ID like 'ALPL%';
+                IF l_count_idemp > 0 THEN
+                    CONTINUE;
+                END IF;
+            END IF;
+
             SELECT MAX(ID) + 1 INTO l_max FROM ABSENCE_GROUP_EMPLOYEE;
 
             INSERT INTO ABSENCE_GROUP_EMPLOYEE (
