@@ -83,22 +83,14 @@ BEGIN
         where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
     )loop
     
-            if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
-                if rec.CARRY_FORWARD_AVALABLE > 0 then
-                    n_carry_forward_code := rec.CARRY_FORWARD_CODE;
-                    n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-                else
-                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
-                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-                end if;
-                    
-            else
-                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
-                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
-                    n_total_day := rec.TOTAL_DAYS;
-            end if;
+    if rec.CRF_DAY_TEMP > 0 then
+        n_carry_forward_code := rec.CARRY_FORWARD_CODE;
+        n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
+    else
+        n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+        n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+    end if;
+    n_total_day := rec.TOTAL_DAYS;
 
     if leave_groupid = 'APL' then
         l_body := '{
