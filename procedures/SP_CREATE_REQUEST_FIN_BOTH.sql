@@ -41,7 +41,6 @@ BEGIN
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
 
     n_extra_id := p_request_id + 1;
-
     
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
@@ -108,7 +107,7 @@ l_body_crf := '{
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.CF_BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||rec.REQUEST_ID||'",
+        "IDPortal": "'||rec.ID||'",
         "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||rec.FROM_DATE||'",
         "ToDate": "'||rec.MODIFIED_END_DATE||'",
