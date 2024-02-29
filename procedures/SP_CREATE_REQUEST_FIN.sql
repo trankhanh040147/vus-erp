@@ -61,7 +61,8 @@ BEGIN
         when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
             'Amount Used'
         else
-            null
+            -- null     -- old
+            'Amount Used'       -- 29/2/24-Viet
         end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
