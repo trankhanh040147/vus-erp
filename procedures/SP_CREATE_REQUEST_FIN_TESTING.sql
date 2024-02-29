@@ -1,4 +1,4 @@
-create or replace PROCEDURE "SP_CREATE_REQUEST_FIN"
+create or replace PROCEDURE "SP_CREATE_REQUEST_FIN_TESTING"
 (
 p_employeeCode nvarchar2,
 p_request_id number
@@ -80,18 +80,17 @@ BEGIN
 
         from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
-        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode 
-        and lower(er.LEAVE_TYPE) = lower(age.HRM_ABSENCE_CODE_GROUP_ID)
+        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
     )loop
-    
-    if rec.CRF_DAY_TEMP > 0 then
-        n_carry_forward_code := rec.CARRY_FORWARD_CODE;
-        n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
-    else
-        n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
-        n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
-    end if;
-    n_total_day := rec.TOTAL_DAYS;
+
+            if rec.CRF_DAY_TEMP > 0 then
+                n_carry_forward_code := rec.CARRY_FORWARD_CODE;
+                n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
+            else
+                n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+            end if;
+            n_total_day := rec.TOTAL_DAYS;
 
     if leave_groupid = 'APL' then
         l_body := '{
@@ -182,12 +181,12 @@ BEGIN
         DBMS_OUTPUT.put_line(l_body);
         --APEX_JSON.parse(
 
-        l_response := apex_web_service.make_rest_request(
-                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
-                p_http_method => 'POST',
-                p_body => l_body,
-                p_transfer_timeout => 3600
-                ) ;
+        -- l_response := apex_web_service.make_rest_request(
+        --         p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
+        --         p_http_method => 'POST',
+        --         p_body => l_body,
+        --         p_transfer_timeout => 3600
+        --         ) ;
 
 -- Send mail
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
@@ -343,7 +342,7 @@ BEGIN
         CALL_TIMESTAMP,
         NOTE
     ) VALUES (
-        'CreateLeaverequest', -- Endpoint you just called
+        'CreateLeaverequest_testing', -- Endpoint you just called
         apex_web_service.g_request_headers(1).value, -- This is a simplification, you may need to concatenate all headers
         l_body, -- The request body you sent
         apex_web_service.g_status_code, -- Response status code

@@ -68,7 +68,8 @@ BEGIN
             else er.END_DATE
         end as MODIFIED_END_DATE
 
-        from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
+        from EMPLOYEE_REQUESTS er 
+        join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
         where er.REQUEST_ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
     )loop
@@ -199,14 +200,14 @@ l_body_crf := '{
         DBMS_OUTPUT.put_line(l_body_annual);
 
         l_response_crf := apex_web_service.make_rest_request(
-                p_url => 'https://hra.sandbox.operations.dynamics.com//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
+                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
                 p_http_method => 'POST',
                 p_body => l_body_crf,
                 p_transfer_timeout => 3600
         ) ;
 
         l_response_annual := apex_web_service.make_rest_request(
-                p_url => 'https://hra.sandbox.operations.dynamics.com//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
+                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CreateLeaverequest',
                 p_http_method => 'POST',
                 p_body => l_body_annual,
                 p_transfer_timeout => 3600
