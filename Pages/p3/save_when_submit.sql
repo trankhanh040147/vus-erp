@@ -26,24 +26,27 @@ begin
 
     if :P3_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
-            
 
+            -- CF not expired
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
-                -- CF not expired
-                if  p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
-                    -- CF enough, but expired before the end date
-                    v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    v_crf_temp := p3_total_days;
-                elsif p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+                
+                -- Calculate CF balance, if the EndDate exceed CARRY_FORWORD_EXP_DATE, then the balance will be CARRY_FORWORD_EXP_DATE - FROM_DATE, otherwise it will be its CARRY_FORWARD_AVALABLE    
+                if to_date(:P3_END_DATE, 'DD/MM/YYYY') > to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') then
+                    v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P3_FROM_DATE, 'DD/MM/YYYY');
+                else
+                    v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                end if;
+
+                if p3_total_days <= v_crf_balance and v_crf_balance > 0 then
                     -- CF enough
                     v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
                     v_crf_temp := p3_total_days;
-                elsif rec.CARRY_FORWARD_AVALABLE > 0 and p3_total_days > rec.CARRY_FORWARD_AVALABLE then
+                elsif v_crf_balance > 0 and p3_total_days > v_crf_balance then
                     -- CF not enough
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
-                    v_annual_temp := p3_total_days - rec.CARRY_FORWARD_AVALABLE;
-                elsif rec.CARRY_FORWARD_AVALABLE <= 0 THEN
+                    v_crf_temp := v_crf_balance;
+                    v_annual_temp := p3_total_days - v_crf_balance;
+                elsif v_crf_balance <= 0 THEN
                     -- CF not expired, CF = 0
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
                     v_annual_temp := p3_total_days;

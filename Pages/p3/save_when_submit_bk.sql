@@ -5,11 +5,14 @@ v_name_type nvarchar2(100);
 v_benefit_code nvarchar2(100):='';
 v_annual_temp float:=0;
 v_crf_temp float:=0;
+v_crf_balance number;
 manager_email nvarchar2(100);
 manager_name nvarchar2(100);
 requester_schedule NVARCHAR2(50);
 v_body_emp clob := '';
 v_body_man clob:= '';
+p3_total_days FLOAT;
+leave_type nvarchar2(200);
 begin
 
     requester_schedule := LOWER(TRIM(:P3_LEAVE_TYPE_DEPT));
@@ -19,32 +22,39 @@ begin
 
     -- INSERT INTO DEMO_ATTACHMENT(URL) VALUES(:P3_URL_FILES);
 
+    p3_total_days := case when :P3_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P3_TOTAL_DAYS) end;
 
     if :P3_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
+            
+
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
                 -- CF not expired
-                if  :P3_TOTAL_DAYS <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+                if  p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+                    -- CF enough, but expired before the end date
+                    v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    v_crf_temp := p3_total_days;
+                elsif p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
                     -- CF enough
-                    v_benefit_code := rec.CARRY_FORWARD_CODE;
-                    v_crf_temp := :P3_TOTAL_DAYS;
-                elsif rec.CARRY_FORWARD_AVALABLE > 0 and :P3_TOTAL_DAYS > rec.CARRY_FORWARD_AVALABLE then
+                    v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    v_crf_temp := p3_total_days;
+                elsif rec.CARRY_FORWARD_AVALABLE > 0 and p3_total_days > rec.CARRY_FORWARD_AVALABLE then
                     -- CF not enough
-                    v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CARRY_FORWARD_CODE;
+                    v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CF_BENEFIT_ACCRUAL_PLAN;
                     v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
-                    v_annual_temp := :P3_TOTAL_DAYS - rec.CARRY_FORWARD_AVALABLE;
+                    v_annual_temp := p3_total_days - rec.CARRY_FORWARD_AVALABLE;
                 elsif rec.CARRY_FORWARD_AVALABLE <= 0 THEN
                     -- CF not expired, CF = 0
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
-                    v_annual_temp := :P3_TOTAL_DAYS;
+                    v_annual_temp := p3_total_days;
                 end if;
             else
                 v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
-                v_annual_temp := :P3_TOTAL_DAYS;
+                v_annual_temp := p3_total_days;
             end if;
         end loop;
     else 
-        v_annual_temp := :P3_TOTAL_DAYS;
+        v_annual_temp := p3_total_days;
         v_benefit_code := :P3_LEAVE_DETAIL;
     end if;
 
@@ -57,7 +67,7 @@ begin
     --     START_TIME,END_TIME,SUBMIT_DATE,BENEFIT_CODE,CRF_DAY_TEMP,ANNUAL_DAY_TEMP,ATTACH_NAME,ATTATCH_FILE
     --     ) values (
     --         :APP_USER_ID,v_request_id_temp,:P3_EMPLOYEE_CODE,:P3_EMPLOYEE,:P3_FROM_DATE,
-    --         :P3_END_DATE,to_char(:P3_ALL_DAY),:P3_NOTE,:P3_TOTAL_DAYS,2,:P3_ANNUAL_LEAVE,:P3_APPROVED_MANAGER,:P3_MANAGER_CODE,
+    --         :P3_END_DATE,to_char(:P3_ALL_DAY),:P3_NOTE,p3_total_days,2,:P3_ANNUAL_LEAVE,:P3_APPROVED_MANAGER,:P3_MANAGER_CODE,
     --         :P3_START_TIME,:P3_END_TIME,sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P3_NAME_FILES,''),nvl(:P3_URL_FILES,'#')
     --         ); 
     --     returning ID into v_id;
@@ -69,7 +79,7 @@ begin
             START_TIME,END_TIME,SUBMIT_DATE,BENEFIT_CODE,CRF_DAY_TEMP,ANNUAL_DAY_TEMP,ATTACH_NAME,ATTATCH_FILE, LEAVE_BALANCE
         ) values (
             :APP_USER_ID,v_request_id_temp,:P3_EMPLOYEE_CODE,:P3_EMPLOYEE,to_date(:P3_FROM_DATE, 'DD/MM/YYYY'),
-            CASE WHEN :P3_END_DATE IS NULL OR :P3_END_DATE = '' THEN to_date(:P3_FROM_DATE, 'DD/MM/YYYY') ELSE to_date(:P3_END_DATE, 'DD/MM/YYYY') END,to_char(:P3_ALL_DAY),:P3_NOTE,:P3_TOTAL_DAYS,2,:P3_ANNUAL_LEAVE,:P3_APPROVED_MANAGER,:P3_MANAGER_CODE,
+            CASE WHEN :P3_END_DATE IS NULL OR :P3_END_DATE = '' THEN to_date(:P3_FROM_DATE, 'DD/MM/YYYY') ELSE to_date(:P3_END_DATE, 'DD/MM/YYYY') END,to_char(:P3_ALL_DAY),:P3_NOTE,p3_total_days,2,:P3_ANNUAL_LEAVE,:P3_APPROVED_MANAGER,:P3_MANAGER_CODE,
             CASE WHEN requester_schedule = 'ho' THEN :P3_START_TIME_HO ELSE :P3_START_TIME END,:P3_END_TIME,sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P3_NAME_FILES,''),:P3_URL_FILES, :P3_ANNUAL_LEAVE_BALANCE
         ) returning ID into v_id;
 
@@ -84,7 +94,7 @@ begin
     -- Send mail
 
     SELECT USER_NAME, FULL_NAME INTO manager_email, manager_name FROM EMPLOYEES WHERE (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = :P3_EMPLOYEE_CODE) = EMPLOYEE_CODE;
-        
+    SELECT ACGL_DESCRIPTION INTO leave_type from ABSENCE_CODE_GROUP_LIST where :P3_ANNUAL_LEAVE = ACGL_ABSENCE_GROUP_ID;
     --For employee
 
     -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Submitted Successfully', '<p> Dear '|| :P3_EMPLOYEE ||', </p>' ||
@@ -92,10 +102,10 @@ begin
     -- '<p>Successfully submitted. Kindly return <b>My leave history page</b> to follow your leave request. Here are the details: </p>' ||
     -- '<p>Employee Code: '|| :P3_EMPLOYEE_CODE ||' </p>' ||
     -- -- '<p> Total Days: '|| CASE
-    -- --            WHEN :P3_TOTAL_DAYS = 0.5 THEN to_char(:P3_TOTAL_DAYS, '0.0')
-    -- --            ELSE :P3_TOTAL_DAYS
+    -- --            WHEN p3_total_days = 0.5 THEN to_char(p3_total_days, '0.0')
+    -- --            ELSE p3_total_days
     -- --        END ||' </p>' ||
-    -- '<p>Total Days: '|| to_char(:P3_TOTAL_DAYS, '0.0') ||' </p>' ||
+    -- '<p>Total Days: '|| to_char(p3_total_days, '0.0') ||' </p>' ||
     -- '<p>From Date: '|| :P3_FROM_DATE ||' </p>' ||
     -- '<p>To Date: '|| :P3_END_DATE ||' </p>' ||
     -- '<br>' || 
@@ -114,15 +124,16 @@ begin
     v_body_emp := v_body_emp || '<ul>';
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| :P3_EMPLOYEE ||'</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| :P3_EMPLOYEE_CODE ||'</p>';
-    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P3_ANNUAL_LEAVE ||'</p>';
-    if (:P3_TOTAL_DAYS <= 0.5) then
-        v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(:P3_TOTAL_DAYS, '0.0') ||'</p>';
+    -- v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P3_ANNUAL_LEAVE ||'</p>';
+    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| leave_type ||'</p>';
+    if (p3_total_days <= 0.5) then
+        v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(p3_total_days, '0.0') ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P3_FROM_DATE ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| :P3_START_TIME ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| :P3_END_TIME ||'</p>';
     else
-        v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| :P3_TOTAL_DAYS ||'</p>';
+        v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| p3_total_days ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P3_FROM_DATE ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
@@ -144,7 +155,7 @@ begin
     -- v_body_emp := v_body_emp || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', :APP_USER_NAME, 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
-    SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
+    -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
 
     --For manager
 
@@ -153,10 +164,10 @@ begin
     --     '<p>A leave request from '|| :P3_EMPLOYEE ||' requires your approval. Here are the details:</p>' ||
     --     '<p>Employee Code: '|| :P3_EMPLOYEE_CODE ||'</p>' ||
     --     -- '<p>Total Days: '|| CASE
-    --     --        WHEN :P3_TOTAL_DAYS = 0.5 THEN to_char(:P3_TOTAL_DAYS, '0.0')
-    --     --        ELSE :P3_TOTAL_DAYS
+    --     --        WHEN p3_total_days = 0.5 THEN to_char(p3_total_days, '0.0')
+    --     --        ELSE p3_total_days
     --     --    END ||'</p>' ||
-    --     '<p>Total Days: '|| to_char(:P3_TOTAL_DAYS, '0.0') ||' </p>' ||
+    --     '<p>Total Days: '|| to_char(p3_total_days, '0.0') ||' </p>' ||
     --     '<p>From Date: '|| :P3_FROM_DATE ||'</p>' ||
     --     '<p>To Date: '|| :P3_END_DATE ||'</p>' ||
     --     '<br>' || 
@@ -176,22 +187,23 @@ begin
     v_body_man := v_body_man || '<ul>';
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| :P3_EMPLOYEE ||'</p>';
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| :P3_EMPLOYEE_CODE ||'</p>';
-    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P3_ANNUAL_LEAVE ||'</p>';
-    if (:P3_TOTAL_DAYS <= 0.5) then
-        v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(:P3_TOTAL_DAYS, '0.0') ||'</p>';
+    -- v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P3_ANNUAL_LEAVE ||'</p>';
+    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| leave_type ||'</p>';
+    if (p3_total_days <= 0.5) then
+        v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(p3_total_days, '0.0') ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P3_FROM_DATE ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| :P3_START_TIME ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| :P3_END_TIME ||'</p>';
     else
-        v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| :P3_TOTAL_DAYS ||'</p>';
+        v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| p3_total_days ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P3_FROM_DATE ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P3_NOTE ||'</p>';
     v_body_man := v_body_man || '</ul><br>';
-    v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau:</p>';
-    v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-pilot.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
+    v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
+    v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
 
     v_body_man := v_body_man || '<p style=''color:black''>Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm sự hỗ trợ, xin đừng ngần ngại liên hệ với phòng Nhân sự Hành chính.</p>';
     v_body_man := v_body_man || '<p style=''color:black''>If you have any questions or need further assistance, please feel free to reach out to the HRA department.</p>';
@@ -202,6 +214,6 @@ begin
     -- v_body_man := v_body_man || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', manager_email, 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
-    SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
+    -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
 
 end;
