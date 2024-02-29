@@ -22,8 +22,10 @@ n_approve_date NVARCHAR2(200);
 n_carry_forward_code nvarchar2(200);
 n_employee_email NVARCHAR2(200);     -- email để send
 n_full_name NVARCHAR2(200);
-
+num_check float := 0.5;
 rsp_status NVARCHAR2(10);
+
+v_body clob := '';      -- body of mail
 
 BEGIN
     SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
@@ -43,7 +45,8 @@ BEGIN
         when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
             'Amount Used'
         else
-            null
+            -- null     cũ
+            'Amount Used'       -- 29/2/24-Viet
         end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
@@ -54,7 +57,7 @@ BEGIN
         from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
         where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode -- and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
-        AND (er.BENEFIT_CODE = age.BENEFIT_ACCRUAL_PLAN or er.BENEFIT_CODE = age.CF_BENEFIT_ACCRUAL_PLAN)
+        AND (er.BENEFIT_CODE LIKE ('%'||age.BENEFIT_ACCRUAL_PLAN||'%') or er.BENEFIT_CODE LIKE ('%'||age.CF_BENEFIT_ACCRUAL_PLAN ||'%'))
     )loop
 
     if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
@@ -126,7 +129,7 @@ BEGIN
         --APEX_JSON.parse(
 
         l_response := apex_web_service.make_rest_request(
-                p_url => global_vars.get_resource_url || '//api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CancelLeaverequest',
+                p_url => global_vars.get_resource_url || '/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CancelLeaverequest',
                 p_http_method => 'POST',
                 p_body => l_body,
                 p_transfer_timeout => 3600
@@ -150,7 +153,7 @@ BEGIN
     -- Restore balance days, update used day
     IF rsp_status = '1' THEN
         FOR REC IN (SELECT 
-                        CRF_DAY_TEMP, ANNUAL_DAY_TEMP, EMPLOYEE_CODE_REQ, BENEFIT_CODE, TOTAL_DAYS, FROM_DATE,
+                        CRF_DAY_TEMP, ANNUAL_DAY_TEMP, EMPLOYEE_CODE_REQ, BENEFIT_CODE, TOTAL_DAYS, FROM_DATE, NOTE, LEAVE_TYPE, START_TIME, END_TIME,
                         case 
                             when ALL_DAY like 'N' then FROM_DATE -- Set END_DATE to FROM_DATE if ALLDAY is 'N'
                             else END_DATE
@@ -171,23 +174,75 @@ BEGIN
                 EMPLOYEE_CODE = REC.EMPLOYEE_CODE_REQ
                 AND AGE.BENEFIT_ACCRUAL_PLAN = REC.BENEFIT_CODE;
 
-            SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_employee_email, 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
-            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
-                                '<p>Your leave request has been canceled. Here are the details:</p>' ||
-                                '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
-                                '<p> Total Days: '|| CASE
-                                                    WHEN REC.TOTAL_DAYS < 1 THEN to_char(REC.TOTAL_DAYS, '9.9')
-                                                    ELSE REC.TOTAL_DAYS
-                                                    END ||' </p>' ||
-                                '<p> From Date: '|| rec.FROM_DATE ||' </p>' ||
-                                '<p> To Date: '|| rec.MODIFIED_END_DATE ||' </p>' ||
-                                -- '<br>' || 
-                                -- '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
-                                -- '<br>' || 
-                                '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
-                                '<br>' || 
-                                '<p> Thank you, </p>' ||
-                                '<p> VUS </p>');
+    -- send mail
+
+            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_employee_email, 'Leave Request Canceled', '<p> Dear '|| n_full_name ||', </p>' ||
+            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Canceled', '<p> Dear '|| n_full_name ||', </p>' ||
+            --                     '<p>Your leave request has been canceled. Here are the details:</p>' ||
+            --                     '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
+            --                     '<p> Total Days: '|| to_char(rec.TOTAL_DAYS, '0.0') ||' </p>' ||
+            --                     -- '<p> Total Days: '|| case 
+            --                     --                         when to_char(rec.TOTAL_DAYS) = '.5' then to_char(rec.TOTAL_DAYS, '0.0')
+            --                     --                      else 
+            --                     --                         rec.TOTAL_DAYS
+            --                     --                      end ||' </p>' ||
+            --                     '<p> From Date: '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||' </p>' ||
+            --                     '<p> To Date: '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||' </p>' ||
+            --                     -- '<br>' || 
+            --                     -- '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
+            --                     -- '<br>' || 
+            --                     '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
+            --                     '<br>' || 
+            --                     '<p> Thank you, </p>' ||
+            --                     '<p> VUS </p>');
+
+            v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/header.png''></img>';
+            v_body := v_body || '<h3 style=''color:black;text-align:center''>[PHÒNG NHÂN SỰ HÀNH CHÍNH - VUS] – ĐƠN XIN NGHỈ PHÉP</h3>';
+            v_body := v_body || '<h3 style=''color:black;text-align:center''>[HRA DEPARTMENT - VUS] – REQUEST FOR LEAVE LETTER</h3>';
+            v_body := v_body || '<p style=''color:black;margin-top:20px''>Anh/Chị '|| n_full_name ||' thân mến,</p>';
+            v_body := v_body || '<p style=''color:black;margin-top:0''>Dear Mr/Ms. '|| n_full_name ||',</p>';
+            v_body := v_body || '<p style=''color:black''>Hệ thống nhận được đề nghị xin nghỉ phép của nhân viên như sau:</p>';
+            v_body := v_body || '<p style=''color:black''>Employee Portal system has received a request for leave as below:</p>';
+            v_body := v_body || '<ul>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| n_full_name ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| p_employeeCode ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| rec.LEAVE_TYPE ||'</p>';
+            -- v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(rec.TOTAL_DAYS,'9999.9') ||'</p>';
+            -- v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
+            -- v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
+            -- if (rec.TOTAL_DAYS <= 0.5) then
+            --     v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| rec.START_TIME ||'</p>';
+            --     v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| rec.END_TIME ||'</p>';
+            -- end if;
+
+            if (rec.TOTAL_DAYS <= 0.5) then
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(rec.TOTAL_DAYS,'0.0') ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| rec.START_TIME ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| rec.END_TIME ||'</p>';
+            else
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| rec.TOTAL_DAYS ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
+                v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
+            end if; 
+
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| rec.NOTE ||'</p>';
+            v_body := v_body || '</ul><br>';
+            v_body := v_body || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã bị huỷ bỏ!</p>';
+            v_body := v_body || '<p style=''color:black''>Your leave request has been canceled!</p><br>';
+
+            v_body := v_body || '<p style=''color:black''>Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm sự hỗ trợ, xin đừng ngần ngại liên hệ với phòng Nhân sự Hành chính.</p>';
+            v_body := v_body || '<p style=''color:black''>If you have any questions or need further assistance, please feel free to reach out to the HRA department.</p>';
+            v_body := v_body || '<p style=''color:black''>Trân trọng,</p>';
+            v_body := v_body || '<p style=''color:black''>Phòng Nhân sự Hành chính</p>';
+            v_body := v_body || '<p style=''color:black''>Best regards,</p>';
+            v_body := v_body || '<p style=''color:black''>HR & Admin Department </p>';
+            v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
+
+            SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_employee_email, 'Huỷ bỏ đơn xin nghỉ phép', v_body);
+            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Huỷ bỏ đơn xin nghỉ phép', v_body);
+
         END LOOP;
     END IF;
 
