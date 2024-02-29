@@ -41,7 +41,6 @@ BEGIN
     apex_web_service.g_request_headers(2).value := 'application/json; charset=utf-8';
 
     n_extra_id := p_request_id + 1;
-
     
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
@@ -51,7 +50,8 @@ BEGIN
         when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
             'Amount Used'
         else
-            null
+            -- null     cũ
+            'Amount Used'       -- 29/2/24-Viet
         end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
@@ -71,7 +71,8 @@ BEGIN
         from EMPLOYEE_REQUESTS er 
         join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
         join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
-        where er.REQUEST_ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY')
+        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode 
+        and lower(er.LEAVE_TYPE) = lower(age.HRM_ABSENCE_CODE_GROUP_ID)
     )loop
 
 l_body_annual := '{
@@ -84,7 +85,7 @@ l_body_annual := '{
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
         "IDPortal": "'||n_extra_id||'",
-        "IDStrPortal": "'||rec.REQUEST_ID|| 'PL' ||'",
+        "IDStrPortal": "'||rec.ID|| 'PL' ||'",
         "FromDate": "'||rec.FROM_DATE||'",
         "ToDate": "'||rec.MODIFIED_END_DATE||'",
         "NumberDayOff": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
@@ -106,8 +107,8 @@ l_body_crf := '{
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.CF_BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||rec.REQUEST_ID||'",
-        "IDStrPortal": "'||rec.REQUEST_ID||'",
+        "IDPortal": "'||rec.ID||'",
+        "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||rec.FROM_DATE||'",
         "ToDate": "'||rec.MODIFIED_END_DATE||'",
         "NumberDayOff": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
@@ -118,6 +119,9 @@ l_body_crf := '{
         "AllDay": "'||rec.ALLDAY||'",
         "AttachmentURL": "'||rec.ATTATCH_FILE||'"
     }}';
+    -- -- tesst
+    -- dbms_output.put_line(rec.ADJUSTMENTTYPE);
+    -- dbms_output.put_line(rec.DATAAREA);
     end loop;
 
 

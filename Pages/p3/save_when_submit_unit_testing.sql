@@ -13,18 +13,18 @@ v_body_emp clob := '';
 v_body_man clob:= '';
 p3_total_days FLOAT;
 leave_type nvarchar2(200);
+
 begin
 
     -- Waiting for the end to come
     -- dbms_session.sleep(1);
 
     -- Unit Testing
-    :P3_FROM_DATE := '01/01/2021';
-    :P3_END_DATE := '01/01/2021';
-    -- :P3_TOTAL_DAYS := '1';
-    -- :P3_ANNUAL_LEAVE := 'APL';
-    -- :P3_LEAVE_DETAIL := 'AL';
-    -- :P3_LEAVE_TYPE_DEPT := 'HR';
+    :APP_EMP_CODE := '002795';
+    :P3_FROM_DATE := '30/12/2024';
+    :P3_END_DATE := '01/01/2025';
+    :P3_TOTAL_DAYS := '3';
+    :P3_ANNUAL_LEAVE := 'APL';
 
     p3_total_days := case when :P3_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P3_TOTAL_DAYS) end;
 
@@ -36,7 +36,7 @@ begin
                 
                 -- Calculate CF balance, if the EndDate exceed CARRY_FORWORD_EXP_DATE, then the balance will be CARRY_FORWORD_EXP_DATE - FROM_DATE, otherwise it will be its CARRY_FORWARD_AVALABLE    
                 if to_date(:P3_END_DATE, 'DD/MM/YYYY') > to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') then
-                    v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P3_FROM_DATE, 'DD/MM/YYYY');
+                    v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P3_FROM_DATE, 'DD/MM/YYYY') +1;
                 else
                     v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
                 end if;
@@ -60,10 +60,14 @@ begin
                 v_annual_temp := p3_total_days;
             end if;
         end loop;
-    else 
-        v_annual_temp := p3_total_days;
-        v_benefit_code := :P3_LEAVE_DETAIL;
     end if;
 
+    -- PRINT OUT THE RESULT
+    dbms_output.put_line('v_benefit_code: '||v_benefit_code);
+    dbms_output.put_line('v_annual_temp: '||v_annual_temp);
+    dbms_output.put_line('v_crf_temp: '||v_crf_temp);
+    dbms_output.put_line('v_crf_balance: '||v_crf_balance);
+    dbms_output.put_line('p3_total_days: '||p3_total_days);
+    dbms_output.put_line('leave_type: '||leave_type);
 
 end;
