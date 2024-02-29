@@ -5,7 +5,6 @@ v_name_type nvarchar2(100);
 v_benefit_code nvarchar2(100):='';
 v_annual_temp float:=0;
 v_crf_temp float:=0;
-v_crf_balance number;
 manager_email nvarchar2(100);
 manager_name nvarchar2(100);
 requester_schedule NVARCHAR2(50);
@@ -26,15 +25,9 @@ begin
 
     if :P3_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
-            
-
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
                 -- CF not expired
                 if  p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
-                    -- CF enough, but expired before the end date
-                    v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    v_crf_temp := p3_total_days;
-                elsif p3_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
                     -- CF enough
                     v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
                     v_crf_temp := p3_total_days;
