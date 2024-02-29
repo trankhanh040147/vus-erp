@@ -20,9 +20,9 @@ begin
     -- dbms_session.sleep(1);
 
     -- Unit Testing
-    :APP_EMP_CODE := '002795';
-    :P3_FROM_DATE := '30/12/2024';
-    :P3_END_DATE := '01/01/2025';
+    :APP_EMP_CODE := '004403';
+    :P3_FROM_DATE := '02/03/2024';
+    :P3_END_DATE := '04/03/2024';
     :P3_TOTAL_DAYS := '3';
     :P3_ANNUAL_LEAVE := 'APL';
 
@@ -37,6 +37,10 @@ begin
                 -- Calculate CF balance, if the EndDate exceed CARRY_FORWORD_EXP_DATE, then the balance will be CARRY_FORWORD_EXP_DATE - FROM_DATE, otherwise it will be its CARRY_FORWARD_AVALABLE    
                 if to_date(:P3_END_DATE, 'DD/MM/YYYY') > to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') then
                     v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P3_FROM_DATE, 'DD/MM/YYYY') +1;
+
+                    if v_crf_balance > rec.CARRY_FORWARD_AVALABLE then
+                        v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                    end if;
                 else
                     v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
                 end if;
