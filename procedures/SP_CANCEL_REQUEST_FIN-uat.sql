@@ -13,6 +13,7 @@ l_rowsub number;
 l_body_mail NVARCHAR2(2000);
 n_id number;
 n_employeeCode NVARCHAR2(200);
+n_is_double_leave NUMBER;
 n_legal_entity NVARCHAR2(200);
 n_request_type_name NVARCHAR2(200);
 n_personal_email NVARCHAR2(200);
@@ -28,6 +29,15 @@ rsp_status NVARCHAR2(10);
 v_body clob := '';      -- body of mail
 
 BEGIN
+    -- call SP_CANCEL_REQUEST_FIN_BOTH if it's a double leave 
+    SELECT COUNT(*) INTO n_is_double_leave FROM EMPLOYEE_REQUESTS WHERE ID = p_request_id 
+    AND (lower(BENEFIT_CODE) LIKE '%alpl%' AND lower(BENEFIT_CODE) LIKE '%alcf%');
+    
+    IF n_is_double_leave > 0 THEN
+        SP_CANCEL_REQUEST_FIN_BOTH(p_employeeCode, p_request_id);
+        RETURN;
+    END IF;
+
     SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
     SELECT VALUE INTO n_token_value FROM APPLICATIONS_CONFIGS WHERE KEY = 'TOKEN' AND ROWNUM = 1;
     SP_GET_TOKEN(n_token);
@@ -164,6 +174,7 @@ BEGIN
                         ID = p_request_id
                     )LOOP
 
+            -- Restore balance days when cancel APL leaves
             UPDATE ABSENCE_GROUP_EMPLOYEE AGE
             SET
                 CARRY_FORWARD_USED = CARRY_FORWARD_USED - REC.CRF_DAY_TEMP,
@@ -173,6 +184,8 @@ BEGIN
             WHERE
                 EMPLOYEE_CODE = REC.EMPLOYEE_CODE_REQ
                 AND AGE.BENEFIT_ACCRUAL_PLAN = REC.BENEFIT_CODE;
+
+            -- DBMS_OUTPUT.put_line('Restore: ' || REC.BENEFIT_CODE);
 
     -- send mail
 

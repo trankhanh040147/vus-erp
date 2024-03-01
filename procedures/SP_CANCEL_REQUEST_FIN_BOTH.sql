@@ -9,6 +9,8 @@ l_body NVARCHAR2(2000);
 l_body_annual NVARCHAR2(2000);
 l_body_crf NVARCHAR2(2000);
 l_response clob;
+l_response_annual clob;
+l_response_crf clob;
 l_response_clob clob;
 l_numrow number;
 l_rowsub number;
@@ -129,26 +131,33 @@ BEGIN
     DBMS_OUTPUT.put_line('-------------------');
     DBMS_OUTPUT.put_line('l_body_crf: ' || l_body_crf);
 
-
-    l_response := apex_web_service.make_rest_request(
+    l_response_annual := apex_web_service.make_rest_request(
             p_url => global_vars.get_resource_url || '/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CancelLeaverequest',
             p_http_method => 'POST',
-            p_body => l_body,
+            p_body => l_body_annual,
             p_transfer_timeout => 3600
             ) ;
-            
-    return;
-
-    end loop;
-
-
-
-
 
     -- print response 
-    DBMS_OUTPUT.put_line('');
-    DBMS_OUTPUT.put_line(l_response);
-    APEX_JSON.parse(l_response);
+    DBMS_OUTPUT.put_line('l_response_annual: ');
+    DBMS_OUTPUT.put_line(l_response_annual);
+    APEX_JSON.parse(l_response_annual);
+    DBMS_OUTPUT.put_line('----------------------------');
+
+    l_response_crf := apex_web_service.make_rest_request(
+            p_url => global_vars.get_resource_url || '/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/CancelLeaverequest',
+            p_http_method => 'POST',
+            p_body => l_body_crf,
+            p_transfer_timeout => 3600
+            ) ;
+
+    -- print response 
+    DBMS_OUTPUT.put_line('l_response_crf: ');
+    DBMS_OUTPUT.put_line(l_response_crf);
+    APEX_JSON.parse(l_response_crf);
+    DBMS_OUTPUT.put_line('----------------------------');
+            
+    end loop;
 
     -- Get the value of the response Status 
     rsp_status := apex_json.get_varchar2('Status', 1);
@@ -185,29 +194,7 @@ BEGIN
                 EMPLOYEE_CODE = REC.EMPLOYEE_CODE_REQ
                 AND AGE.BENEFIT_ACCRUAL_PLAN = REC.BENEFIT_CODE;
 
-            -- DBMS_OUTPUT.put_line('Restore: ' || REC.BENEFIT_CODE);
-
-    -- send mail
-
-            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_employee_email, 'Leave Request Canceled', '<p> Dear '|| n_full_name ||', </p>' ||
-            -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Canceled', '<p> Dear '|| n_full_name ||', </p>' ||
-            --                     '<p>Your leave request has been canceled. Here are the details:</p>' ||
-            --                     '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
-            --                     '<p> Total Days: '|| to_char(rec.TOTAL_DAYS, '0.0') ||' </p>' ||
-            --                     -- '<p> Total Days: '|| case 
-            --                     --                         when to_char(rec.TOTAL_DAYS) = '.5' then to_char(rec.TOTAL_DAYS, '0.0')
-            --                     --                      else 
-            --                     --                         rec.TOTAL_DAYS
-            --                     --                      end ||' </p>' ||
-            --                     '<p> From Date: '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||' </p>' ||
-            --                     '<p> To Date: '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||' </p>' ||
-            --                     -- '<br>' || 
-            --                     -- '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
-            --                     -- '<br>' || 
-            --                     '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
-            --                     '<br>' || 
-            --                     '<p> Thank you, </p>' ||
-            --                     '<p> VUS </p>');
+            -- Send mail
 
             v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/header.png''></img>';
             v_body := v_body || '<h3 style=''color:black;text-align:center''>[PHÒNG NHÂN SỰ HÀNH CHÍNH - VUS] – ĐƠN XIN NGHỈ PHÉP</h3>';

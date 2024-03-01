@@ -24,6 +24,10 @@ n_carry_forward_code nvarchar2(200);
 n_accrual_id nvarchar2(100);
 n_total_day number:= 0;
 n_extra_id number;
+n_from_date_pl date;
+n_to_date_pl date;
+n_from_date_crf date;
+n_to_date_crf date;
 l_body_crf nvarchar2(2000);
 l_job_name VARCHAR2(30);
 rsp_status VARCHAR2(30);
@@ -75,6 +79,13 @@ BEGIN
         and lower(er.LEAVE_TYPE) = lower(age.HRM_ABSENCE_CODE_GROUP_ID)
     )loop
 
+        -- calculate from date and end date of both leave
+        n_from_date_crf := rec.FROM_DATE;
+        n_to_date_pl := rec.MODIFIED_END_DATE;
+
+        n_to_date_crf := n_from_date_crf + INTERVAL '1' DAY * (rec.CRF_DAY_TEMP-1);
+        n_from_date_pl := n_to_date_crf + INTERVAL '1' DAY;
+
 l_body_annual := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
@@ -86,8 +97,8 @@ l_body_annual := '{
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
         "IDPortal": "'||n_extra_id||'",
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
-        "FromDate": "'||rec.FROM_DATE||'",
-        "ToDate": "'||rec.MODIFIED_END_DATE||'",
+        "FromDate": "'||n_from_date_pl||'",
+        "ToDate": "'||n_to_date_pl||'",
         "NumberDayOff": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
@@ -109,8 +120,8 @@ l_body_crf := '{
         "AccrualId": "'||rec.CF_BENEFIT_ACCRUAL_PLAN||'", 
         "IDPortal": "'||rec.ID||'",
         "IDStrPortal": "'||rec.ID||'",
-        "FromDate": "'||rec.FROM_DATE||'",
-        "ToDate": "'||rec.MODIFIED_END_DATE||'",
+        "FromDate": "'||n_from_date_crf||'",
+        "ToDate": "'||n_to_date_crf||'",
         "NumberDayOff": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
