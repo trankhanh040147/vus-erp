@@ -3,8 +3,11 @@ v_request_id_temp number:=1;
 v_id NUMBER:=1;
 v_name_type nvarchar2(100);
 v_benefit_code nvarchar2(100):='';
+n_start_time nvarchar2(20):='';
+n_end_time nvarchar2(20):='';
 v_annual_temp float:=0;
 v_crf_temp float:=0;
+v_crf_balance number;
 manager_email nvarchar2(100);
 manager_name nvarchar2(100);
 requester_schedule NVARCHAR2(50);
@@ -23,20 +26,42 @@ begin
 
     P10_total_days := case when :P10_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P10_TOTAL_DAYS) end;
 
+    n_end_time := :P10_END_TIME;
+    n_start_time := CASE WHEN requester_schedule = 'ho' THEN :P10_START_TIME_HO ELSE :P10_START_TIME END;
+
+    -- validate when All day is chosen
+    if :P10_ALL_DAY = 'Y' then
+        n_start_time := '00:00';
+        n_end_time := '00:00';
+    end if;
+
     if :P10_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
+
+            -- CF not expired
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
-                -- CF not expired
-                if  P10_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+                
+                -- Calculate CF balance, if the EndDate exceed CARRY_FORWORD_EXP_DATE, then the balance will be CARRY_FORWORD_EXP_DATE - FROM_DATE, otherwise it will be its CARRY_FORWARD_AVALABLE    
+                if to_date(:P10_END_DATE, 'DD/MM/YYYY') > to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') then
+                    v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P10_FROM_DATE, 'DD/MM/YYYY') +1;
+
+                    if v_crf_balance > rec.CARRY_FORWARD_AVALABLE then
+                        v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                    end if;                
+                else
+                    v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                end if;
+
+                if P10_total_days <= v_crf_balance and v_crf_balance > 0 then
                     -- CF enough
                     v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
                     v_crf_temp := P10_total_days;
-                elsif rec.CARRY_FORWARD_AVALABLE > 0 and P10_total_days > rec.CARRY_FORWARD_AVALABLE then
+                elsif v_crf_balance > 0 and P10_total_days > v_crf_balance then
                     -- CF not enough
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CF_BENEFIT_ACCRUAL_PLAN;
-                    v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
-                    v_annual_temp := P10_total_days - rec.CARRY_FORWARD_AVALABLE;
-                elsif rec.CARRY_FORWARD_AVALABLE <= 0 THEN
+                    v_crf_temp := v_crf_balance;
+                    v_annual_temp := P10_total_days - v_crf_balance;
+                elsif v_crf_balance <= 0 THEN
                     -- CF not expired, CF = 0
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
                     v_annual_temp := P10_total_days;
@@ -73,7 +98,7 @@ begin
         ) values (
             :APP_USER_ID,v_request_id_temp,:P10_EMPLOYEE_CODE,:P10_EMPLOYEE,to_date(:P10_FROM_DATE, 'DD/MM/YYYY'),
             CASE WHEN :P10_END_DATE IS NULL OR :P10_END_DATE = '' THEN to_date(:P10_FROM_DATE, 'DD/MM/YYYY') ELSE to_date(:P10_END_DATE, 'DD/MM/YYYY') END,to_char(:P10_ALL_DAY),:P10_NOTE,P10_total_days,2,:P10_ANNUAL_LEAVE,:P10_APPROVED_MANAGER,:P10_MANAGER_CODE,
-            CASE WHEN requester_schedule = 'ho' THEN :P10_START_TIME_HO ELSE :P10_START_TIME END,:P10_END_TIME,sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P10_NAME_FILES,''),:P10_URL_FILES, :P10_ANNUAL_LEAVE_BALANCE
+            n_start_time, n_end_time, sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P10_NAME_FILES,''),:P10_URL_FILES, :P10_ANNUAL_LEAVE_BALANCE
         ) returning ID into v_id;
 
     :P10_REQUEST_ID_IMPORTED := v_id;
@@ -87,8 +112,7 @@ begin
     -- Send mail
 
     SELECT USER_NAME, FULL_NAME INTO manager_email, manager_name FROM EMPLOYEES WHERE (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = :P10_EMPLOYEE_CODE) = EMPLOYEE_CODE;
-    SELECT ACGL_DESCRIPTION INTO leave_type from ABSENCE_CODE_GROUP_LIST where :P3_ANNUAL_LEAVE = ACGL_ABSENCE_GROUP_ID;
-   
+    SELECT ACGL_DESCRIPTION INTO leave_type from ABSENCE_CODE_GROUP_LIST where :P10_ANNUAL_LEAVE = ACGL_ABSENCE_GROUP_ID;
     --For employee
 
     -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Submitted Successfully', '<p> Dear '|| :P10_EMPLOYEE ||', </p>' ||
@@ -133,7 +157,6 @@ begin
     end if;
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P10_NOTE ||'</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P10_URL_FILES, :P10_NAME_FILES) ||'</p>';
-
     v_body_emp := v_body_emp || '</ul><br>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã được gửi đi thành công!</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Your leave request has been successfully submitted!</p>';
@@ -167,7 +190,7 @@ begin
     --     '<p>From Date: '|| :P10_FROM_DATE ||'</p>' ||
     --     '<p>To Date: '|| :P10_END_DATE ||'</p>' ||
     --     '<br>' || 
-    --     '<p>Please log in to the leave management system to review and approve the request. You can approve the leave by clicking on the following link: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to approve the leave ↗.</a></p>' ||
+    --     '<p>Please log in to the leave management system to review and approve the request. You can approve the leave by clicking on the following link: <a href=\"https://erp-pilot.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to approve the leave ↗.</a></p>' ||
     --     '<br>' || 
     --     '<p>If you have any questions or need further information, please contact the HR department.</p>' ||
     --     '<br>' || 
