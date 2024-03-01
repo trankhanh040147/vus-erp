@@ -1,5 +1,11 @@
+deleteItems = [];
 // Util functions
-function handleDeleteClick(event, formData, fileArrayNames, fileArrayUrls) {
+async function handleDeleteClick(
+    event,
+    formData,
+    fileArrayNames,
+    fileArrayUrls
+) {
     if (event.target.classList.contains("delete-item")) {
         const itemToRemove = event.target.closest("div");
         const name = event.target.dataset.name;
@@ -14,13 +20,16 @@ function handleDeleteClick(event, formData, fileArrayNames, fileArrayUrls) {
             itemToRemove.remove();
             document.getElementById("loader-container").style.display = "none";
         }
+        if (deleteItems.includes(name)) {
+            deleteItems.push(name);
+        }
     }
 }
 function getCurrentDateFormatted() {
     const currentDate = new Date();
 
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
     // Months are zero-based, so add 1
     const year = currentDate.getFullYear();
 
@@ -28,26 +37,28 @@ function getCurrentDateFormatted() {
 }
 function deleteValue(formData, key, value) {
     const values = formData.getAll(key);
-    const updatedValues = values.filter(v => v !== value);
+    const updatedValues = values.filter((v) => v !== value);
 
     // Remove all values associated with the key
     formData.delete(key);
 
     // Append the updated values back to the FormData object
-    updatedValues.forEach(updatedValue => {
+    updatedValues.forEach((updatedValue) => {
         formData.append(key, updatedValue);
-    }
-    );
+    });
 }
 
 // BindEvent functions
 function BindFileUploadEvent(fileUpload, eleSelector) {
-
-    jQuery('.apex-item-wrapper--file').append('<div class="ATTACH_GROUP t-Form-inputContainer"></div>');
+    jQuery(".apex-item-wrapper--file").append(
+        '<div class="ATTACH_GROUP t-Form-inputContainer"></div>'
+    );
 
     var imageUrlsID = apex.item(eleSelector.eleDefUrl).getValue();
     var imageNamesID = apex.item(eleSelector.eleDefName).getValue();
-    var imageContainer = document.querySelector(eleSelector.eleAttCon + " .ATTACH_GROUP")
+    var imageContainer = document.querySelector(
+        eleSelector.eleAttCon + " .ATTACH_GROUP"
+    );
     const urlArray = imageUrlsID.split(";");
     const nameArray = imageNamesID.split(";");
 
@@ -77,7 +88,12 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
     var deleteButtons = document.querySelectorAll(".btn-delete");
     deleteButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            handleDeleteClick(event, fileUpload.formData, fileUpload.fileArrayNames, fileUpload.fileArrayUrls);
+            handleDeleteClick(
+                event,
+                fileUpload.formData,
+                fileUpload.fileArrayNames,
+                fileUpload.fileArrayUrls
+            );
         });
     });
 
@@ -90,7 +106,9 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
         .getElementById(eleSelector.eleAtt)
         .addEventListener("change", function (event) {
             const imageFiles = event.target.files;
-            const hiddenInputContainer = document.querySelector(eleSelector.eleAttCon + " .ATTACH_GROUP");
+            const hiddenInputContainer = document.querySelector(
+                eleSelector.eleAttCon + " .ATTACH_GROUP"
+            );
             const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
 
             fileUpload.formData.append("date", getCurrentDateFormatted());
@@ -120,7 +138,12 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
                 hiddenInputContainer.insertAdjacentHTML("beforeend", hiddenInputHTML);
             }
             hiddenInputContainer.addEventListener("click", function (event) {
-                handleDeleteClick(event, fileUpload.formData, fileUpload.fileArrayNames, fileUpload.fileArrayUrls);
+                handleDeleteClick(
+                    event,
+                    fileUpload.formData,
+                    fileUpload.fileArrayNames,
+                    fileUpload.fileArrayUrls
+                );
             });
         });
 }
@@ -151,13 +174,19 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                         body: fileUpload.formData,
                         timeout: 15000,
                     });
-
+                    console.log(response);
                     if (response.status === 200) {
                         const responseBody = await response.json();
-                        fileUpload.filesName = responseBody.data.map((item) => item.name).join(";");
-                        fileUpload.filesUrl = responseBody.data.map((item) => item.path).join(";");
-                        const newfilesUrl = fileUpload.fileArrayUrls.join(";") + ";" + fileUpload.filesUrl;
-                        const newfilesName = fileUpload.fileArrayNames.join(";") + ";" + fileUpload.filesName;
+                        fileUpload.filesName = responseBody.data
+                            .map((item) => item.name)
+                            .join(";");
+                        fileUpload.filesUrl = responseBody.data
+                            .map((item) => item.path)
+                            .join(";");
+                        const newfilesUrl =
+                            fileUpload.fileArrayUrls.join(";") + ";" + fileUpload.filesUrl;
+                        const newfilesName =
+                            fileUpload.fileArrayNames.join(";") + ";" + fileUpload.filesName;
                         await apex.item(eleSelector.eleAttUrl).setValue(newfilesUrl);
                         await apex.item(eleSelector.eleAttName).setValue(newfilesName);
                     } else {
@@ -171,11 +200,13 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                         if (log_mode == 1) {
                             console.log("Submit button clicked");
                         } else {
-                            apex.submit(eleSelector.eleBtnSubmitApexName);
+                            apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
+                            //return false;
                         }
                     }, 500);
                 }
-            } else {
+            }
+            if (deleteItems.length != 0) {
                 await elements.forEach((element) => {
                     const name = element.getAttribute("name");
                     const href = element.getAttribute("href");
@@ -194,10 +225,10 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                     "https://graphapi.vus.edu.vn/delete-multiple-objects-vng-cloud";
 
                 const data = {
-                    fileNames: missingValuesNameId,
+                    fileNames: deleteItems,
                 };
 
-                console.log(missingValuesNameId);
+                console.log(data);
                 const requestOptions = {
                     method: "POST",
                     headers: {
@@ -224,7 +255,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
 
                 await apex.item(eleSelector.eleAttUrl).setValue(urlString);
                 await apex.item(eleSelector.eleAttName).setValue(namesString);
-                // apex.submit(eleSelector.eleBtnSubmit);
+                apex.submit(eleSelector.eleBtnSubmit);
                 setTimeout(function () {
                     if (log_mode == 1) {
                         console.log("Submit button clicked");
