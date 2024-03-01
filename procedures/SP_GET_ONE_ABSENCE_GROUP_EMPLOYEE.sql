@@ -132,6 +132,10 @@ BEGIN
                 n_plan_year_accrued := n_maximum_accrual_limit;
             end if;
 
+            if(n_carry_forward > n_maximum_accrual_limit) then
+                n_carry_forward := n_maximum_accrual_limit;
+            end if;
+
             -- Convert Group 'Leave' to 'APL'
             if n_hrm_absence_code_group_id = 'Leave' then
                 n_hrm_absence_code_group_id := 'APL';
