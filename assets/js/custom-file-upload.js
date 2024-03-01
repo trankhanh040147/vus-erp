@@ -1,6 +1,6 @@
 deleteItems = [];
 // Util functions
-async function handleDeleteClick(
+function handleDeleteClick(
     event,
     formData,
     fileArrayNames,
@@ -14,7 +14,7 @@ async function handleDeleteClick(
         const updatedFiles = files.filter((file) => file.name !== name);
         formData.delete("files");
         fileArrayNames = fileArrayNames.filter((item) => item !== name);
-        fileArrayUrls = fileArrayNames.filter((item) => item !== url);
+        fileArrayUrls = fileArrayUrls.filter((item) => item !== url);
         updatedFiles.forEach((file) => formData.append("files", file));
         if (itemToRemove) {
             itemToRemove.remove();
