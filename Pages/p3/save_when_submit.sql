@@ -3,6 +3,8 @@ v_request_id_temp number:=1;
 v_id NUMBER:=1;
 v_name_type nvarchar2(100);
 v_benefit_code nvarchar2(100):='';
+n_start_time nvarchar2(20):='';
+n_end_time nvarchar2(20):='';
 v_annual_temp float:=0;
 v_crf_temp float:=0;
 v_crf_balance number;
@@ -23,6 +25,15 @@ begin
     -- INSERT INTO DEMO_ATTACHMENT(URL) VALUES(:P3_URL_FILES);
 
     p3_total_days := case when :P3_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P3_TOTAL_DAYS) end;
+
+    n_end_time := :P3_END_TIME;
+    n_start_timme := CASE WHEN requester_schedule = 'ho' THEN :P3_START_TIME_HO ELSE :P3_START_TIME END;
+
+    -- validate when All day is chosen
+    if :P3_ALL_DAY = 'Y' then
+        n_start_time := '00:00';
+        n_end_time := '00:00';
+    end if;
 
     if :P3_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
@@ -87,7 +98,7 @@ begin
         ) values (
             :APP_USER_ID,v_request_id_temp,:P3_EMPLOYEE_CODE,:P3_EMPLOYEE,to_date(:P3_FROM_DATE, 'DD/MM/YYYY'),
             CASE WHEN :P3_END_DATE IS NULL OR :P3_END_DATE = '' THEN to_date(:P3_FROM_DATE, 'DD/MM/YYYY') ELSE to_date(:P3_END_DATE, 'DD/MM/YYYY') END,to_char(:P3_ALL_DAY),:P3_NOTE,p3_total_days,2,:P3_ANNUAL_LEAVE,:P3_APPROVED_MANAGER,:P3_MANAGER_CODE,
-            CASE WHEN requester_schedule = 'ho' THEN :P3_START_TIME_HO ELSE :P3_START_TIME END,:P3_END_TIME,sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P3_NAME_FILES,''),:P3_URL_FILES, :P3_ANNUAL_LEAVE_BALANCE
+            n_start_time, n_end_time, sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P3_NAME_FILES,''),:P3_URL_FILES, :P3_ANNUAL_LEAVE_BALANCE
         ) returning ID into v_id;
 
     :P3_REQUEST_ID_IMPORTED := v_id;
@@ -145,6 +156,7 @@ begin
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P3_NOTE ||'</p>';
+    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P3_URL_FILES, :P3_NAME_FILES) ||'</p>';
     v_body_emp := v_body_emp || '</ul><br>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã được gửi đi thành công!</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Your leave request has been successfully submitted!</p>';
@@ -208,6 +220,8 @@ begin
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P3_NOTE ||'</p>';
+    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P3_URL_FILES, :P3_NAME_FILES) ||'</p>';
+
     v_body_man := v_body_man || '</ul><br>';
     v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
     v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
@@ -222,5 +236,8 @@ begin
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', manager_email, 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
     -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
-
+-- EXCEPTION
+--       -- Xử lý nếu không tìm thấy dữ liệu (NO_DATA_FOUND)
+--     WHEN NO_DATA_FOUND THEN
+--         DBMS_OUTPUT.PUT_LINE('Không tìm thấy thông tin của manager.');
 end;

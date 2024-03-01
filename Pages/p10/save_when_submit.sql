@@ -3,14 +3,18 @@ v_request_id_temp number:=1;
 v_id NUMBER:=1;
 v_name_type nvarchar2(100);
 v_benefit_code nvarchar2(100):='';
+n_start_time nvarchar2(20):='';
+n_end_time nvarchar2(20):='';
 v_annual_temp float:=0;
 v_crf_temp float:=0;
+v_crf_balance number;
 manager_email nvarchar2(100);
 manager_name nvarchar2(100);
 requester_schedule NVARCHAR2(50);
 v_body_emp clob := '';
 v_body_man clob:= '';
 P10_total_days FLOAT;
+leave_type nvarchar2(200);
 begin
 
     requester_schedule := LOWER(TRIM(:P10_LEAVE_TYPE_DEPT));
@@ -22,20 +26,42 @@ begin
 
     P10_total_days := case when :P10_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P10_TOTAL_DAYS) end;
 
+    n_end_time := :P10_END_TIME;
+    n_start_time := CASE WHEN requester_schedule = 'ho' THEN :P10_START_TIME_HO ELSE :P10_START_TIME END;
+
+    -- validate when All day is chosen
+    if :P10_ALL_DAY = 'Y' then
+        n_start_time := '00:00';
+        n_end_time := '00:00';
+    end if;
+
     if :P10_ANNUAL_LEAVE = 'APL' then
         for rec in ( select * from ABSENCE_GROUP_EMPLOYEE where employee_code = :APP_EMP_CODE and EXPIRATION_DATE >= to_char(sysdate,'MM/DD/YYYY'))loop
+
+            -- CF not expired
             if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
-                -- CF not expired
-                if  P10_total_days <= rec.CARRY_FORWARD_AVALABLE and rec.CARRY_FORWARD_AVALABLE > 0 then
+                
+                -- Calculate CF balance, if the EndDate exceed CARRY_FORWORD_EXP_DATE, then the balance will be CARRY_FORWORD_EXP_DATE - FROM_DATE, otherwise it will be its CARRY_FORWARD_AVALABLE    
+                if to_date(:P10_END_DATE, 'DD/MM/YYYY') > to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') then
+                    v_crf_balance := to_date(rec.CARRY_FORWORD_EXP_DATE, 'MM/DD/YYYY') - to_date(:P10_FROM_DATE, 'DD/MM/YYYY') +1;
+
+                    if v_crf_balance > rec.CARRY_FORWARD_AVALABLE then
+                        v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                    end if;                
+                else
+                    v_crf_balance := rec.CARRY_FORWARD_AVALABLE;
+                end if;
+
+                if P10_total_days <= v_crf_balance and v_crf_balance > 0 then
                     -- CF enough
-                    v_benefit_code := rec.CARRY_FORWARD_CODE;
+                    v_benefit_code := rec.CF_BENEFIT_ACCRUAL_PLAN;
                     v_crf_temp := P10_total_days;
-                elsif rec.CARRY_FORWARD_AVALABLE > 0 and P10_total_days > rec.CARRY_FORWARD_AVALABLE then
+                elsif v_crf_balance > 0 and P10_total_days > v_crf_balance then
                     -- CF not enough
-                    v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CARRY_FORWARD_CODE;
-                    v_crf_temp := rec.CARRY_FORWARD_AVALABLE;
-                    v_annual_temp := P10_total_days - rec.CARRY_FORWARD_AVALABLE;
-                elsif rec.CARRY_FORWARD_AVALABLE <= 0 THEN
+                    v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN||','||rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    v_crf_temp := v_crf_balance;
+                    v_annual_temp := P10_total_days - v_crf_balance;
+                elsif v_crf_balance <= 0 THEN
                     -- CF not expired, CF = 0
                     v_benefit_code := rec.BENEFIT_ACCRUAL_PLAN;
                     v_annual_temp := P10_total_days;
@@ -72,7 +98,7 @@ begin
         ) values (
             :APP_USER_ID,v_request_id_temp,:P10_EMPLOYEE_CODE,:P10_EMPLOYEE,to_date(:P10_FROM_DATE, 'DD/MM/YYYY'),
             CASE WHEN :P10_END_DATE IS NULL OR :P10_END_DATE = '' THEN to_date(:P10_FROM_DATE, 'DD/MM/YYYY') ELSE to_date(:P10_END_DATE, 'DD/MM/YYYY') END,to_char(:P10_ALL_DAY),:P10_NOTE,P10_total_days,2,:P10_ANNUAL_LEAVE,:P10_APPROVED_MANAGER,:P10_MANAGER_CODE,
-            CASE WHEN requester_schedule = 'ho' THEN :P10_START_TIME_HO ELSE :P10_START_TIME END,:P10_END_TIME,sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P10_NAME_FILES,''),:P10_URL_FILES, :P10_ANNUAL_LEAVE_BALANCE
+            n_start_time, n_end_time, sysdate,v_benefit_code,v_crf_temp,v_annual_temp,nvl(:P10_NAME_FILES,''),:P10_URL_FILES, :P10_ANNUAL_LEAVE_BALANCE
         ) returning ID into v_id;
 
     :P10_REQUEST_ID_IMPORTED := v_id;
@@ -86,7 +112,7 @@ begin
     -- Send mail
 
     SELECT USER_NAME, FULL_NAME INTO manager_email, manager_name FROM EMPLOYEES WHERE (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = :P10_EMPLOYEE_CODE) = EMPLOYEE_CODE;
-        
+    SELECT ACGL_DESCRIPTION INTO leave_type from ABSENCE_CODE_GROUP_LIST where :P10_ANNUAL_LEAVE = ACGL_ABSENCE_GROUP_ID;
     --For employee
 
     -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Submitted Successfully', '<p> Dear '|| :P10_EMPLOYEE ||', </p>' ||
@@ -116,7 +142,8 @@ begin
     v_body_emp := v_body_emp || '<ul>';
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| :P10_EMPLOYEE ||'</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| :P10_EMPLOYEE_CODE ||'</p>';
-    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P10_ANNUAL_LEAVE ||'</p>';
+    -- v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P10_ANNUAL_LEAVE ||'</p>';
+    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| leave_type ||'</p>';
     if (P10_total_days <= 0.5) then
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(P10_total_days, '0.0') ||'</p>';
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P10_FROM_DATE ||'</p>';
@@ -129,6 +156,7 @@ begin
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P10_END_DATE ||'</p>';
     end if;
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P10_NOTE ||'</p>';
+    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P10_URL_FILES, :P10_NAME_FILES) ||'</p>';
     v_body_emp := v_body_emp || '</ul><br>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã được gửi đi thành công!</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Your leave request has been successfully submitted!</p>';
@@ -146,7 +174,7 @@ begin
     -- v_body_emp := v_body_emp || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', :APP_USER_NAME, 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
-    SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
+    -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Gửi đơn xin nghỉ phép thành công', v_body_emp);
 
     --For manager
 
@@ -178,7 +206,8 @@ begin
     v_body_man := v_body_man || '<ul>';
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| :P10_EMPLOYEE ||'</p>';
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| :P10_EMPLOYEE_CODE ||'</p>';
-    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P10_ANNUAL_LEAVE ||'</p>';
+    -- v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| :P10_ANNUAL_LEAVE ||'</p>';
+    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| leave_type ||'</p>';
     if (P10_total_days <= 0.5) then
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(P10_total_days, '0.0') ||'</p>';
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| :P10_FROM_DATE ||'</p>';
@@ -191,9 +220,11 @@ begin
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P10_END_DATE ||'</p>';
     end if;
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P10_NOTE ||'</p>';
+    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P10_URL_FILES, :P10_NAME_FILES) ||'</p>';
+
     v_body_man := v_body_man || '</ul><br>';
-    v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau:</p>';
-    v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-pilot.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
+    v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
+    v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
 
     v_body_man := v_body_man || '<p style=''color:black''>Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm sự hỗ trợ, xin đừng ngần ngại liên hệ với phòng Nhân sự Hành chính.</p>';
     v_body_man := v_body_man || '<p style=''color:black''>If you have any questions or need further assistance, please feel free to reach out to the HRA department.</p>';
@@ -204,6 +235,9 @@ begin
     -- v_body_man := v_body_man || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', manager_email, 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
-    SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
-
+    -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
+-- EXCEPTION
+--       -- Xử lý nếu không tìm thấy dữ liệu (NO_DATA_FOUND)
+--     WHEN NO_DATA_FOUND THEN
+--         DBMS_OUTPUT.PUT_LINE('Không tìm thấy thông tin của manager.');
 end;
