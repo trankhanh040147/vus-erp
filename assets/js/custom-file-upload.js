@@ -7,6 +7,11 @@ function handleDeleteClick(
     fileArrayUrls
 ) {
     if (event.target.classList.contains("delete-item")) {
+        // log items before deletes
+        console.log("fileArrayNames before delete: ", fileArrayNames);
+        console.log("fileArrayUrls before delete: ", fileArrayUrls);
+
+
         const itemToRemove = event.target.closest("div");
         const name = event.target.dataset.name;
         const url = itemToRemove.querySelector("a").getAttribute("href");
@@ -23,6 +28,11 @@ function handleDeleteClick(
         if (deleteItems.includes(name)) {
             deleteItems.push(name);
         }
+
+        // log items after deletes
+        console.log("fileArrayNames after delete: ", fileArrayNames);
+        console.log("fileArrayUrls after delete: ", fileArrayUrls);
+        
     }
 }
 function getCurrentDateFormatted() {
