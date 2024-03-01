@@ -145,6 +145,7 @@ begin
         v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
     v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P3_NOTE ||'</p>';
+    v_body_emp := v_body_emp || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P3_URL_FILES, :P3_NAME_FILES) ||'</p>';
     v_body_emp := v_body_emp || '</ul><br>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã được gửi đi thành công!</p>';
     v_body_emp := v_body_emp || '<p style=''color:black''>Your leave request has been successfully submitted!</p>';
@@ -208,6 +209,8 @@ begin
         v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| :P3_END_DATE ||'</p>';
     end if;
     v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| :P3_NOTE ||'</p>';
+    v_body_man := v_body_man || '<p style=''color:black''><strong style=''color:black''>- Đính kèm/ Attachment:</strong> '|| to_href_html(:P3_URL_FILES, :P3_NAME_FILES) ||'</p>';
+
     v_body_man := v_body_man || '</ul><br>';
     v_body_man := v_body_man || '<p style=''color:black''>Vui lòng đăng nhập vào Hệ thống Quản lý nghỉ phép để xem xét và phản hồi yêu cầu. Bạn có thể phản hồi yêu cầu nghỉ phép bằng cách nhấp vào liên kết sau: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
     v_body_man := v_body_man || '<p style=''color:black''>Please log in to The leave management system to review and respond the leave request. You can respond the leave request by clicking on the following link: <a href=\"https://erp-uat.vus.edu.vn/ords/r/erp/erp/approve-leave?request_id=' || to_char(v_id) || '\"> link to respond the leave request ↗.</a></p><br>';
@@ -222,5 +225,8 @@ begin
 
     SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', manager_email, 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
     -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Yêu cầu duyệt đơn nghỉ phép', v_body_man);
-
+-- EXCEPTION
+--       -- Xử lý nếu không tìm thấy dữ liệu (NO_DATA_FOUND)
+--     WHEN NO_DATA_FOUND THEN
+--         DBMS_OUTPUT.PUT_LINE('Không tìm thấy thông tin của manager.');
 end;
