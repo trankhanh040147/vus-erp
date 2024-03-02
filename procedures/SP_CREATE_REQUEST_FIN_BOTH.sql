@@ -97,7 +97,7 @@ l_body_annual := '{
         "AdjustedHours": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
         "TransactionDate": "'||n_from_date_pl||'",
-        "Description": "'||rec.NOTE||'",
+        "Description": "'||rec.NOTE || ' PL' ||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
