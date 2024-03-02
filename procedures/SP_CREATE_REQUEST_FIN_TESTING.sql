@@ -15,6 +15,8 @@ l_body_mail NVARCHAR2(2000);
 n_id number;
 n_employeeCode NVARCHAR2(200);
 n_legal_entity NVARCHAR2(200);
+n_full_name NVARCHAR2(200);
+n_company_email NVARCHAR2(200);
 n_request_type_name NVARCHAR2(200);
 n_personal_email NVARCHAR2(200);
 n_token_value NVARCHAR2(2000);
@@ -31,6 +33,9 @@ n_to_date_crf date;
 l_body_crf nvarchar2(2000);
 l_job_name VARCHAR2(30);
 rsp_status VARCHAR2(30);
+
+v_body clob := ''; -- body of mail
+
 
 BEGIN
 
@@ -91,11 +96,10 @@ l_body_annual := '{
         "LegalEntityID": "'||rec.DATAAREA||'",
         "AdjustedHours": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        "TransactionDate": "'||rec.FROM_DATE||'",
+        "TransactionDate": "'||n_from_date_pl||'",
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||n_extra_id||'",
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
         "FromDate": "'||n_from_date_pl||'",
         "ToDate": "'||n_to_date_pl||'",
@@ -114,11 +118,10 @@ l_body_crf := '{
         "LegalEntityID": "'||rec.DATAAREA||'",
         "AdjustedHours": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        "TransactionDate": "'||rec.FROM_DATE||'",
+        "TransactionDate": "'||n_from_date_crf||'",
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.CF_BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||rec.ID||'",
         "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||n_from_date_crf||'",
         "ToDate": "'||n_to_date_crf||'",
