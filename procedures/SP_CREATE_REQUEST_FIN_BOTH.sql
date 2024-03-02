@@ -94,7 +94,7 @@ BEGIN
 l_body_annual := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
+        "AdjustedHours": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
         "TransactionDate": "'||n_from_date_pl||'",
         "Description": "'||rec.NOTE || ' PL' ||'",
@@ -103,7 +103,7 @@ l_body_annual := '{
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
         "FromDate": "'||n_from_date_pl||'",
         "ToDate": "'||n_to_date_pl||'",
-        "NumberDayOff": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
+        "NumberDayOff": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -116,7 +116,7 @@ l_body_annual := '{
 l_body_crf := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
+        "AdjustedHours": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
         "TransactionDate": "'||n_from_date_crf||'",
         "Description": "'||rec.NOTE||'",
@@ -125,7 +125,7 @@ l_body_crf := '{
         "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||n_from_date_crf||'",
         "ToDate": "'||n_to_date_crf||'",
-        "NumberDayOff": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
+        "NumberDayOff": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
