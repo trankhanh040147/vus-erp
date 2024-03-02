@@ -32,6 +32,10 @@ n_AccrualId_pl  NVARCHAR2(200);
 n_AccrualId_crf NVARCHAR2(200);
 n_IDStrPortal_pl NVARCHAR2(200);
 n_IDStrPortal_crf NVARCHAR2(200);
+n_from_date_pl date;
+n_to_date_pl date;
+n_from_date_crf date;
+n_to_date_crf date;
 n_NumberDayOff_pl NUMBER;   
 n_NumberDayOff_crf  NUMBER;
 n_HRMAbsenceCodeId_pl NVARCHAR2(200);
@@ -40,6 +44,7 @@ n_HRMAbsenceCodeId_crf NVARCHAR2(200);
 v_body clob := '';      -- body of mail
 
 BEGIN
+
     SELECT TO_CHAR(SYSDATE, 'MM/DD/YYYY') INTO n_approve_date FROM DUAL;
     SELECT VALUE INTO n_token_value FROM APPLICATIONS_CONFIGS WHERE KEY = 'TOKEN' AND ROWNUM = 1;
     SP_GET_TOKEN(n_token);
@@ -78,6 +83,13 @@ BEGIN
     -- n_AccrualId_pl = ALPL12 2024
     -- n_AccrualId_crf = ALCF 3Ma2024
 
+    -- calculate from date and end date of both leave
+    n_from_date_crf := rec.FROM_DATE;
+    n_to_date_pl := rec.END_DATE;
+
+    n_to_date_crf := n_from_date_crf + INTERVAL '1' DAY * (rec.CRF_DAY_TEMP-1);
+    n_from_date_pl := n_to_date_crf + INTERVAL '1' DAY;
+
     n_AccrualId_pl := TRIM(SUBSTR(rec.BENEFIT_CODE, 1, INSTR(rec.BENEFIT_CODE, ',') - 1));
     n_AccrualId_crf := TRIM(SUBSTR(rec.BENEFIT_CODE, INSTR(rec.BENEFIT_CODE, ',') + 1));
     n_IDStrPortal_pl := TO_CHAR(rec.ID) || 'PL';
@@ -93,12 +105,12 @@ BEGIN
         "AdjustedHours": "'||to_char(n_NumberDayOff_pl,'90.9')||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
         "TransactionDate": "'||rec.FROM_DATE||'",
-        "Description": "'||rec.NOTE||'",
+        "Description": "'||rec.NOTE || ' PL'||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||n_AccrualId_pl ||'", 
         "IDStrPortal": "'||n_IDStrPortal_pl||'",
-        "FromDate": "'||rec.FROM_DATE||'",
-        "ToDate": "'||rec.END_DATE||'",
+        "FromDate": "'||n_from_date_pl||'",
+        "ToDate": "'||n_to_date_pl||'",
         "NumberDayOff": "'||to_char(n_NumberDayOff_pl,'90.9')||'",
         "StartTime": "'|| CASE when (rec.START_TIME is null or rec.START_TIME = '') THEN '' ELSE (rec.START_TIME||':00') END || '",
         "EndTime": "'|| CASE when (rec.END_TIME is null or rec.END_TIME = '') THEN '' ELSE (rec.END_TIME||':00') END || '",
@@ -117,8 +129,8 @@ BEGIN
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||n_AccrualId_crf ||'", 
         "IDStrPortal": "'||n_IDStrPortal_crf||'",
-        "FromDate": "'||rec.FROM_DATE||'",
-        "ToDate": "'||rec.END_DATE||'",
+        "FromDate": "'||n_from_date_crf||'",
+        "ToDate": "'||n_to_date_crf||'",
         "NumberDayOff": "'||to_char(n_NumberDayOff_crf,'90.9')||'",
         "StartTime": "'|| CASE when (rec.START_TIME is null or rec.START_TIME = '') THEN '' ELSE (rec.START_TIME||':00') END || '",
         "EndTime": "'|| CASE when (rec.END_TIME is null or rec.END_TIME = '') THEN '' ELSE (rec.END_TIME||':00') END || '",

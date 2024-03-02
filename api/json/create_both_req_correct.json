@@ -1,0 +1,89 @@
+{
+    "_jsonRequest":{
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "2.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "4/5/2024",
+        "Description":"Huyen test 4/5/2024-4/6/2024",
+        "EmployeeCode": "003143", 
+        "AccrualId": "ALPL12 2024",
+        "IDStrPortal": "9876",
+        "FromDate": "4/5/2024",
+        "ToDate": "4/6/2024",
+        "NumberDayOff": "2.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL12",
+        "AllDay": "Yes",
+        "AttachmentURL": ""
+        }
+}
+///////////////////////////////////
+{
+    "_jsonRequest":{
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "1.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "4/7/2024",
+        "Description":"Huyen test 4/7/2024",
+        "EmployeeCode": "003143", 
+        "AccrualId": "ALCF 2023 Dec", 
+        "IDStrPortal": "9876PL",
+        "FromDate": "4/7/2024",
+        "ToDate": "4/7/2024",
+        "NumberDayOff": "1.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALCF",
+        "AllDay": "Yes",
+        "AttachmentURL": ""
+        
+        }
+}
+///////////////////////////////////////////////
+{
+    "_jsonRequest":{
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "2.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "4/5/2024",
+        "Description": "Huyen test 4/5/2024-4/6/2024",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALPL12 2024",
+        "IDStrPortal": "9876",
+        "FromDate": "4/5/2024",
+        "ToDate": "4/6/2024",
+        "NumberDayOff": "2.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL12",
+        "AllDay": "Yes"
+
+    }
+}
+///////////////////////////////////
+{
+    "_jsonRequest":{
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "1",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "4/7/2024",
+        "Description": "Huyen test 4/7/2024",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALCF 2023 Dec",
+        "IDStrPortal": "9876PL",
+        "FromDate": "4/7/2024",
+        "ToDate": "4/7/2024",
+        "NumberDayOff": "1.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALCF",
+        "AllDay": "Yes"
+
+    }
+}
+////////////////////////////////////////////

@@ -1,0 +1,90 @@
+// body crf: 
+{
+    "_jsonRequest": {
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "1.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "12/25/2024",
+        "Description": "test double leave 25/12/2024",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALCF 2023 Dec",
+        // "IDPortal": "9093",
+        "IDStrPortal": "9093",
+        "FromDate": "12/25/2024",
+        "ToDate": "12/25/2024",
+        "NumberDayOff": "1.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALCF",
+        "AllDay": "Yes",
+        "AttachmentURL": ""
+    }
+}
+// body annual: 
+{
+    "_jsonRequest": {
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "2.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "12/26/2024", // = FromDate
+        "Description": "test double leave 25/12/2024",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALPL12 2024",
+        // "IDPortal": "9094",
+        "IDStrPortal": "9093PL",
+        "FromDate": "12/26/2024",
+        "ToDate": "12/27/2024",
+        "NumberDayOff": "2.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL12",
+        "AllDay": "Yes",
+        "AttachmentURL": ""
+    }
+}
+///////////////////////////////////////////////
+// Cancel
+{
+    "_jsonRequest": {
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "2.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "12/26/2024", // == FromDate
+        "Description": "test double leave 25/12/2024 PL",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALPL12 2024",
+        "IDStrPortal": "9093PL",
+        "FromDate": "12/26/2024",
+        "ToDate": "12/27/2024",
+        "NumberDayOff": "2.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALPL12",
+        "AllDay": "Yes"
+    }
+}
+///////////////////////////////////
+{
+    "_jsonRequest": {
+        "LegalEntityID": "HRA1",
+        "AdjustedHours": "1.0",
+        "AdjustmentType": "Amount Used",
+        "TransactionDate": "12/25/2024",
+        "Description": "test double leave 25/12/2024",
+        "EmployeeCode": "003143",
+        "AccrualId": "ALCF 2023 Dec",
+        "IDStrPortal": "9093",
+        "FromDate": "12/25/2024",
+        "ToDate": "12/25/2024",
+        "NumberDayOff": "1.0",
+        "StartTime": "00:00:00",
+        "EndTime": "00:00:00",
+        "HRMAbsenceCodeGroupId": "Leave",
+        "HRMAbsenceCodeId": "ALCF",
+        "AllDay": "Yes"
+    }
+}
+////////////////////////////////////////////

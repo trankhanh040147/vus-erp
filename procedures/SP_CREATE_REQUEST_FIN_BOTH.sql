@@ -15,6 +15,8 @@ l_body_mail NVARCHAR2(2000);
 n_id number;
 n_employeeCode NVARCHAR2(200);
 n_legal_entity NVARCHAR2(200);
+n_full_name NVARCHAR2(200);
+n_company_email NVARCHAR2(200);
 n_request_type_name NVARCHAR2(200);
 n_personal_email NVARCHAR2(200);
 n_token_value NVARCHAR2(2000);
@@ -31,6 +33,9 @@ n_to_date_crf date;
 l_body_crf nvarchar2(2000);
 l_job_name VARCHAR2(30);
 rsp_status VARCHAR2(30);
+
+v_body clob := ''; -- body of mail
+
 
 BEGIN
 
@@ -89,17 +94,16 @@ BEGIN
 l_body_annual := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
+        "AdjustedHours": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        "TransactionDate": "'||rec.FROM_DATE||'",
-        "Description": "'||rec.NOTE||'",
+        "TransactionDate": "'||n_from_date_pl||'",
+        "Description": "'||rec.NOTE || ' PL' ||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||n_extra_id||'",
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
         "FromDate": "'||n_from_date_pl||'",
         "ToDate": "'||n_to_date_pl||'",
-        "NumberDayOff": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
+        "NumberDayOff": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -112,17 +116,16 @@ l_body_annual := '{
 l_body_crf := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
+        "AdjustedHours": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
         "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
-        "TransactionDate": "'||rec.FROM_DATE||'",
+        "TransactionDate": "'||n_from_date_crf||'",
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.CF_BENEFIT_ACCRUAL_PLAN||'", 
-        "IDPortal": "'||rec.ID||'",
         "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||n_from_date_crf||'",
         "ToDate": "'||n_to_date_crf||'",
-        "NumberDayOff": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
+        "NumberDayOff": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -286,27 +289,114 @@ l_body_crf := '{
         COMMIT; -- Commit the transaction to save the log
 
 
-    /*
-        SELECT USER_NAME INTO n_personal_email FROM EMPLOYEES WHERE EMPLOYEE_CODE = (SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode) AND NVL(USER_NAME, '0') <> '0';
-        --n_personal_email := email của e;
-        -- "To":"'||n_personal_email||'"
-        If n_personal_email IS not null Then
-            l_body_mail := ' {
-                            "Subject":"Approved your Leave",
-                            "Body":"New leave request from Portal",
-                            "To":"'||n_personal_email||'"
-                        }';
-            --TYPE_ID = 1  send email & MS Team
-            apex_web_service.g_request_headers.delete();    
-            apex_web_service.g_request_headers(1).name := 'Content-Type';
-            apex_web_service.g_request_headers(1).value := 'application/json';
-            l_response_clob :=  apex_web_service.make_rest_request(
-                p_url => 'https://prod-28.southeastasia.logic.azure.com:443/workflows/19209291fb794176bf9eb96962a61e43/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QJkv0x-JiuX5wV0UWIonmF0ZG_9IWKE1kfO5J81DhrU',
-                p_http_method => 'POST',
-                p_body => l_body_mail,
-                p_transfer_timeout => 3600
-                );
-        End If;
-    */  
+    SELECT USER_NAME, FULL_NAME INTO n_company_email, n_full_name FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employeeCode;
+
+-- Send mail
+    for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
+    age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
+        case 
+        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+            'Amount Used'
+        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+            'Amount Used'
+        else
+            null
+        end as ADJUSTMENTTYPE,
+        case 
+        when er.ALL_DAY like 'Y' then
+            'Yes'
+        else
+            'No'
+        end as ALLDAY,
+        case 
+            when age.HRM_ABSENCE_CODE_GROUP_ID = 'APL' then
+                'Leave'
+        end as CONVERTED_HRM_ABSENCE_CODE_GROUP_ID,
+        case 
+            when er.ALL_DAY like 'N' then er.FROM_DATE -- Set END_DATE to FROM_DATE if ALLDAY is 'N'
+            else er.END_DATE
+        end as MODIFIED_END_DATE
+
+        from EMPLOYEE_REQUESTS er join ABSENCE_GROUP_EMPLOYEE age on er.EMPLOYEE_CODE_REQ = age.EMPLOYEE_CODE
+        join EMPLOYEES emp on emp.EMPLOYEE_CODE = age.EMPLOYEE_CODE
+        where er.ID = p_request_id and emp.EMPLOYEE_CODE = p_employeeCode
+    )loop
+            if rec.CARRY_FORWORD_EXP_DATE >= to_char(sysdate,'MM/DD/YYYY') then
+                if rec.CARRY_FORWARD_AVALABLE > 0 then
+                    n_carry_forward_code := rec.CARRY_FORWARD_CODE;
+                    n_accrual_id := rec.CF_BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+                end if;
+                    
+            else
+                    n_carry_forward_code := rec.HRM_ABSENCE_CODE_ID;
+                    n_accrual_id := rec.BENEFIT_ACCRUAL_PLAN;
+                    n_total_day := rec.TOTAL_DAYS;
+            end if;
+
+    -- SP_SENDGRID_EMAIL
+
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Leave Request Approved', '<p> Dear '|| n_full_name ||', </p>' ||
+
+        --     '<p>Your leave request has been approved. Here are the details:</p>' ||
+        --     '<p> Employee Code: '|| p_employeeCode ||' </p>' ||
+        --     '<p> Total Days: '|| to_char(rec.TOTAL_DAYS, '0.0') ||' </p>' ||
+        --     '<p> From Date: '|| to_date(rec.FROM_DATE, 'DD/MM/YYYY') ||' </p>' ||
+        --     '<p> To Date: '|| to_date(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||' </p>' ||
+        --     '<br>' || 
+        --     '<p>Feel free to proceed with your leave plans accordingly.</p>' ||
+        --     '<br>' || 
+        --     '<p> If you have any questions or need further assistance, please feel free to reach out to the HR department. </p>' ||
+        --     '<br>' || 
+        --     '<p> Thank you, </p>' ||
+        --     '<p> VUS </p>');
+
+        v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/header.png''></img>';
+        v_body := v_body || '<h3 style=''color:black;text-align:center''>[PHÒNG NHÂN SỰ HÀNH CHÍNH - VUS] – ĐƠN XIN NGHỈ PHÉP</h3>';
+        v_body := v_body || '<h3 style=''color:black;text-align:center''>[HRA DEPARTMENT - VUS] – REQUEST FOR LEAVE LETTER</h3>';
+        v_body := v_body || '<p style=''color:black;margin-top:20px''>Anh/Chị '|| n_full_name ||' thân mến,</p>';
+        v_body := v_body || '<p style=''color:black;margin-top:0''>Dear Mr/Ms. '|| n_full_name ||',</p>';
+        v_body := v_body || '<p style=''color:black''>Hệ thống nhận được đề nghị xin nghỉ phép của nhân viên như sau:</p>';
+        v_body := v_body || '<p style=''color:black''>Employee Portal system has received a request for leave as below:</p>';
+        v_body := v_body || '<ul>';
+        v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Họ và tên/ Full name:</strong> '|| n_full_name ||'</p>';
+        v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Mã số nhân viên/ Employee Code:</strong> '|| p_employeeCode ||'</p>';
+        v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Loại phép/ Leave Type:</strong> '|| rec.LEAVE_TYPE ||'</p>';
+        if (rec.TOTAL_DAYS <= 0.5) then
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| to_char(rec.TOTAL_DAYS,'0.0') ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| rec.START_TIME ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| rec.END_TIME ||'</p>';
+        else
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| rec.TOTAL_DAYS ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
+        end if;
+        v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Ghi Chú/ Note:</strong> '|| rec.NOTE ||'</p>';
+        v_body := v_body || '</ul><br>';
+        v_body := v_body || '<p style=''color:black''>Đơn xin nghỉ phép của bạn đã được phê duyệt!</p>';
+        v_body := v_body || '<p style=''color:black''>Your leave request has been approved!</p>';
+        v_body := v_body || '<p style=''color:black''>Hãy thoải mái thực hiện kế hoạch nghỉ phép của bạn.</p>';
+        v_body := v_body || '<p style=''color:black''>Feel free to proceed with your leave plans accordingly.</p><br>';
+
+        v_body := v_body || '<p style=''color:black''>Nếu bạn có bất kỳ câu hỏi nào hoặc cần thêm sự hỗ trợ, xin đừng ngần ngại liên hệ với phòng Nhân sự Hành chính.</p>';
+        v_body := v_body || '<p style=''color:black''>If you have any questions or need further assistance, please feel free to reach out to the HRA department.</p>';
+        v_body := v_body || '<p style=''color:black''>Trân trọng,</p>';
+        v_body := v_body || '<p style=''color:black''>Phòng Nhân sự Hành chính</p>';
+        v_body := v_body || '<p style=''color:black''>Best regards,</p>';
+        v_body := v_body || '<p style=''color:black''>HR & Admin Department </p>';
+        v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
+
+        SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Phê duyệt đơn xin nghỉ phép', v_body);
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Phê duyệt đơn xin nghỉ phép', v_body);
+
+    end loop;
+
 END;
 /
