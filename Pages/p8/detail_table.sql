@@ -11,10 +11,9 @@ SELECT
     emp.PHONE_NUMBER,
     emp.USER_NAME as Email,
     emp.DOB,
-    CASE 
-        WHEN emp.DATAAREA = 'V01' THEN 'Hồ Chí Minh'
-        WHEN emp.DATAAREA = 'V02' THEN 'Hà Nội'
-    END AS LEGAL_ENTITY,
+    -- (SELECT COMPANY_NAME from LEGAL_ENTITY_CAMPUS lec where emp.DATAAREA = lec.DATA_AREA and rownum=1) -- use company name 
+    emp.DATAAREA -- use data_area
+    AS LEGAL_ENTITY,
     emp.START_DATE as Start_date,
     CASE
         WHEN emp.TERMINATE_DATE = '12/31/2154' THEN 'Never'
