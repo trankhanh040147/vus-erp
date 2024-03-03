@@ -245,7 +245,6 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
 
         await apex.item(eleSelector.eleAttUrl).setValue(urlString);
         await apex.item(eleSelector.eleAttName).setValue(namesString);
-        // apex.submit(eleSelector.eleBtnSubmit);
         setTimeout(function () {
           if (log_mode == 1) {
             console.log("Submit button clicked");
