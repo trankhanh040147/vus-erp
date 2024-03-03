@@ -75,24 +75,21 @@ BEGIN
 
     ----- <2. Update current EMPLOYEE_REQUESTS and ABSENCE_GROUP_EMPLOYEE of this employee
 
-    -- Delete current Absence_groups of this employee OR update it
+    -- Delete current Absence_groups of this employee
     DELETE FROM ABSENCE_GROUP_EMPLOYEE WHERE EMPLOYEE_CODE = p_employee_code;
 
     -- DELETE from EMPLOYEE_REQUESTS where IS_D365 = 1 and EMPLOYEE_CODE_REQ = p_employee_code;
 
-    -- Pending: Delete all current waiting leaves 
-    -- DELETE from EMPLOYEE_REQUESTS 
-    -- WHERE IS_D365 = 0 and EMPLOYEE_CODE_REQ = p_employee_code 
-    -- AND EMP_REQ_STATUS = 2;
-
     ----- 2.>
+
+    DBMS_OUTPUT.put_line('SP_GET_ONE_ABSENCE_GROUP_EMPLOYEE: ' || p_employee_code);
 
     FOR r IN (SELECT EMPLOYEE_CODE, DATAAREA FROM EMPLOYEES WHERE EMPLOYEE_CODE = p_employee_code) LOOP
 
         ----- <3. Set body and get response
         l_body := '{"_jsonRequest":{"EmployeeCode":"' || r.EMPLOYEE_CODE || '","legal_entity":"' || r.DATAAREA || '"} }';
 
-        DBMS_OUTPUT.put_line(l_body);
+        -- DBMS_OUTPUT.put_line(l_body);
 
         l_response := apex_web_service.make_rest_request(
             p_url => global_vars.get_resource_url || '/api/services/VUSTC_AbsenceGroupEmployeeServiceGroup/AbsenceGroupEmployeeService/GetAbsenceGroupEmployee',
@@ -132,17 +129,12 @@ BEGIN
                 n_plan_year_accrued := n_maximum_accrual_limit;
             end if;
 
-            if(n_carry_forward > n_maximum_accrual_limit) then
-                n_carry_forward := n_maximum_accrual_limit;
-            end if;
-
             -- Convert Group 'Leave' to 'APL'
             if n_hrm_absence_code_group_id = 'Leave' then
                 n_hrm_absence_code_group_id := 'APL';
             end if;
 
-            DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
-            -- DBMS_OUTPUT.put_line('Plan_used: ' || to_char(n_plan_year_used));
+            -- DBMS_OUTPUT.put_line('Values:' || TO_CHAR(l_numrow) || ' n_benefit_accrual_plan:' || n_benefit_accrual_plan);
 
             ----- 5.>
 
@@ -293,7 +285,7 @@ BEGIN
                 -- DBMS_OUTPUT.put_line('Responer Id: ' || t_responser_id);
                 -- DBMS_OUTPUT.put_line('Target Code: ' || t_target_code);
                 -- DBMS_OUTPUT.PUT_LINE('');
-                DBMS_OUTPUT.put_line('Rec_id ' || t_AdjRecId);
+                -- DBMS_OUTPUT.put_line('Rec_id ' || t_AdjRecId);
 
                 ----- 7.4.>
 
