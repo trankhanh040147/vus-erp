@@ -27,7 +27,7 @@ begin
     p3_total_days := case when :P3_TOTAL_DAYS = '0.5' then 0.5 else TO_NUMBER(:P3_TOTAL_DAYS) end;
 
     n_end_time := :P3_END_TIME;
-    n_start_timme := CASE WHEN requester_schedule = 'ho' THEN :P3_START_TIME_HO ELSE :P3_START_TIME END;
+    n_start_time := CASE WHEN requester_schedule = 'ho' THEN :P3_START_TIME_HO ELSE :P3_START_TIME END;
 
     -- validate when All day is chosen
     if :P3_ALL_DAY = 'Y' then
