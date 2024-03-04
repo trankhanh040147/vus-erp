@@ -1,11 +1,11 @@
 create or replace procedure "SP_SWITCH_ACOUNT"
 (
-    p_emp_code_first,
-    p_emp_code_second
+    p_emp_code_first in employees.employee_code%type,
+    p_emp_code_second in employees.employee_code%type
 )
 is
-    n_user_name_first NVARCHAR2,
-    n_user_name_second NVARCHAR2
+    n_user_name_first employees.user_name%type;
+    n_user_name_second employees.user_name%type;
 begin
 
     -- TABLE: EMPLOYEES
