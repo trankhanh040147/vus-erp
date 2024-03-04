@@ -20,13 +20,19 @@ begin
 
     -- 2. Create jobs to get employees data
     WHILE v_from_num <= v_total_employees LOOP
-            DBMS_SCHEDULER.CREATE_JOB(
-                job_name => 'JOB_GET_ABSENCE_GROUP_' || v_from_num || '_' || v_to_num,
-                job_type => 'PLSQL_BLOCK',
-                job_action => 'BEGIN SP_GET_MANY_ABSENCE_GROUP_EMPLOYEE(' || v_from_num || ',' || v_to_num || '); END;',
-                start_date => SYSTIMESTAMP,
-                enabled => TRUE
-            );
+            -- BEGIN
+                DBMS_SCHEDULER.CREATE_JOB(
+                    job_name => 'JOB_GET_ABSENCE_GROUP_' || v_from_num || '_' || v_to_num,
+                    job_type => 'PLSQL_BLOCK',
+                    job_action => 'BEGIN SP_GET_MANY_ABSENCE_GROUP_EMPLOYEE(' || v_from_num || ',' || v_to_num || '); END;',
+                    start_date => SYSTIMESTAMP,
+                    enabled => TRUE
+                );
+            --     EXCEPTION
+            --         WHEN OTHERS THEN
+            --             DBMS_OUTPUT.PUT_LINE('Error creating job: JOB_GET_ABSENCE_GROUP' || v_from_num || '_' || v_to_num);
+            --             CONTINUE;
+            -- END;
             DBMS_OUTPUT.PUT_LINE('Created job: JOB_GET_ABSENCE_GROUP' || v_from_num || '_' || v_to_num);
             v_from_num := v_to_num + 1;
             v_to_num := v_to_num + v_total_per_batch;
