@@ -11,7 +11,6 @@ l_count_idemp number;
 l_count_iduser number;
 l_body_json clob;
 
-n_id NUMBER;
 n_employee_id NUMBER;
 n_code NVARCHAR2(100 CHAR);
 n_certificate_description NVARCHAR2(100 CHAR);
@@ -80,7 +79,6 @@ BEGIN
     
     FOR i IN 1 .. l_numrow
     LOOP
-        n_id := TO_NUMBER(apex_json.get_varchar2('[%d].$id', i));
         n_employee_id := i;
         n_code := apex_json.get_varchar2('[%d].EmployeeCode', i);
         n_certificate_description := apex_json.get_varchar2('[%d].CertificateDescription', i);
@@ -89,17 +87,18 @@ BEGIN
         n_short_note := apex_json.get_varchar2('[%d].HrmShortNote', i);
         n_certificate_type := apex_json.get_varchar2('[%d].HcmCertificateTypeId', i);
         n_rec_id := apex_json.get_varchar2('[%d].CertificateRecId', i); 
-         
+
         SELECT COUNT(ID) INTO l_count_idemp FROM EMP_CERTIFICATE WHERE REC_ID = n_rec_id ;
 
         If l_count_idemp > 0 Then
             UPDATE EMP_CERTIFICATE SET EMPLOYEE_ID = n_employee_id, CERTIFICATE_DESCRIPTION = n_certificate_description,
                                 END_DATE = n_end_date, START_DATE = n_start_date,  SHORT_NOTE = n_short_note, CERTIFICATE_TYPE = n_certificate_type,  EMPLOYEE_CODE = n_code
-            WHERE   REC_ID = n_rec_id;
+            WHERE   
+                REC_ID = n_rec_id;
 
         Else
-            INSERT INTO EMP_CERTIFICATE(ID, EMPLOYEE_ID, CERTIFICATE_DESCRIPTION, END_DATE, START_DATE, SHORT_NOTE, CERTIFICATE_TYPE, EMPLOYEE_CODE, REC_ID)
-            VALUES(i, i, n_certificate_description, n_end_date, n_start_date, n_short_note, n_certificate_type, n_code, n_rec_id);
+            INSERT INTO EMP_CERTIFICATE(EMPLOYEE_ID, CERTIFICATE_DESCRIPTION, END_DATE, START_DATE, SHORT_NOTE, CERTIFICATE_TYPE, EMPLOYEE_CODE, REC_ID)
+            VALUES(i, n_certificate_description, n_end_date, n_start_date, n_short_note, n_certificate_type, n_code, n_rec_id);
         End If;
 
         COMMIT; 

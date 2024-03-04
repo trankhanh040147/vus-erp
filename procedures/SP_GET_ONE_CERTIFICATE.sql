@@ -103,11 +103,12 @@ BEGIN
         If l_count_idemp > 0 Then
             UPDATE EMP_CERTIFICATE SET EMPLOYEE_ID = n_employee_id, CERTIFICATE_DESCRIPTION = n_certificate_description,
                                 END_DATE = n_end_date, START_DATE = n_start_date,  SHORT_NOTE = n_short_note, CERTIFICATE_TYPE = n_certificate_type,  EMPLOYEE_CODE = n_code
-            WHERE   REC_ID = n_rec_id;
+            WHERE   
+                REC_ID = n_rec_id;
 
         Else
-            INSERT INTO EMP_CERTIFICATE(ID, EMPLOYEE_ID, CERTIFICATE_DESCRIPTION, END_DATE, START_DATE, SHORT_NOTE, CERTIFICATE_TYPE, EMPLOYEE_CODE, REC_ID)
-            VALUES(i, i, n_certificate_description, n_end_date, n_start_date, n_short_note, n_certificate_type, n_code, n_rec_id);
+            INSERT INTO EMP_CERTIFICATE(EMPLOYEE_ID, CERTIFICATE_DESCRIPTION, END_DATE, START_DATE, SHORT_NOTE, CERTIFICATE_TYPE, EMPLOYEE_CODE, REC_ID)
+            VALUES(i, n_certificate_description, n_end_date, n_start_date, n_short_note, n_certificate_type, n_code, n_rec_id);
         End If;
 
         COMMIT; 
