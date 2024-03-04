@@ -190,7 +190,47 @@ BEGIN
                 p_transfer_timeout => 3600
                 ) ;
 
--- Send mail
+
+    -- API Response
+    -- {
+    --     "LegalEntityID": "",
+    --     "TotalRows": 0,
+    --     "AdjustedHours": 0.0,
+    --     "AdjustmentType": "",
+    --     "Description": "Input Leave request ID line or FromDate >= 23/09/2023",
+    --     "TransactionDate": "1900-01-01T12:00:00",
+    --     "EmployeeCode": "",
+    --     "HRMAbsenceCodeId": "",
+    --     "HRMAbsenceCodeGroupId": "",
+    --     "IDPortal": 0,
+    --     "IDStrPortal": "",
+    --     "Status": "",
+    --     "FromDate": "1900-01-01T12:00:00",
+    --     "ToDate": "1900-01-01T12:00:00",
+    --     "NumberDayOff": 0.0,
+    --     "StartTime": "",
+    --     "EndTime": "",
+    --     "AccrualId": "",
+    --     "AllDay": "",
+    --     "AttachmentURL": ""
+    -- }
+
+    DBMS_OUTPUT.put_line('');
+    DBMS_OUTPUT.put_line(l_response);
+    APEX_JSON.parse(l_response);
+
+    -- Status = 1 inserted successfully on D365, otherwise Status = 0
+    rsp_status := apex_json.get_varchar2('Status', 1);
+    -- DBMS_OUTPUT.put_line('STATUS: ' || rsp_status);
+
+    -- Update request status
+    UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
+    UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
+
+    -- Send mail when Leave Request created successfully on D365
+    if rsp_status = '1' then
+
+    -- Send mail
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
         -- case 
@@ -296,41 +336,7 @@ BEGIN
 
     end loop;
 
-    -- API Response
-    -- {
-    --     "LegalEntityID": "",
-    --     "TotalRows": 0,
-    --     "AdjustedHours": 0.0,
-    --     "AdjustmentType": "",
-    --     "Description": "Input Leave request ID line or FromDate >= 23/09/2023",
-    --     "TransactionDate": "1900-01-01T12:00:00",
-    --     "EmployeeCode": "",
-    --     "HRMAbsenceCodeId": "",
-    --     "HRMAbsenceCodeGroupId": "",
-    --     "IDPortal": 0,
-    --     "IDStrPortal": "",
-    --     "Status": "",
-    --     "FromDate": "1900-01-01T12:00:00",
-    --     "ToDate": "1900-01-01T12:00:00",
-    --     "NumberDayOff": 0.0,
-    --     "StartTime": "",
-    --     "EndTime": "",
-    --     "AccrualId": "",
-    --     "AllDay": "",
-    --     "AttachmentURL": ""
-    -- }
-
-    DBMS_OUTPUT.put_line('');
-    DBMS_OUTPUT.put_line(l_response);
-    APEX_JSON.parse(l_response);
-
-    -- Status = 1 inserted successfully on D365, otherwise Status = 0
-    rsp_status := apex_json.get_varchar2('Status', 1);
-    -- DBMS_OUTPUT.put_line('STATUS: ' || rsp_status);
-
-    -- Update request status
-    UPDATE EMPLOYEE_REQUESTS SET INSERTED_STATUS = TO_NUMBER(rsp_status) WHERE ID = p_request_id;
-    UPDATE EMPLOYEE_REQUESTS SET EMP_REQ_STATUS = 3 WHERE ID = p_request_id and rsp_status = '1';
+    end if;
     
 
     -- Write API Logs
