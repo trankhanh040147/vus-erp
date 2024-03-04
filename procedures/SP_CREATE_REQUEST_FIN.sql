@@ -26,7 +26,7 @@ n_total_day number:= 0;
 leave_id nvarchar2(100);
 leave_groupid nvarchar2(100);
 transaction_date nvarchar2(100);
-
+adjustment_type nvarchar2(20) := 'Amount Used';
 rsp_status nvarchar2(50);
 v_body clob := ''; -- body of mail
 BEGIN
@@ -55,15 +55,15 @@ BEGIN
     
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
-        case 
-        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
-            'Amount Used'
-        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
-            'Amount Used'
-        else
-            -- null     -- old
-            'Amount Used'       -- 29/2/24-Viet
-        end as ADJUSTMENTTYPE,
+        -- case 
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+        --     'Amount Used'
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+        --     'Amount Used'
+        -- else
+        --     -- null     cũ
+        --     'Amount Used'       -- 29/2/24-Viet
+        -- end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
             'Yes'
@@ -98,8 +98,8 @@ BEGIN
         l_body := '{
         "_jsonRequest":{
             "LegalEntityID": "'||rec.DATAAREA||'",
-            "AdjustedHours": "'||TRIM(to_char(n_total_day,'90.9'))||'",
-            "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+            "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
+            "AdjustmentType": "'||adjustment_type||'",
             "TransactionDate": "'||rec.FROM_DATE||'",
             "Description": "'||rec.NOTE||'",
             "EmployeeCode": "'||p_employeeCode||'", 
@@ -108,7 +108,7 @@ BEGIN
             "IDStrPortal": "'||rec.ID||'",
             "FromDate": "'||rec.FROM_DATE||'",
             "ToDate": "'||rec.MODIFIED_END_DATE||'",
-            "NumberDayOff": "'||TRIM(to_char(n_total_day,'90.9'))||'",
+            "NumberDayOff": "'||to_char(n_total_day,'90.9')||'",
             "StartTime": "'||rec.START_TIME||':00",
             "EndTime": "'||rec.END_TIME||':00",
             "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -120,8 +120,8 @@ BEGIN
         l_body := '{
         "_jsonRequest":{
             "LegalEntityID": "'||rec.DATAAREA||'",
-            "AdjustedHours": "'||TRIM(to_char(n_total_day,'90.9'))||'",
-            "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+            "AdjustedHours": "'||to_char(n_total_day,'90.9')||'",
+            "AdjustmentType": "'||adjustment_type||'",
             "TransactionDate": "'||rec.FROM_DATE||'",
             "Description": "'||rec.NOTE||'",
             "EmployeeCode": "'||p_employeeCode||'", 
@@ -129,7 +129,7 @@ BEGIN
             "IDStrPortal": "'||rec.ID||'",
             "FromDate": "'||rec.FROM_DATE||'",
             "ToDate": "'||rec.MODIFIED_END_DATE||'",
-            "NumberDayOff": "'||TRIM(to_char(n_total_day,'90.9'))||'",
+            "NumberDayOff": "'||to_char(n_total_day,'90.9')||'",
             "StartTime": "'||rec.START_TIME||':00",
             "EndTime": "'||rec.END_TIME||':00",
             "HRMAbsenceCodeGroupId": "'||leave_groupid||'",
@@ -193,14 +193,14 @@ BEGIN
 -- Send mail
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
-        case 
-        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
-            'Amount Used'
-        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
-            'Amount Used'
-        else
-            null
-        end as ADJUSTMENTTYPE,
+        -- case 
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+        --     'Amount Used'
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+        --     'Amount Used'
+        -- else
+        --     null
+        -- end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
             'Yes'
