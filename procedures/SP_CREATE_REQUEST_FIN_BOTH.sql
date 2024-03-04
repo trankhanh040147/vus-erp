@@ -33,6 +33,7 @@ n_to_date_crf date;
 l_body_crf nvarchar2(2000);
 l_job_name VARCHAR2(30);
 rsp_status VARCHAR2(30);
+adjustment_type nvarchar2(20) := 'Amount Used';
 
 v_body clob := ''; -- body of mail
 
@@ -53,15 +54,15 @@ BEGIN
     
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
-        case 
-        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
-            'Amount Used'
-        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
-            'Amount Used'
-        else
-            -- null     cũ
-            'Amount Used'       -- 29/2/24-Viet
-        end as ADJUSTMENTTYPE,
+        -- case 
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+        --     'Amount Used'
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+        --     'Amount Used'
+        -- else
+        --     -- null     cũ
+        --     'Amount Used'       -- 29/2/24-Viet
+        -- end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
             'Yes'
@@ -94,16 +95,16 @@ BEGIN
 l_body_annual := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
-        "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+        "AdjustedHours": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
+        "AdjustmentType": "'||adjustment_type||'",
         "TransactionDate": "'||n_from_date_pl||'",
-        "Description": "'||rec.NOTE || ' PL' ||'",
+        "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
         "AccrualId": "'||rec.BENEFIT_ACCRUAL_PLAN||'", 
         "IDStrPortal": "'||rec.ID|| 'PL' ||'",
         "FromDate": "'||n_from_date_pl||'",
         "ToDate": "'||n_to_date_pl||'",
-        "NumberDayOff": "'||TRIM(to_char(rec.ANNUAL_DAY_TEMP,'90.9'))||'",
+        "NumberDayOff": "'||to_char(rec.ANNUAL_DAY_TEMP,'90.9')||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -116,8 +117,8 @@ l_body_annual := '{
 l_body_crf := '{
     "_jsonRequest":{
         "LegalEntityID": "'||rec.DATAAREA||'",
-        "AdjustedHours": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
-        "AdjustmentType": "'||rec.ADJUSTMENTTYPE||'",
+        "AdjustedHours": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
+        "AdjustmentType": "'||adjustment_type||'",
         "TransactionDate": "'||n_from_date_crf||'",
         "Description": "'||rec.NOTE||'",
         "EmployeeCode": "'||p_employeeCode||'", 
@@ -125,7 +126,7 @@ l_body_crf := '{
         "IDStrPortal": "'||rec.ID||'",
         "FromDate": "'||n_from_date_crf||'",
         "ToDate": "'||n_to_date_crf||'",
-        "NumberDayOff": "'||(to_char(rec.CRF_DAY_TEMP,'90.9'))||'",
+        "NumberDayOff": "'||to_char(rec.CRF_DAY_TEMP,'90.9')||'",
         "StartTime": "'||rec.START_TIME||':00",
         "EndTime": "'||rec.END_TIME||':00",
         "HRMAbsenceCodeGroupId": "'||rec.CONVERTED_HRM_ABSENCE_CODE_GROUP_ID||'",
@@ -294,14 +295,14 @@ l_body_crf := '{
 -- Send mail
     for rec in (select er.*,emp.DATAAREA,age.DAY_APPROVE,age.BENEFIT_ACCRUAL_PLAN,age.HRM_ABSENCE_CODE_GROUP_ID,
     age.HRM_ABSENCE_CODE_ID,age.CARRY_FORWORD_EXP_DATE,age.CARRY_FORWARD_CODE,age.CF_BENEFIT_ACCRUAL_PLAN,age.CARRY_FORWARD_AVALABLE,
-        case 
-        when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
-            'Amount Used'
-        when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
-            'Amount Used'
-        else
-            null
-        end as ADJUSTMENTTYPE,
+        -- case 
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALPL%' then
+        --     'Amount Used'
+        -- when age.HRM_ABSENCE_CODE_ID like 'ALCF%' then
+        --     'Amount Used'
+        -- else
+        --     null
+        -- end as ADJUSTMENTTYPE,
         case 
         when er.ALL_DAY like 'Y' then
             'Yes'
@@ -374,7 +375,7 @@ l_body_crf := '{
             v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ/ Start Time:</strong> '|| rec.START_TIME ||'</p>';
             v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến/ To Time:</strong> '|| rec.END_TIME ||'</p>';
         else
-            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| rec.TOTAL_DAYS ||'</p>';
+            v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Tổng Số Ngày/ Total Days:</strong> '|| TO_CHAR(rec.TOTAL_DAYS) ||'</p>';
             v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Từ Ngày/ From Date:</strong> '|| to_char(rec.FROM_DATE, 'DD/MM/YYYY') ||'</p>';
             v_body := v_body || '<p style=''color:black''><strong style=''color:black''>- Đến Ngày/ To Date:</strong> '|| to_char(rec.MODIFIED_END_DATE, 'DD/MM/YYYY') ||'</p>';
         end if;
@@ -393,7 +394,7 @@ l_body_crf := '{
         v_body := v_body || '<p style=''color:black''>HR & Admin Department </p>';
         v_body := v_body || '<img style=''width:100%'' src=''https://hcm01.vstorage.vngcloud.vn/v1/AUTH_77c1e15122904b63990a9da99711590d/LXP_Media/ERP/images/footer.jpg''></img>';
 
-        SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Phê duyệt đơn xin nghỉ phép', v_body);
+        -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', n_company_email, 'Phê duyệt đơn xin nghỉ phép', v_body);
         -- SP_SENDGRID_EMAIL('VUSERP-PORTAL@vus-etsc.edu.vn', 'thviet615@gmail.com', 'Phê duyệt đơn xin nghỉ phép', v_body);
 
     end loop;
