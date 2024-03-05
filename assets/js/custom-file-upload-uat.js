@@ -111,7 +111,7 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
       const hiddenInputContainer = document.querySelector(
         eleSelector.eleAttCon + " .ATTACH_GROUP"
       );
-      const maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
+      const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
 
       fileUpload.formData.append("date", getCurrentDateFormatted());
       console.log(getCurrentDateFormatted());
@@ -122,7 +122,7 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
         if (imageFile.size > maxFileSize) {
           // Show an error message or take appropriate action
           alert(
-            `File ${fileName} is larger than 1MB. Please choose a smaller file.`
+            `File ${fileName} is larger than 5MB. Please choose a smaller file.`
           );
           continue; // Skip this file
         }
