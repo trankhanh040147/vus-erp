@@ -28,15 +28,24 @@ begin
     COMMIT;
 end;
 /
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+
 -- Utils functions to check jobs status
 
 -- *List down all "SP_GET_ALL_EMPLOYEES" jobs
 SELECT * FROM USER_SCHEDULER_JOBS WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%';
 
--- Check log of all "SP_GET_ALL_EMPLOYEES" jobs
+-- *Check log of all "SP_GET_ALL_EMPLOYEES" jobs
 SELECT * FROM USER_SCHEDULER_JOB_LOG WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%' ORDER BY LOG_DATE DESC;
 
--- Stop and Delete all current JOB_GET_EMPLOYEES_ jobs
+-- *Stop and Delete all current JOB_GET_EMPLOYEES_ jobs
 BEGIN
     FOR cur_rec IN (SELECT JOB_NAME FROM USER_SCHEDULER_JOBS WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%') LOOP
         BEGIN
