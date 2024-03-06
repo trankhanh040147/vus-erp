@@ -15,7 +15,6 @@ function handleDeleteClick(event, formData, fileArrayNames, fileArrayUrls) {
       document.getElementById("loader-container").style.display = "none";
     }
     let existingInput = document.getElementById("hiddenDeleteItems");
-    console.log(existingInput);
     if (!existingInput) {
       let newInput = document.createElement("input");
       newInput.id = "hiddenDeleteItems";
@@ -49,6 +48,11 @@ function deleteValue(formData, key, value) {
     formData.append(key, updatedValue);
   });
 }
+
+// function _closeDialog() {
+//   document.querySelector('.ui-dialog-titlebar-close').click();
+// }
+
 
 // BindEvent functions
 function BindFileUploadEvent(fileUpload, eleSelector) {
@@ -111,7 +115,7 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
       const hiddenInputContainer = document.querySelector(
         eleSelector.eleAttCon + " .ATTACH_GROUP"
       );
-      const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxFileSize = 5 * 1024 * 1024; // 1MB in bytes
 
       fileUpload.formData.append("date", getCurrentDateFormatted());
       console.log(getCurrentDateFormatted());
@@ -160,12 +164,68 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
       const hrefs = [];
       var imageNamesID = apex.item(eleSelector.eleDefName).getValue();
       const nameArray = imageNamesID.split(";");
+
+      // document.getElementById('loader-container').style.display = 'block';
       for (const value of fileUpload.formData.values()) {
         if (value.name != null) {
           nullFormData = true;
         }
       }
-      let error = false;
+
+      //  else {
+      // await elements.forEach((element) => {
+      //   const name = element.getAttribute("name");
+      //   const href = element.getAttribute("href");
+      //   if (name && href) {
+      //     names.push(name);
+      //     hrefs.push(href);
+      //   }
+      // });
+      // namesString = names.join(";");
+      // urlString = hrefs.join(";");
+      // const missingValuesNameId = await nameArray.filter(
+      //   (value) => !names.includes(value)
+      // );
+      // const urlDelete =
+      //   "https://graphapi.vus.edu.vn/delete-multiple-objects-vng-cloud";
+      // const data = {
+      //   fileNames: missingValuesNameId,
+      // };
+      // console.log(missingValuesNameId);
+      // const requestOptions = {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(data),
+      // };
+      // try {
+      //   await fetch(urlDelete, requestOptions)
+      //     .then((response) => {
+      //       if (!response.ok) {
+      //         throw new Error("Network response was not ok");
+      //       }
+      //       return response.json();
+      //     })
+      //     .then((data) => {
+      //       console.log(data);
+      //     });
+      // } catch (error) {
+      //   console.error("Error:", error);
+      // } finally {
+      //   document.getElementById("loader-container").style.display = "none";
+      // }
+      // await apex.item(eleSelector.eleAttUrl).setValue(urlString);
+      // await apex.item(eleSelector.eleAttName).setValue(namesString);
+      // apex.submit(eleSelector.eleBtnSubmit);
+      // setTimeout(function () {
+      //   if (log_mode == 1) {
+      //     console.log("Submit button clicked");
+      //   } else {
+      //     apex.submit(eleSelector.eleBtnSubmitApexName);
+      //   }
+      // }, 500);
+      // }
       let stringUrlsImport = "";
       let stringNamesImport = "";
       let arrayDeleteItems = document.querySelector("#hiddenDeleteItems")
@@ -187,11 +247,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
             body: fileUpload.formData,
             timeout: 15000,
           });
-          if (response.status === 500) {
-            alert(`Upload failed: Maximum 5 files`);
-            error = true;
-            return;
-          }
+          console.log(response);
           if (response.status === 200) {
             const responseBody = await response.json();
             const apiNames = responseBody.data
@@ -202,11 +258,10 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
               .join(";");
             stringNamesImport += `;${apiNames}`;
             stringUrlsImport += `;${apiUrls}`;
-            error = false;
           } else {
+            console.log("Upload failed");
           }
         } catch (error) {
-          alert(` ${error} `);
           console.error("An error occurred:", error);
         } finally {
           document.getElementById("loader-container").style.display = "none";
@@ -245,20 +300,17 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
       // console.log(getUniqueValues(arrayDeleteItems));
       // console.log(stringUrlsImport);
       // console.log(stringNamesImport);
-      if (error == false) {
-        await apex.item(eleSelector.eleAttUrl).setValue(stringUrlsImport);
-        await apex.item(eleSelector.eleAttName).setValue(stringNamesImport);
-        setTimeout(function () {
-          if (log_mode == 1) {
-            console.log("Submit button clicked");
-          } else {
-            apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
-            //return false;
-          }
-        }, 500);
-      } else {
-        return;
-      }
+      await apex.item(eleSelector.eleAttUrl).setValue(stringUrlsImport);
+      await apex.item(eleSelector.eleAttName).setValue(stringNamesImport);
+      setTimeout(function () {
+        if (log_mode == 1) {
+          console.log("Submit button clicked");
+        } else {
+          _closeDialog();
+          apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
+          //return false;
+        }
+      }, 500);
       // document.getElementById("loader-container").style.display = "none";
     });
 }
