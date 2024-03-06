@@ -106,7 +106,9 @@ BEGIN
         SYSDATE,
         'Upload file - P10101_DEFAULT_IMAGES_URL, P10101_DEFAULT_IMAGES_NAME',
         :P10101_EMP_EDUCATION_ID
-
+    FROM
+        DUAL;
+        
     COMMIT;
 
 END;
