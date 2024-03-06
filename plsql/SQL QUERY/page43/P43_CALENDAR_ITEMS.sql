@@ -1,0 +1,20 @@
+SELECT JSON_ARRAYAGG(
+  JSON_OBJECT(
+    'ID' VALUE ws.ID,
+    'EMPLOYEE_CODE' VALUE ws.EMPLOYEE_CODE,
+    'DATE' VALUE TO_CHAR(ws."WS_DATE", 'YYYY-MM-DD'),
+    'TIME_OF_DAY' VALUE ws.TIME_OF_DAY,
+    -- 'DATE' VALUE TO_CHAR(ws.DATE, 'MM-DD-YYYY'),
+    'PROFILE_ID' VALUE ws.PROFILE_ID,
+    'EMPLOYEE_FULLNAME' VALUE e.FULL_NAME,
+    'COLOR' VALUE ptl.COLOR
+  )
+) AS json_data
+FROM WORKING_SCHEDULE ws
+JOIN EMPLOYEES e ON e.EMPLOYEE_CODE = ws.EMPLOYEE_CODE
+LEFT JOIN PROFILE_TIME_LIST ptl ON ptl.PROFILE_ID = ws.PROFILE_ID
+WHERE lower(E.FULL_NAME) like '%' || TRIM(lower(:P43_EMPLOYEE_NAME)) ||'%'
+    and lower(ws.PROFILE_ID) like '%' || lower(case when :P43_PROFILE_TIME = 'na' then '' else :P43_PROFILE_TIME end) || '%'
+    and ws.PROFILE_ID not like '%-x-%';
+
+
