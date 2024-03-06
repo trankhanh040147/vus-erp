@@ -64,26 +64,48 @@ BEGIN
     end if;
 
     -- write log 
-    -- INSERT INTO LOGS_UPLOAD_FILE
-    -- (
-    --     ATTACH_URL,
-    --     ATTACH_NAME,
-    --     EMPLOYEE_CODE,
-    --     TABLE_NAME,
-    --     TIMESTAMP,
-    --     NOTE,
-    --     TABLE_ID
-    -- )
-    -- SELECT
-    --     :P10101_ATTACHMENT_URL,
-    --     :P10101_ATTACHMENT_NAME,
-    --     :P10101_EMPLOYEE_CODE,
-    --     'EMP_EDUCATION',
-    --     SYSDATE,
-    --     'Upload file',
-    --     :P10101_EMP_EDUCATION_ID
-    -- FROM
-    --     DUAL;
+
+    -- *store P10101_ATTACHMENT_URL, P10101_ATTACHMENT_NAME
+    INSERT INTO LOGS_UPLOAD_FILE
+    (
+        ATTACH_URL,
+        ATTACH_NAME,
+        EMPLOYEE_CODE,
+        TABLE_NAME,
+        TIMESTAMP,
+        NOTE,
+        TABLE_ID
+    )
+    SELECT
+        :P10101_ATTACHMENT_URL,
+        :P10101_ATTACHMENT_NAME,
+        :P10101_EMPLOYEE_CODE,
+        'EMP_EDUCATION',
+        SYSDATE,
+        'Upload file - P10101_ATTACHMENT_URL, P10101_ATTACHMENT_NAME',
+        :P10101_EMP_EDUCATION_ID
+    FROM
+        DUAL;
+
+    -- * store P10101_DEFAULT_IMAGES_URL, P10101_DEFAULT_IMAGES_NAME
+    INSERT INTO LOGS_UPLOAD_FILE
+    (
+        ATTACH_URL,
+        ATTACH_NAME,
+        EMPLOYEE_CODE,
+        TABLE_NAME,
+        TIMESTAMP,
+        NOTE,
+        TABLE_ID
+    )
+    SELECT
+        :P10101_DEFAULT_IMAGES_URL,
+        :P10101_DEFAULT_IMAGES_NAME,
+        :P10101_EMPLOYEE_CODE,
+        'EMP_EDUCATION',
+        SYSDATE,
+        'Upload file - P10101_DEFAULT_IMAGES_URL, P10101_DEFAULT_IMAGES_NAME',
+        :P10101_EMP_EDUCATION_ID
 
     COMMIT;
 
