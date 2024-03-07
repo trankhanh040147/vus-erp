@@ -301,6 +301,19 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
         if (log_mode == 1) {
           console.log("Submit button clicked");
         } else {
+
+          // Khanh update - 07/03/24
+          // begin
+          // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
+          if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+            apex.submit(eleSelector.eleBtnSubmitApexName);
+          } else {
+            // alert 
+            alert('No changes detected!');
+            return
+          }
+          //end
+
           apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
           //return false;
         }
