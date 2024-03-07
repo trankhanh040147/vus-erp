@@ -301,8 +301,20 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
         if (log_mode == 1) {
           console.log("Submit button clicked");
         } else {
-          apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
-          //return false;
+
+          /* Khanh updated - 04.12 pm 07.03.24  */
+          // if there is file changed, then set the flag value to true
+          if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+            apex.item(eleSelector.eleFlagFileChanges).setValue("y");
+            console.log("File changes detected");
+          }
+          else {
+            apex.item(eleSelector.eleFlagFileChanges).setValue("n");
+            console.log("No file changes detected");
+          }
+          /* end comnmit */
+
+          apex.submit(eleSelector.eleBtnSubmitApexName);
         }
       }, 500);
       // document.getElementById("loader-container").style.display = "none";
