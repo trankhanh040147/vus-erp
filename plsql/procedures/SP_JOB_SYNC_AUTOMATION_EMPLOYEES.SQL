@@ -34,14 +34,14 @@ BEGIN
     -- -- *Delete job
     -- DELETE
     -- FROM all_scheduler_jobs
-    -- WHERE job_name = 'MY_AUTOMATION_JOB';
+    -- WHERE job_name = 'JOB_SYNC_AUTOMATION_EMPLOYEES';
 
     -- -- *Check all job
     -- SELECT * FROM USER_SCHEDULER_JOBS
 
     -- -- *Drop Job
     -- BEGIN
-    -- DBMS_SCHEDULER.DROP_JOB(job_name => 'LEAVE_CALCULATION_SCHEDULE');
+    -- DBMS_SCHEDULER.DROP_JOB(job_name => 'JOB_SYNC_AUTOMATION_EMPLOYEES');
     -- END;
     -- /
 
@@ -61,7 +61,7 @@ BEGIN
     -- -- *run the job instantly
     -- -- !This will run the job instantly, regardless of the repeat_interval
     -- begin
-    --     dbms_scheduler.run_job('JOB_SYNC_ALL_EMPLOYEES');
+    --     dbms_scheduler.run_job('JOB_SYNC_AUTOMATION_EMPLOYEES');
     -- end;
 
         
@@ -116,5 +116,32 @@ DELETE
 FROM all_scheduler_jobs
 WHERE job_name = 'JOB_SYNC_AUTOMATION_EMPLOYEES';
 
-
 ---------------------------------------------------------------------------------------------------
+
+--* Check JOB_GET_EMPLOYEES_ jobs
+
+
+-- *List down all "SP_GET_ALL_EMPLOYEES" jobs
+SELECT * FROM USER_SCHEDULER_JOBS WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%';
+
+-- *Check log of all "SP_GET_ALL_EMPLOYEES" jobs
+SELECT * FROM USER_SCHEDULER_JOB_LOG WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%' ORDER BY LOG_DATE DESC;
+
+-- *Stop and Delete all current JOB_GET_EMPLOYEES_ jobs
+BEGIN
+    FOR cur_rec IN (SELECT JOB_NAME FROM USER_SCHEDULER_JOBS WHERE JOB_NAME LIKE 'JOB_GET_EMPLOYEES_%') LOOP
+        BEGIN
+            BEGIN
+                DBMS_SCHEDULER.STOP_JOB(job_name => cur_rec.JOB_NAME, force => TRUE);
+                DBMS_SCHEDULER.DROP_JOB(job_name => cur_rec.JOB_NAME);
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                    -- Handle the case when the job does not exist
+                    DBMS_OUTPUT.PUT_LINE('Job ' || cur_rec.JOB_NAME || ' does not exist.');
+                WHEN OTHERS THEN
+                    -- Handle other exceptions if necessary
+                    DBMS_OUTPUT.PUT_LINE('Error occurred while stopping/dropping job ' || cur_rec.JOB_NAME || ': ' || SQLERRM);
+            END;
+        END;
+    END LOOP;
+END;
