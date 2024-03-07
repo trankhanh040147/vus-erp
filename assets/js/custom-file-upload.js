@@ -310,12 +310,10 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
           } else {
             // alert 
             alert('No changes detected!');
-            return
+            return false
           }
           //end
 
-          apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
-          //return false;
         }
       }, 500);
       // document.getElementById("loader-container").style.display = "none";
