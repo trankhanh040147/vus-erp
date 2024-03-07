@@ -1,3 +1,8 @@
+function _closeDialog(){
+  // document.querySelector('.ui-dialog-titlebar-close').click();
+  jQuery('.ui-dialog-titlebar-close').click();
+  }
+  
 // Util functions
 function handleDeleteClick(event, formData, fileArrayNames, fileArrayUrls) {
   if (event.target.classList.contains("delete-item")) {
@@ -306,6 +311,16 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
         if (log_mode == 1) {
           console.log("Submit button clicked");
         } else {
+
+          // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
+          if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+            apex.submit(eleSelector.eleBtnSubmitApexName);
+          } else {
+            // alert 
+            alert('No changes detected!');
+            return
+          }
+
           _closeDialog();
           apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
           //return false;

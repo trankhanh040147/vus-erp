@@ -304,21 +304,23 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
 
           // Khanh update - 07/03/24
           // begin
-
-          // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
-          if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
-            apex.submit(eleSelector.eleBtnSubmitApexName);
-          } else {
-            // alert 
-            alert('No changes detected!');
-            return
+          if (typeof is_modal_page != 'undefined' && is_modal_page == true) {
+            // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
+            if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+              apex.submit(eleSelector.eleBtnSubmitApexName);
+              _closeDialog();
+            }
+            else {
+              // alert 
+              alert('No changes detected!');
+              return false
+            }
           }
-
+          else {
+            apex.submit(eleSelector.eleBtnSubmitApexName);
+          }
           //end
 
-          _closeDialog();
-          apex.submit(eleSelector.eleBtnSubmitApexName); // by leluhien
-          //return false;
         }
       }, 500);
       // document.getElementById("loader-container").style.display = "none";
