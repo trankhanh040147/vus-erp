@@ -301,7 +301,26 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
         if (log_mode == 1) {
           console.log("Submit button clicked");
         } else {
-          apex.submit(eleSelector.eleBtnSubmitApexName);
+
+          // Khanh update - 07/03/24
+          // begin
+          if (typeof is_modal_page != 'undefined' && is_modal_page == true) {
+            // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
+            if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+              apex.submit(eleSelector.eleBtnSubmitApexName);
+              _closeDialog();
+            }
+            else {
+              // alert 
+              alert('No changes detected!');
+              return false
+            }
+          }
+          else {
+            apex.submit(eleSelector.eleBtnSubmitApexName);
+          }
+          //end
+
         }
       }, 500);
       // document.getElementById("loader-container").style.display = "none";
