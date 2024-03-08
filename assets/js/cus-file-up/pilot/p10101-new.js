@@ -317,22 +317,15 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                         // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
                         if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
 
-                            apex.server.process(eleSelector.eleBtnSubmitApexName, {
+                            apex.server.process('test_submit', {
                                 x01: 'submit', // pass a variable if needed
                             }, {
-                                success: function (data) {
-                                    try {
-                                        var jsonData = JSON.parse(data);
-                                        console.log('Process completed successfully');
-                                        _closeDialog();
-                                    } catch (error) {
-                                        console.log('Ignoring JSON parsing error: ' + error);
-                                        _closeDialog();
-                                    }
+                                success: function () {
+                                    _closeDialog();
                                 },
                                 error: function (xhr, status, error) {
                                     console.log('Error: ' + error);
-                                    _closeDialog();
+                                    // _closeDialog();
                                 }
                             });
 
