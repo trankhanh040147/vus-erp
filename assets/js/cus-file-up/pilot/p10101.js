@@ -308,7 +308,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
 
                     // Khanh update - 08/03/24
                     // update 1: use apex.server.process
-                        // *apex.submit | apex.page.submit do not support success and error callback
+                    // *apex.submit | apex.page.submit do not support success and error callback
                     // update 2: add is_modal_page for modal page upload (page 10101, 10102)
                     // update 3: add alert if no changes detected
                     // update 4: close modal dialog after submit
@@ -320,17 +320,22 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                             apex.server.process(eleSelector.eleBtnSubmitApexName, {
                                 x01: 'submit', // pass a variable if needed
                             }, {
-                                success: function() {
-                                    console.log('Process completed successfully');
-                                    // _closeDialog();
+                                success: function (data) {
+                                    try {
+                                        var jsonData = JSON.parse(data);
+                                        console.log('Process completed successfully');
+                                        _closeDialog();
+                                    } catch (error) {
+                                        console.log('Ignoring JSON parsing error: ' + error);
+                                        _closeDialog();
+                                    }
                                 },
-                                error: function(xhr, status, error) {
+                                error: function (xhr, status, error) {
                                     console.log('Error: ' + error);
-                                    // _closeDialog();
-                                    apex.submit(eleSelector.eleBtnSubmitApexName);
+                                    _closeDialog();
                                 }
                             });
-                            
+
                         }
                         else {
                             alert('No changes detected!');
@@ -342,10 +347,10 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                         apex.server.process(eleSelector.eleBtnSubmitApexName, {
                             // x01: 'submit', // pass a variable if needed
                         }, {
-                            success: function(data) {
+                            success: function (data) {
                                 console.log('Process completed successfully');
                             },
-                            error: function(xhr, status, error) {
+                            error: function (xhr, status, error) {
                                 console.log('Error: ' + error);
                             }
                         });
