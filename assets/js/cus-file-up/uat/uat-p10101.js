@@ -312,7 +312,9 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
             // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
             if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
               apex.submit(eleSelector.eleBtnSubmitApexName);
-              _closeDialog();
+              setTimeout(function () {
+                _closeDialog();
+              }, 3000);
             }
             else {
               // alert 
