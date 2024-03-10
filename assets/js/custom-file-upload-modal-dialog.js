@@ -302,33 +302,53 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
           console.log("Submit button clicked");
         } else {
 
-          // Khanh update - 08/03/24
+          // Khanh update - 10/03/24
           // update 1: use apex.server.process
-          // *apex.submit | apex.page.submit do not support success and error callback
+          // *apex.submit do not support success and error callback
           // update 2: add is_modal_page for modal page upload (page 10101, 10102)
           // update 3: add alert if no changes detected
           // update 4: close modal dialog after submit
           /* --- */
           if (typeof is_modal_page != 'undefined' && is_modal_page == true) {
-
             // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
             if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
-              apex.submit(eleSelector.eleBtnSubmitApexName);
 
-              setTimeout(function () {
-                _closeDialog();
-              }, 1500);
+              // console.log('-------: ' + fileUpload.fileArrayUrls);
+
+              apex.server.process('SUBMIT', {
+                pageItems: "#P10101_ATTACHMENT_URL,#P10101_ATTACHMENT_NAME,#P10101_EMP_EDUCATION_ID,#P10101_TEMP_ID"
+              },
+                {
+                  success: function (pData) {
+                    console.log('Process completed successfully');
+                    console.log(pData);
+                    _closeDialog();
+
+                  },
+                  error: function (xhr, status, error) {
+                    console.log('Error: ' + error);
+                    _closeDialog();
+                  }
+                });
+
             }
             else {
-              // alert 
               alert('No changes detected!');
               return false
             }
-
           }
           // if not modal page, just submit the page
           else {
-            apex.submit(eleSelector.eleBtnSubmitApexName);
+            apex.server.process(eleSelector.eleBtnSubmitApexName, {
+              // x01: 'submit', // pass a variable if needed
+            }, {
+              success: function (data) {
+                console.log('Process completed successfully');
+              },
+              error: function (xhr, status, error) {
+                console.log('Error: ' + error);
+              }
+            });
           }
           /* --- */
 
