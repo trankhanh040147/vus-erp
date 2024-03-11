@@ -1,7 +1,9 @@
-const is_modal_page = true
-function _closeDialog() {
-    parent.document.querySelector('.ui-dialog-titlebar-close').click();
+function generateTempKey(ig$, column, record, value, rowIndex, modelInstance) {
+    var tempKey = 'temp_' + new Date().getTime() + '_' + Math.random().toString(36).substr(2, 9);
+    return tempKey;
 }
+// ----------------------------------------------------------------------
+// upload file
 // Util functions
 function handleDeleteClick(event, formData, fileArrayNames, fileArrayUrls) {
     if (event.target.classList.contains("delete-item")) {
@@ -78,13 +80,13 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
         let hiddenInputHTML;
         if (imageUrl != "" || imageName != "") {
             hiddenInputHTML = `
-        <div class="file-item ">
-            <span  id="deleteItem${imageName}" data-name="${imageName}" class="delete-item btn-delete vng-true"> X </span>
-            <a name="${imageName}" href="${imageUrl}" target="_blank" class="${eleSelector.eleDynamicValue}">
-                ${imageName}
-            </a>
-        </div>
-    `;
+          <div class="file-item ">
+              <span  id="deleteItem${imageName}" data-name="${imageName}" class="delete-item btn-delete vng-true"> X </span>
+              <a name="${imageName}" href="${imageUrl}" target="_blank" class="${eleSelector.eleDynamicValue}">
+                  ${imageName}
+              </a>
+          </div>
+      `;
         } else {
             hiddenInputHTML = ``;
         }
@@ -133,13 +135,13 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
                 fileUpload.formData.append("files", imageFile);
 
                 const hiddenInputHTML = `
-        <div class="file-item id-numb-file">
-            <a href="${fileURL}" target="_blank">
-                ${fileName}
-            </a>
-            <span id="deleteItem${fileName}" data-name="${fileName}" class="delete-item btn-delete"> X </span>
-        </div>
-      `;
+          <div class="file-item id-numb-file">
+              <a href="${fileURL}" target="_blank">
+                  ${fileName}
+              </a>
+              <span id="deleteItem${fileName}" data-name="${fileName}" class="delete-item btn-delete"> X </span>
+          </div>
+        `;
                 hiddenInputContainer.insertAdjacentHTML("beforeend", hiddenInputHTML);
             }
             hiddenInputContainer.addEventListener("click", function (event) {
@@ -150,6 +152,7 @@ function BindFileUploadEvent(fileUpload, eleSelector) {
                     fileUpload.fileArrayUrls
                 );
             });
+ 
         });
 }
 
@@ -157,8 +160,9 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
     document
         .getElementById(eleSelector.eleBtnSubmitId)
         .addEventListener("click", async function (event) {
+
             let nullFormData = false;
-            const elements = document.querySelectorAll(".dynamic-value-page");
+            const elements = document.querySelectorAll(eleSelector.eleDynamicValue);
             const names = [];
             const hrefs = [];
             var imageNamesID = apex.item(eleSelector.eleDefName).getValue();
@@ -233,7 +237,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
             const allItems = document.querySelectorAll(".file-item");
             allItems.forEach((item) => {
                 const child = item.querySelector("a");
-                if (child.classList.contains("dynamic-value-page")) {
+                if (child.classList.contains(eleSelector.eleDynamicValue)) {
                     stringNamesImport += `;${child.getAttribute("name")}`;
                     stringUrlsImport += `;${child.getAttribute("href")}`;
                 }
@@ -310,64 +314,19 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
                     console.log("Submit button clicked");
                 } else {
 
-                    // !logging
-                    // log default attachment name
-                    console.log("Default Attachment Name: ", apex.item(eleSelector.eleDefName).getValue());
-                    // log attachment name saved
-                    console.log("Attachment Name saved: ", apex.item(eleSelector.eleAttName).getValue());
-                    // !end log
-
-                    // Khanh update - 10/03/24
-                    // update 1: use apex.server.process
-                    // *apex.submit do not support success and error callback
-                    // update 2: add is_modal_page for modal page upload (page 10101, 10102)
-                    // update 3: add alert if no changes detected
-                    // update 4: close modal dialog after submit
-                    /* --- */
-                    if (typeof is_modal_page != 'undefined' && is_modal_page == true) {
-                        // if eleAttUrl is different from eleDefUrl, then submit the page, else do nothing
-                        if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
-
-                            // console.log('-------: ' + fileUpload.fileArrayUrls);
-
-                            apex.server.process('SUBMIT', {
-                                // pageItems: "#P10101_ATTACHMENT_URL,#P10101_ATTACHMENT_NAME,#P10101_EMP_EDUCATION_ID,#P10101_TEMP_ID"
-                                pageItems: "#" + eleSelector.eleAttUrl + ",#" + eleSelector.eleAttName + ",#" + eleSelector.eleTableId1 + ",#" + eleSelector.eleTempId
-                            },
-                                {
-                                    success: function (pData) {
-                                        console.log('Process completed successfully');
-                                        console.log(pData);
-                                        _closeDialog();
-
-                                    },
-                                    error: function (xhr, status, error) {
-                                        console.log('Error: ' + error);
-                                        _closeDialog();
-                                    }
-                                });
-
-                        }
-                        else {
-                            alert('No changes detected!');
-                            return false
-                        }
+                    /* Khanh updated - 04.12 pm 07.03.24  */
+                    // if there is file changed, then set the flag value to true
+                    if (apex.item(eleSelector.eleAttUrl).getValue() != apex.item(eleSelector.eleDefUrl).getValue()) {
+                        apex.item(eleSelector.eleFlagFileChanges).setValue("y");
+                        console.log("File changes detected");
                     }
-                    // if not modal page, just submit the page
                     else {
-                        apex.server.process(eleSelector.eleBtnSubmitApexName, {
-                            // x01: 'submit', // pass a variable if needed
-                        }, {
-                            success: function (data) {
-                                console.log('Process completed successfully');
-                            },
-                            error: function (xhr, status, error) {
-                                console.log('Error: ' + error);
-                            }
-                        });
+                        apex.item(eleSelector.eleFlagFileChanges).setValue("n");
+                        console.log("No file changes detected");
                     }
-                    /* --- */
+                    /* end comnmit */
 
+                    apex.submit(eleSelector.eleBtnSubmitApexName);
                 }
             }, 500);
             // document.getElementById("loader-container").style.display = "none";
