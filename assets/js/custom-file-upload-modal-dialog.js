@@ -316,7 +316,8 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
               // console.log('-------: ' + fileUpload.fileArrayUrls);
 
               apex.server.process('SUBMIT', {
-                pageItems: "#P10101_ATTACHMENT_URL,#P10101_ATTACHMENT_NAME,#P10101_EMP_EDUCATION_ID,#P10101_TEMP_ID"
+                // pageItems: "#P10101_ATTACHMENT_URL,#P10101_ATTACHMENT_NAME,#P10101_EMP_EDUCATION_ID,#P10101_TEMP_ID"
+                pageItems: "#" + eleSelector.eleAttUrl + ",#" + eleSelector.eleAttName + ",#" + eleSelector.eleTableId1 + ",#" + eleSelector.eleTempId
               },
                 {
                   success: function (pData) {
