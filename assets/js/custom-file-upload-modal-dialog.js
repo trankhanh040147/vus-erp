@@ -154,7 +154,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
     .getElementById(eleSelector.eleBtnSubmitId)
     .addEventListener("click", async function (event) {
       let nullFormData = false;
-      const elements = document.querySelectorAll(".dynamic-value-page");
+      const elements = document.querySelectorAll(eleSelector.eleDynamicValue);
       const names = [];
       const hrefs = [];
       var imageNamesID = apex.item(eleSelector.eleDefName).getValue();
@@ -229,7 +229,7 @@ function BindEventSubmitBtn(fileUpload, eleSelector) {
       const allItems = document.querySelectorAll(".file-item");
       allItems.forEach((item) => {
         const child = item.querySelector("a");
-        if (child.classList.contains("dynamic-value-page")) {
+        if (child.classList.contains(eleSelector.eleDynamicValue)) {
           stringNamesImport += `;${child.getAttribute("name")}`;
           stringUrlsImport += `;${child.getAttribute("href")}`;
         }
