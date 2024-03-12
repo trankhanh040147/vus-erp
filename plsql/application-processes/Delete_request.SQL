@@ -9,7 +9,7 @@ for rec in (select CRF_DAY_TEMP,ANNUAL_DAY_TEMP,EMPLOYEE_CODE_REQ,BENEFIT_CODE f
                 CARRY_FORWARD_AVALABLE = CARRY_FORWARD_AVALABLE + rec.CRF_DAY_TEMP,
                 AVAILABLE = AVAILABLE + rec.ANNUAL_DAY_TEMP,
                 PLAN_YEAR_USED = PLAN_YEAR_USED - rec.ANNUAL_DAY_TEMP
-    where EMPLOYEE_CODE = rec.EMPLOYEE_CODE_REQ and age.BENEFIT_ACCRUAL_PLAN = rec.BENEFIT_CODE;
+    where EMPLOYEE_CODE = rec.EMPLOYEE_CODE_REQ and trim(lower(rec.BENEFIT_CODE)) like '%' || trim(lower(age.BENEFIT_ACCRUAL_PLAN)) || '%';
 end loop;
 
 delete from EMPLOYEE_REQUESTS where ID = v_request_id;
